@@ -311,7 +311,7 @@ int capture(my_config *config)
   printf("Filter: %s\n", filter);
 #endif
   
-  if (pcap_compile(handle, &fp, filter, 0, netp) == -1) {
+  if (pcap_compile(handle, &fp, filter, 0, PCAP_NETMASK_UNKNOWN) == -1) {
     fprintf(stderr, "Couldn't parse filter %s: %s\n", filter, pcap_geterr(handle));
     return(2);
   }
