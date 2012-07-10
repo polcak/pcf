@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Libor Polčák <ipolcak@fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -309,10 +310,18 @@ int save_active(my_list *list)
   
   for (current_list = list; current_list != NULL; current_list = current_list->next) {
     
-    if (current_list->freq == 0)
+    if (current_list->freq == 0) {
+#ifdef DEBUG
+      fprintf(stderr, "XML: skipping %s - frequency is 0\n", current_list->address);
+#endif
       continue;
-    if (fabs(current_list->skew.alpha) < THRESHOLD)
+    }
+    if (fabs(current_list->skew.alpha) < THRESHOLD) {
+#ifdef DEBUG
+      fprintf(stderr, "XML: skipping %s - skew %lf lower than THRESHOLD\n", current_list->address, current_list->skew.alpha);
+#endif
       continue;
+    }
   
     /// <computer skew>
     node = xmlNewNode(NULL, BAD_CAST "computer");
@@ -358,6 +367,10 @@ int save_active(my_list *list)
     
     /// Save
     xmlSaveFileEnc(active, doc, MY_ENCODING);
+
+#ifdef DEBUG
+    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", current_list->address, current_list->freq, current_list->skew.alpha);
+#endif
   }
   
   xmlFreeDoc(doc);
