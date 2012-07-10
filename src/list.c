@@ -110,10 +110,6 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           return(1);
         }
 
-        /// Skip packets in first minute (frequency computation)
-        if ((ttime - current_list->head->time) < 60)
-          return(2);
-
         /// Stop supporting lists with stupid frequency
         if (fabs(current_list->freq) > 10000)
           return(0);
@@ -134,7 +130,15 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
 
           /// Set frequency
           if (current_list->freq == 0) {
+            if ((ttime - current_list->head->time) < 60) {
+              return 2;
+            }
+            else {
               current_list->freq = get_frequency(current_list->head);
+#if 0
+              fprintf(stderr, "Found %s with frequency %d", current_list->address, current_list->freq);
+#endif
+            }
           }
 
           /// Set offsets
