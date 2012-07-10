@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Libor Polčák <ipolcak@fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -21,6 +22,9 @@
 #define _LIST_H
 
 #include <time.h>
+
+// IPv6 addr length (39B) + '\0' + some padding
+#define ADDRESS_SIZE 64
 
 
 /**
@@ -49,7 +53,7 @@ typedef struct my_lst my_list;
 struct my_lst {
   my_packet *head;
   my_packet *tail;
-  char address[16];
+  char address[ADDRESS_SIZE];
   int freq;
   char *name;
   unsigned long count;

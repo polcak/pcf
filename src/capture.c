@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Libor Polčák <ipolcak@fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -28,6 +29,7 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 
 #include "capture.h"
@@ -98,8 +100,10 @@ int add_to_filter(char *filter, const char *add, int *length)
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-  // IP header
-  const struct ip *ip;
+  // Allocate space for an address
+  char address[ADDRESS_SIZE];
+  // Ethernet header
+  const struct ether_header *ether = (struct ether_header*) packet;
   // TCP header
   const struct tcphdr *tcp;
   // Packet arrival time (us)
@@ -114,16 +118,47 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   
   /// Ethernet
   size_ethernet = sizeof(struct ether_header);
+  u_int16_t ether_type = ntohs(ether->ether_type);
   
-  /// IP
-  ip = (struct ip*)(packet + size_ethernet);
-  size_ip = sizeof(struct ip);
-  /// Check if the packet is TCP
-  if (ip->ip_p != IPPROTO_TCP)
-    return;
-  
-  /// TCP
-  tcp = (struct tcphdr*)(packet + size_ethernet + size_ip);
+  if (ether_type == 0x0800)
+  { /// IPv4
+    // IP header
+    const struct ip *ip  = (struct ip*)(packet + size_ethernet);
+    size_ip = sizeof(struct ip);
+    /// Check if the packet is TCP
+    if (ip->ip_p != IPPROTO_TCP)
+      return;
+
+    /// TCP
+    tcp = (struct tcphdr*)(packet + size_ethernet + size_ip);
+    if (inet_ntop(AF_INET, &(ip->ip_src), address, 64) == NULL)
+    {
+      fprintf(stderr, "Cannot get IP address\n");
+      return;
+    }
+  }
+  else if (ether_type == 0x86dd)
+  { /// IPv6
+    // IP header
+    const struct ip6_hdr *ip  = (struct ip6_hdr*)(packet + size_ethernet);
+    size_ip = sizeof(struct ip6_hdr);
+    /// Check if the packet is TCP
+    if (ip->ip6_ctlun.ip6_un1.ip6_un1_nxt != IPPROTO_TCP)
+      return;
+
+    /// TCP
+    tcp = (struct tcphdr*)(packet + size_ethernet + size_ip);
+    if (inet_ntop(AF_INET6, &(ip->ip6_src), address, 64) == NULL)
+    {
+      fprintf(stderr, "Cannot get IP address\n");
+      return;
+    }
+  }
+  else
+  {
+      fprintf(stderr, "Unknown Ethernet type\n");
+      return;
+  }
   size_tcp = tcp->doff*4;
   if (size_tcp < 20) {
 #ifdef DEBUG
@@ -195,7 +230,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
   
   /// Save packet
-  new_packet(inet_ntoa(ip->ip_src), arrival_time, timestamp);
+  new_packet(address, arrival_time, timestamp);
 }
 
 
@@ -274,7 +309,7 @@ int capture(my_config *config)
   strcpy(filter, "tcp");
   length += strlen("tcp");
   // TCP header with options and (very likely) with timestamps
-  add_to_filter(filter, " && tcp[12] >= 120 ", &length);
+  add_to_filter(filter, " && ((tcp[12] >= 120) || (ip6[52] >= 120)) ", &length);
   // Port
   if (config->port != 0) {
     add_to_filter(filter, " && port ", &length);
