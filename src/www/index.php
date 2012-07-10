@@ -74,7 +74,7 @@ foreach ($computers->computer as $computer) {
 	if ($computer->name != "") {
 		echo "<b><font color='green'><a href=\"javascript:aktual('", $i, "')\">", $computer->address, " (", $computer->name, ")</a></font></b><br />";
         	echo "<div id='", $i, "'>";
-	        echo "<form method='post' action='", $SERVER['PHP_SELF'], "'>";
+	        echo "<form method='post' action='", $_SERVER['PHP_SELF'], "'>";
 	        echo "<table>";
 	        if ($computer->name != "") {
         	        echo "<tr><td>Diff:</td><td>", $computer->diff, "</td></tr>";
