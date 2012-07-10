@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Libor Polčák <ipolcak@fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -88,114 +89,117 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   static unsigned long total = 0;
   printf("\r%lu packets captured", ++total);
   fflush(stdout);
-  
+
   if (list != NULL) {
     my_list *current_list;
     for (current_list = list; current_list != NULL; current_list = current_list->next) {
       if (strcmp(current_list->address, address) == 0) {
-	
-	/// Too much time since last packet so start from the beginning
-	if ((ttime - current_list->tail->time) > TIME_LIMIT) {
-	  remove_old_lists(ttime);
-	  return(3);
-	}
-	
-	/// Check if packet has the same or lower timestamp
-	if (timestamp <= current_list->tail->timestamp) {
+
+        /// Too much time since last packet so start from the beginning
+        if ((ttime - current_list->tail->time) > TIME_LIMIT) {
+          remove_old_lists(ttime);
+          return(3);
+        }
+
+        /// Check if packet has the same or lower timestamp
+        if (timestamp <= current_list->tail->timestamp) {
 #ifdef DEBUG
-	  if (timestamp < current_list->tail->timestamp)
-	    fprintf(stderr, "%s: Lower timestamp\n", current_list->address);
+          if (timestamp < current_list->tail->timestamp)
+            fprintf(stderr, "%s: Lower timestamp\n", current_list->address);
 #endif
-	  return(1);
-	}
-	
-	/// Skip packets in first minute
-	if ((ttime - current_list->head->time) < 60)
-	  return(2);
-	
-	/// Stop supporting lists with stupid frequency
-	if (fabs(current_list->freq) > 10000)
-	  return(0);
-	
-	/// Insert packet
-	current_list->tail = insert_packet(current_list->tail, ttime, timestamp);
-	if (current_list->tail == NULL)
-	  return(-1);
-	
-	/// Increment number of packets
-	current_list->count++;
-  
-	/// Operations do every BLOCK
-	if ((current_list->count % BLOCK) == 0) {
-	  
-	  /// Remove old lists
-	  remove_old_lists(ttime);
-	  
-	  /// Set frequency
-	  if (current_list->freq == 0)
-	    current_list->freq = get_frequency(current_list->head);
-	  
-	  /// Set offsets
-	  set_offsets(current_list->head, current_list->head, current_list->freq);
-	  
-	  /// Set date
-	  time(&current_list->rawtime);
-	  
-	  /// Save offsets into file - all
-	  //save_packets(current_list, BLOCK, current_list->first);
-	  //current_list->first = 0;
-	  
-	  /// Reduce packets
-	  static short reduce = 0;
+          return(1);
+        }
+
+        /// Skip packets in first minute (frequency computation)
+        if ((ttime - current_list->head->time) < 60)
+          return(2);
+
+        /// Stop supporting lists with stupid frequency
+        if (fabs(current_list->freq) > 10000)
+          return(0);
+
+        /// Insert packet
+        current_list->tail = insert_packet(current_list->tail, ttime, timestamp);
+        if (current_list->tail == NULL)
+          return(-1);
+
+        /// Increment number of packets
+        current_list->count++;
+
+        /// Operations do every BLOCK
+        if ((current_list->count % BLOCK) == 0) {
+
+          /// Remove old lists
+          remove_old_lists(ttime);
+
+          /// Set frequency
+          if (current_list->freq == 0) {
+              current_list->freq = get_frequency(current_list->head);
+          }
+
+          /// Set offsets
+          set_offsets(current_list->head, current_list->head, current_list->freq);
+
+          /// Set date
+          time(&current_list->rawtime);
+
+          /// Save offsets into file - all
+          //save_packets(current_list, BLOCK, current_list->first);
+          //current_list->first = 0;
+
+          /// Reduce packets
+          static short reduce = 0;
           if (reduce || current_list->count > (BLOCK * 5)) {
             reduce_packets(current_list);
             reduce = 1;
           }
-	  
-	  /// Save offsets into file - reduced
-	  save_packets(current_list, packets_count(current_list->head), current_list->first);
-	  
-	  /// Set skew
-	  if (set_skew(current_list) != 0)
-	    return(1);
-	  
-	  /// Ignore list if skew is smaller than THRESHOLD
-	  if (fabs(current_list->skew.alpha) < THRESHOLD)
-	    return(0);
-	  
-	  /// Check active computers
-	  char *tmp = check_actives(list, current_list);
-	  if (tmp)
-	    current_list->name = tmp;
-	  
-	  /// Check saved computers
-	  else {
-	    char *tmp = check_computers(current_list->skew.alpha, &current_list->skew.diff);
-	    if (tmp)
-	      current_list->name = tmp;
-	    else
-	      current_list->name = NULL;
-	  }
-	  
-	  /// Save active computers
-	  save_active(list);
-	  
-	  /// Too much packets -> remove packets from the beginning
-	  while (current_list->count > (BLOCK * 100)) {
-	    for (int i = 0; i < BLOCK; i++) {
-	      current_list->head = remove_packet(current_list->head);
-	      current_list->count--;
-	    }
-	  }
-  
-	  /// Generate graph
-	  generate_graph(current_list);
-	  
-	  /// WWW
-	  system("./gen_pics.sh 1>/dev/null");
-	}
-	
-	return(0);
+
+          /// Save offsets into file - reduced
+          save_packets(current_list, packets_count(current_list->head), current_list->first);
+
+          /// Set skew
+          if (set_skew(current_list) != 0) {
+            return(1);
+          }
+
+          /// Ignore list if skew is smaller than THRESHOLD
+          if (fabs(current_list->skew.alpha) < THRESHOLD) {
+            return(0);
+          }
+
+          /// Check active computers
+          char *tmp = check_actives(list, current_list);
+          if (tmp)
+            current_list->name = tmp;
+
+          /// Check saved computers
+          else {
+            char *tmp = check_computers(current_list->skew.alpha, &current_list->skew.diff);
+            if (tmp)
+              current_list->name = tmp;
+            else
+              current_list->name = NULL;
+          }
+
+          /// Save active computers
+          save_active(list);
+
+          /// Too much packets -> remove packets from the beginning
+          while (current_list->count > (BLOCK * 100)) {
+            for (int i = 0; i < BLOCK; i++) {
+              current_list->head = remove_packet(current_list->head);
+              current_list->count--;
+            }
+          }
+
+          /// Generate graph
+          generate_graph(current_list);
+
+          /// WWW
+          system("./gen_pics.sh 1>/dev/null");
+        }
+
+        return(0);
       }
     }
   }
