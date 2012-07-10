@@ -1,0 +1,42 @@
+INSTALL
+-------
+
+It is neccessary to have these dependencies:
+
+libpcap (+libpcap-dev)
+libxml2
+
+It is possible to compile and install the program using these three commands:
+
+make 		- compiles pcf
+make install	- installs the program to the bin/ directory
+make clean	- removes binary files from src/ directory
+
+UNINSTALL
+---------
+
+To uninstall pcf run (in src/ directory):
+
+make uninstall
+
+Binary files stored in bin/ directory are removed. Data saved in other
+directories and configuration files are not removed.
+WARNING! Following install procedure will replace the configuration file with
+the one stored in src/ directory.
+
+RUN TIME DEPENDENCIES
+---------------------
+In order to generate graphs correctly you need these programs:
+
+Gnuplot
+Ghostscript
+
+WEB INTERFACE
+-------------
+
+In order to run web interface you have to configure your web server and PHP
+module is necessary.
+
+The root directory is www/, graphs are stored in www/graph. Ensure that
+www/data/database.xml is writeable by WWW server in order to save clock skew of
+recognized computers.
