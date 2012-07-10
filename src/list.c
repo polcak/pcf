@@ -121,6 +121,9 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
 
         /// Increment number of packets
         current_list->count++;
+#if 0
+        fprintf(stderr, "%s: %ld\n", current_list->address, current_list->count);
+#endif
 
         /// Operations do every BLOCK
         if ((current_list->count % BLOCK) == 0) {
@@ -163,11 +166,17 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
 
           /// Set skew
           if (set_skew(current_list) != 0) {
+#ifdef DEBUG
+            fprintf(stderr, "Clock skew not set for %s\n", current_list->address);
+#endif
             return(1);
           }
 
           /// Ignore list if skew is smaller than THRESHOLD
           if (fabs(current_list->skew.alpha) < THRESHOLD) {
+#ifdef DEBUG
+            fprintf(stderr, "Ignoring %s: skew %lf lower than THRESHOLD\n", current_list->address, current_list->skew.alpha);
+#endif
             return(0);
           }
 
