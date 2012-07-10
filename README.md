@@ -1,4 +1,0 @@
-pcf
-===
-
-PC Fingerprinter

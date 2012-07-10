@@ -1,0 +1,129 @@
+Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ 
+pcf - PC fingerprinter
+
+Program pcf je nastroj pro vzdalenou identifikaci pocitacu. Identifikace probiha
+na zaklade posunu vnitrnich hodin sledovaneho zarizeni, casove informace jsou
+ziskavany z casovych razitek TCP. Program je ve forme demona a jeho vystupem (a
+soucasne rozhranim pro dalsi nastroje, graficka rozhrani atd.) je soubor
+sledovanych a pripadne rozpoznanych pocitacu ve formatu XML. Program je urcen
+pro operacni system Linux.
+
+
+Instalace
+---------
+Program pcf pro uspesne prelozeni vyzaduje tyto knihovny:
+
+libpcap (+libpcap-dev)
+libxml2
+
+Pro instalaci programu pcf je potreba v adresari src/ provest nasledujici tri
+prikazy:
+
+make 		- prelozeni programu
+make install	- instalace do adresare bin/
+make clean	- vycisteni adresare src/ od binarnich souboru
+
+Pripadne vse jednim prikazem: 
+
+make install clean
+
+
+Odinstalace
+-----------
+Pro odinstalaci programu pcf slouzi prikaz (spusteny z adresare src/):
+
+make uninstall
+
+Timto prikazem dojde ke smazani binarnich souboru z adresare bin. Data ulozena v
+adresarich i konfiguracni soubor zustanou zachovany.
+Pozor! Naslednou instalaci dojde k prepsani konfiguracniho souboru souborem z
+adresare src/.
+
+
+Pouziti
+-------
+Program pcf pro spravny beh vyzaduje tyto nainstalovane programy:
+
+Gnuplot
+Ghostscript
+
+Pro spusteni programu pcf jsou potreba prava root!
+
+Pouziti: pcf [Volby] [Rozhrani]
+
+  -h		Vypsani napovedy
+  -n		Pocet paketu (0 pro nekonecno)
+  -t		Cas odposlechu (v sekundach, 0 pro nekonecno)
+  -p		Cislo portu (1-65535)
+
+Priklady:
+  pcf
+  pcf -n 100 -t 600 -p 80 wlan0
+
+Ukonceni behu: kdykoliv je mozne program ukoncit zaslanim signalu SIGINT nebo
+SIGTERM.
+
+Dalsi nastaveni programu viz konfiguracni soubor config. Vsechna nastaveni jsou
+radne okomentovana v ramci konfiguracniho souboru.
+
+K programu je prilozeno webove uzivatelske rozhrani. Pro jeho spravnou funkci je
+zapotrebi bezici HTTP server s podporou PHP.
+
+
+Soubory a adresare
+------------------
+
+bin/		- binarni (zkompilovana a nainstalovana) verze programu
+		- umistena je verze zkompilovana na sitove sonde (Linux,
+		  verze jadra 2.6.18)
+src/		- zdrojove texty
+
+bin/
+  pcf		- program pcf
+  gen_pics.sh	- konverze grafu (postscript) na obrazky (jpeg)
+  config	- konfiguracni soubor
+
+  graph/	- adresar s grafy sledovanych pocitacu
+  http_traffic/	- python skript pro generovani provozu nad protokolem HTTP (pro
+		  beh programu neni potreba)
+  log/		- logovani odchylek jednotlivych pocitacu, soubory nutne pro
+		  generovani grafu
+  www/		- webove uzivatelske rozhrani
+
+
+Poznamky
+--------
+
+Pozor! Pri ukonceni behu programu dojde k vymazani dat v souboru s aktivnimi
+pocitaci. Neulozene pocitace tak budou nenavratne ztraceny!
+
+U programu je mozne nastavit soubor s aktivnimi pocitaci a databazi ulozenych
+pocitacu pomoci konfiguracniho souboru. Webove rozhrani predpoklada tyto
+soubory: www/data/active.xml a www/data/database.xml (implicitni nastaveni pcf).
+
+Programova promenna BLOCK v souboru config nastavuje pocet paketu, pri kterem
+dojde k provedeni blokovych operaci. Program implicitne provadi redukci paketu
+(po prijeti 5*BLOCK paketu a pote kazdy blok) a po prijeti vice nez 100*BLOCK
+paketu postupne odmazava nejdrive prijate bloky paketu.
+
+Program zahazuje pakety s nizsim (nebo stejnym) casovym razitkem nez mel
+predchozi paket. To je ve velke vetsine vyhodne, pozor vsak pokud napriklad
+doslo k restartu sledovaneho pocitace a ten je v pameti pcf stale veden jako
+aktivni, pakety od tohoto pocitace pravdepodobne nebudou prijimany. Z
+praktickeho hlediska by stejne vypocty nedavaly spravne vysledky.
+
+Pocitace s mensim posunem hodin nez je nastaveny prah nejsou ukladany. Je
+zrejme, ze tyto pocitace nemohou byt rozliseny. Ve vetsine pripadu se bude
+jednat o pocitace se synchronizovanymi hodinami a tudiz minimalnim posunem
+hodin.
+Pozor tedy, pocitace se synchronizovanymi hodinami pomoci demona NTP nebudou s
+velkou pravdepodobnosti uvedeny v souboru aktivnich pocitacu!
+
+Program provadi korekci vypocitane frekvence generovani casovych razitek a to
+nasledujicim zpusobem:
+freq >= 970 && freq <= 1030	=>	freq = 1000
+freq >= 95 && freq <= 105	=>	freq = 100
+V mnoha pripadech to znamena korekci na spravnou hodnotu, nekdy vsak muze dojit
+k nechtene korekci, nektere systemy mohou opravdu vykazovat neobvyklou
+frekvenci.
