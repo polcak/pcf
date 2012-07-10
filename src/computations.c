@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Libor Polčák <ipolcak@fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -108,7 +109,10 @@ int get_frequency(my_packet *head)
   int count = 0;
   
   for (current = current->next; current != NULL; current = current->next) {
-    tmp += ((current->timestamp - head->timestamp) / (current->time - head->time));
+    double local_diff = current->time - head->time;
+    if (local_diff > 0.0) {
+      tmp += ((current->timestamp - head->timestamp) / local_diff);
+    }
     count++;
   }
   
