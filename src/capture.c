@@ -146,35 +146,35 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   // +--------+--------+---------+--------+
   // |  Kind  | Length |       Data       |
   // +--------+--------+---------+--------+
-  
+
   int kind = (int)txt[0];
-  
+
   while (kind != 8) {
-    
+
     switch(kind) {
-      
+
       /// EOL
       case 0:
 #ifdef DEBUG
-	printf("TCP header option without timestamp\n");
+        printf("TCP header option without timestamp\n");
 #endif
-	return;
-      
+        return;
+
       /// NOP
       case 1:
-	txt++;
-	kind = (int)txt[0];
-	break;
-      
+        txt++;
+        kind = (int)txt[0];
+        break;
+
       default:
-	txt++;
-	kind = (int)txt[0];
-	txt += kind - 1;
-	kind = (int)txt[0];
-	break;
+        txt++;
+        kind = (int)txt[0];
+        txt += kind - 1;
+        kind = (int)txt[0];
+        break;
     }
   }
-  
+
   /// Skip length
   txt += 2;
   int i;
