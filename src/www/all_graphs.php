@@ -31,7 +31,7 @@
 	system("ls /home/kuba/pcf/pcf/");
 
 	$directory = "graph/";
-	$graphs = array_diff(scandir($directory), array('..', '.'));
+	$graphs = array_diff(scandir($directory), array('..', '.','.gitignore'));
 	foreach ($graphs as $graph) {
 		echo "<img src='graph/$graph' alt='$graph'></img>";
 	}
