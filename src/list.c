@@ -505,8 +505,11 @@ void print_uptime(my_packet *tail, int freq)
 
 void generate_graph(my_list *current_list)
 {
+  static const char* filename_template =  "graph/%s.gp";
   FILE *f;
-  char filename[] = "graph/graph.gp";
+  int filename_max = strlen(filename_template) + ADDRESS_SIZE;
+  char filename[filename_max + 1];
+  snprintf(filename, filename_max, filename_template, current_list->address);
   f = fopen(filename, "w");
   
   if (f == NULL) {
@@ -578,7 +581,11 @@ void generate_graph(my_list *current_list)
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close file: %s\n", filename);
   
-  system("gnuplot graph/graph.gp");
+  static const char* gnuplot_template =  "gnuplot graph/%s.gp";
+  int gnuplot_max = strlen(gnuplot_template) + ADDRESS_SIZE;
+  char gnuplot_cmd[gnuplot_max + 1];
+  snprintf(gnuplot_cmd, gnuplot_max, gnuplot_template, current_list->address);
+  system(gnuplot_cmd);
   
   return;
 }
