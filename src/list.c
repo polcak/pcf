@@ -172,14 +172,6 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
             return(1);
           }
 
-          /// Ignore list if skew is smaller than THRESHOLD
-          if (fabs(current_list->skew.alpha) < THRESHOLD) {
-#ifdef DEBUG
-            fprintf(stderr, "Ignoring %s: skew %lf lower than THRESHOLD\n", current_list->address, current_list->skew.alpha);
-#endif
-            return(0);
-          }
-
           /// Check active computers
           char *tmp = check_actives(list, current_list);
           if (tmp)

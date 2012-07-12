@@ -262,8 +262,6 @@ char *check_actives(my_list *list, my_list *current_list)
       continue;
     if (tmp->freq == 0)
       continue;
-    if (fabs(tmp->skew.alpha) < THRESHOLD)
-      continue;
     if (fabs(tmp->skew.alpha - current_list->skew.alpha) < THRESHOLD) {
       current_list->skew.diff = fabs(tmp->skew.alpha - current_list->skew.alpha);
       return(tmp->address);
@@ -313,12 +311,6 @@ int save_active(my_list *list)
     if (current_list->freq == 0) {
 #ifdef DEBUG
       fprintf(stderr, "XML: skipping %s - frequency is 0\n", current_list->address);
-#endif
-      continue;
-    }
-    if (fabs(current_list->skew.alpha) < THRESHOLD) {
-#ifdef DEBUG
-      fprintf(stderr, "XML: skipping %s - skew %lf lower than THRESHOLD\n", current_list->address, current_list->skew.alpha);
 #endif
       continue;
     }
