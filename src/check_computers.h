@@ -46,14 +46,14 @@ char *check_computers(double skew, double *diff);
  * @param[in] current_list Computer to be checked
  * @return Name of the computer if found, NULL otherwise
  */
-char *check_actives(my_list *list, my_list *current_list);
+char *check_actives(computer_info *list, computer_info *current_list);
 
 /**
  * Save active computers into file
  * @param[in] list List of active computers
  * @return 0 if ok
  */
-int save_active(my_list *list);
+int save_active(computer_info *list);
 
 
 #endif

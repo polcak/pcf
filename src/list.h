@@ -48,9 +48,9 @@ struct packet_time_info {
 /**
  * List of all packet lists (header for every packet list)
  */
-typedef struct my_lst my_list;
+typedef struct computer_info computer_info;
 
-struct my_lst {
+struct computer_info {
   packet_time_info *head;
   packet_time_info *tail;
   char address[ADDRESS_SIZE];
@@ -67,7 +67,7 @@ struct my_lst {
     double beta;
     double diff;
   } skew;
-  struct my_lst *next;
+  struct computer_info *next;
 };
 
 /// Files

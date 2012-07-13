@@ -149,7 +149,7 @@ void set_offsets(packet_time_info *head, packet_time_info *from, int freq)
   }
 }
 
-int set_skew(my_list *list)
+int set_skew(computer_info *list)
 {
   unsigned long number = packets_count(list->head);
   my_point points[number];

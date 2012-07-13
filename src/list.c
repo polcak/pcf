@@ -30,7 +30,7 @@
 
 
 /// List of all packet lists
-my_list *list = NULL;
+computer_info *list = NULL;
 
 
 /**
@@ -59,7 +59,7 @@ packet_time_info *remove_packet(packet_time_info *current);
  * Reduce list of packets - only ascending/descending packets stay
  * @param[in] list Pointer to the list of packets
  */
-void reduce_packets(my_list *list);
+void reduce_packets(computer_info *list);
 
 /** 
  * Save 'count' packets into file (called 'IP address.log')
@@ -68,7 +68,7 @@ void reduce_packets(my_list *list);
  * @param[in] count Number of packets to save
  * @return 0 if ok
  * */
-int save_packets(my_list* current_list, int count, short int first);
+int save_packets(computer_info* current_list, int count, short int first);
 
 /**
  * Print uptime
@@ -81,7 +81,7 @@ void print_uptime(packet_time_info *tail, const int freq);
  * Generate graph
  * @param[in] list Pointer to header of packet list
  */
-void generate_graph(my_list *current_list);
+void generate_graph(computer_info *current_list);
 
 
 int new_packet(const char *address, double ttime, unsigned long int timestamp)
@@ -91,7 +91,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   fflush(stdout);
 
   if (list != NULL) {
-    my_list *current_list;
+    computer_info *current_list;
     for (current_list = list; current_list != NULL; current_list = current_list->next) {
       if (strcmp(current_list->address, address) == 0) {
 
@@ -210,7 +210,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   }
   
   /// New packet list
-  my_list *new_list = (my_list*)malloc(sizeof(my_list));
+  computer_info *new_list = (computer_info*)malloc(sizeof(computer_info));
   if (!new_list) {
     fprintf(stderr, "Malloc: Not enough memory\n");
     return(-1);
@@ -275,8 +275,8 @@ void remove_old_lists(double time)
   if (list == NULL)
     return;
   
-  my_list *current_list;
-  my_list *tmp = list;
+  computer_info *current_list;
+  computer_info *tmp = list;
   
   /// Removing first list
   while ((time - list->tail->time) > TIME_LIMIT) {
@@ -324,7 +324,7 @@ packet_time_info *remove_packet(packet_time_info *current)
   return(tmp);
 }
 
-void reduce_packets(my_list *current_list)
+void reduce_packets(computer_info *current_list)
 { 
   if (current_list->count < 4)
     return;
@@ -368,7 +368,7 @@ void reduce_packets(my_list *current_list)
   }
 }
 
-int save_packets(my_list *current_list, int count, short first)
+int save_packets(computer_info *current_list, int count, short first)
 {
   /*
   if (count == 0) {
@@ -431,7 +431,7 @@ void process_results(short save, short uptime, short graph)
 	 "-----------\n\n");
   
   if (list != NULL) {
-    my_list *current_list;
+    computer_info *current_list;
     for (current_list = list; current_list != NULL; current_list = current_list->next) {
       
       /// Freq == 0 => not enough packets
@@ -503,7 +503,7 @@ void print_uptime(packet_time_info *tail, int freq)
   printf("Uptime: %dd %dh %dm (since %s, %d seconds)\n", days, hours, minutes, date_uptime, seconds);
 }
 
-void generate_graph(my_list *current_list)
+void generate_graph(computer_info *current_list)
 {
   static const char* filename_template =  "graph/%s.gp";
   FILE *f;
@@ -593,7 +593,7 @@ void generate_graph(my_list *current_list)
 void free_memory()
 {
   if (list != NULL) {
-    my_list *current_list = list;
+    computer_info *current_list = list;
     packet_time_info *current;
     
     while (current_list != NULL) {

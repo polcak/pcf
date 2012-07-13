@@ -254,9 +254,9 @@ char *check_computers(double skew, double *diff)
   return((char *) computer_name);
 }
 
-char *check_actives(my_list *list, my_list *current_list)
+char *check_actives(computer_info *list, computer_info *current_list)
 {
-  my_list *tmp;
+  computer_info *tmp;
   for (tmp = list; tmp != NULL; tmp = tmp->next) {
     if (tmp == current_list)
       continue;
@@ -271,7 +271,7 @@ char *check_actives(my_list *list, my_list *current_list)
   return(NULL);
 }
 
-int save_active(my_list *list)
+int save_active(computer_info *list)
 {
   xmlDocPtr doc;
   xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
@@ -304,7 +304,7 @@ int save_active(my_list *list)
   if (list == NULL)
     return(0);
   
-  my_list *current_list;
+  computer_info *current_list;
   
   for (current_list = list; current_list != NULL; current_list = current_list->next) {
     

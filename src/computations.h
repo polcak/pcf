@@ -43,7 +43,7 @@ void set_offsets(packet_time_info *head, packet_time_info *from, int freq);
  * @param[in] list Pointer to header of packet list
  * @return 0 if ok
  */
-int set_skew(my_list *list);
+int set_skew(computer_info *list);
 
 
 #endif
