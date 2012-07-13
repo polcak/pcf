@@ -99,6 +99,9 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
         /// Too much time since last packet so start from the beginning
         if ((ttime - current_list->tail_packet->time) > TIME_LIMIT) {
           remove_old_lists(ttime);
+#ifdef DEBUG
+          fprintf(stderr, "%s timeout: starting a new tracking\n", current_list->address);
+#endif
           return(3);
         }
 
@@ -112,13 +115,21 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
         }
 
         /// Stop supporting lists with stupid frequency
-        if (fabs(current_list->freq) > 10000)
+        if (fabs(current_list->freq) > 10000) {
+#ifdef DEBUG
+        fprintf(stderr, "%s: too high frequency of %d\n", current_list->address, current_list->freq);
+#endif
           return(0);
+        }
 
         /// Insert packet
         current_list->tail_packet = insert_packet(current_list->tail_packet, ttime, timestamp);
-        if (current_list->tail_packet == NULL)
+        if (current_list->tail_packet == NULL) {
+#ifdef DEBUG
+          fprintf(stderr, "%s: Packet was not inserted correctly (insert_packet)\n", current_list->address);
+#endif
           return(-1);
+        }
 
         /// Increment number of packets
         current_list->count++;
@@ -407,11 +418,18 @@ int save_packets(computer_info *current_list, int count, short rewrite)
   for (; current != NULL; current = current->next_packet) {
     sprintf(str, "%lf\t%lf\n", current->offset.x, current->offset.y);
     fputs(str, f);
+#ifdef DEBUG
+    lines++;
+#endif
   }
   
   /// Close file
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close file: %s\n", filename);
+
+#ifdef DEBUG
+    fprintf(stderr, "%s: %d lines written", current_list->address, lines);
+#endif
   
   return(0);
 }
