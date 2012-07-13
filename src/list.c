@@ -294,7 +294,7 @@ void remove_old_lists(double time)
     if ((time - current_list->tail->time) > TIME_LIMIT) {
       tmp->next_computer = current_list->next_computer;
       if (current_list->name != NULL)
-	free(current_list->name);
+        free(current_list->name);
       free(current_list);
       current_list = tmp;
     }
@@ -344,11 +344,11 @@ void reduce_packets(computer_info *current_list)
     current = current_list->head;
     while (current_list->count > 3 && current->next_packet != NULL) {
       if (current->next_packet->offset.y <= current->offset.y) {
-	current = remove_packet(current->next_packet);
-	current_list->count--;
+        current = remove_packet(current->next_packet);
+        current_list->count--;
       }
       else
-	current = current->next_packet;
+        current = current->next_packet;
     }
     current_list->tail = current;
   }
@@ -358,12 +358,12 @@ void reduce_packets(computer_info *current_list)
     current = current_list->tail;
     while (current_list->count > 3 && current->prev_packet != NULL) {
       if (current->prev_packet->offset.y <= current->offset.y) {
-	current = remove_packet(current->prev_packet);
-	current = current->next_packet;
-	current_list->count--;
+        current = remove_packet(current->prev_packet);
+        current = current->next_packet;
+        current_list->count--;
       }
       else
-	current = current->prev_packet;
+        current = current->prev_packet;
     }
     current_list->head = current;
   }
@@ -428,8 +428,8 @@ unsigned long packets_count(packet_time_info *head)
 void process_results(short save, short uptime, short graph)
 {
   printf("-----------\n"
-	 "- Results -\n"
-	 "-----------\n\n");
+         "- Results -\n"
+         "-----------\n\n");
   
   if (all_known_computers != NULL) {
     computer_info *current_list;
@@ -437,48 +437,48 @@ void process_results(short save, short uptime, short graph)
       
       /// Freq == 0 => not enough packets
       if (current_list->freq == 0)
-	continue;
+        continue;
       
       /// Stupid frequency
       if (fabs(current_list->freq) > 10000)
-	continue;
+        continue;
       
       printf("%s (%ld packets)\n\n"
-	     "Frequency: %d\n", current_list->address, current_list->count, current_list->freq);
+             "Frequency: %d\n", current_list->address, current_list->count, current_list->freq);
       /// Print uptime
       if (uptime)
-	print_uptime(current_list->tail, current_list->freq);
+        print_uptime(current_list->tail, current_list->freq);
       printf("Skew: f(x) = %lfx + %lf\n\n", current_list->skew.alpha, current_list->skew.beta);
       
       /// Save new computer
       if (save) {
-	printf("Save this computer? (y/n) [n]: ");
-	if (getchar() == 'y') {
-	  printf("Name: ");
-	  
-	  /// Flush stdin
-	  int c;
-	  while ((c = fgetc(stdin)) != EOF && c != '\n' );
-	  
-	  /// Name
-	  char name[256];
-	  fgets(name, sizeof(name), stdin);
-	  name[255] = '\0';
-	  c = 0;
-	  while (name[c] != EOF && name[c] != '\n')
-	    c++;
-	  if (name[c] == '\n')
-	    name[c] = '\0';
-	  
-	  /// Save
-	  if (save_computer(name, current_list->skew.alpha, current_list->freq, current_list->address) != 0)
-	    fprintf(stderr, "Cannot save new computer\n");
-	}
+        printf("Save this computer? (y/n) [n]: ");
+        if (getchar() == 'y') {
+          printf("Name: ");
+          
+          /// Flush stdin
+          int c;
+          while ((c = fgetc(stdin)) != EOF && c != '\n' );
+          
+          /// Name
+          char name[256];
+          fgets(name, sizeof(name), stdin);
+          name[255] = '\0';
+          c = 0;
+          while (name[c] != EOF && name[c] != '\n')
+            c++;
+          if (name[c] == '\n')
+            name[c] = '\0';
+          
+          /// Save
+          if (save_computer(name, current_list->skew.alpha, current_list->freq, current_list->address) != 0)
+            fprintf(stderr, "Cannot save new computer\n");
+        }
       }
       
       /// Generate graph
       if (graph)
-	generate_graph(current_list);
+        generate_graph(current_list);
     }
   }
 }
@@ -526,15 +526,15 @@ void generate_graph(computer_info *current_list)
 
   fputs("set encoding iso_8859_2\n"
         "set terminal postscript font \"DejaVuSans\"\n"
-	//"set terminal postscript\n"
-	"set output 'graph/", f);
-  fputs(current_list->address, f);
-  fputs(".ps'\n\n"
-	//"set xlabel 'Elapsed time [s]'\n"
-	"set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
-	//"set ylabel 'Offset [ms]'\n\n"
-	"set ylabel \"Odchylka [ms]\"\n\n"
-	"f(x) = ", f);
+        //"set terminal postscript\n"
+        "set output 'graph/", f);
+        fputs(current_list->address, f);
+        fputs(".ps'\n\n"
+        //"set xlabel 'Elapsed time [s]'\n"
+        "set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
+        //"set ylabel 'Offset [ms]'\n\n"
+        "set ylabel \"Odchylka [ms]\"\n\n"
+        "f(x) = ", f);
   
   /// f(x)
   sprintf(tmp, "%lf", current_list->skew.alpha);
@@ -543,7 +543,7 @@ void generate_graph(computer_info *current_list)
   sprintf(tmp, "%lf", current_list->skew.beta);
   fputs(tmp, f);
   fputs("\n\nset grid\n"
-	"set title \"", f);
+        "set title \"", f);
   
   /// Title
   time_t rawtime;
@@ -565,7 +565,7 @@ void generate_graph(computer_info *current_list)
   
   /// Plot
   fputs("\n\n"
-	"plot '", f);
+        "plot '", f);
   fputs("log/", f);
   fputs(current_list->address, f);
   fputs(".log' title '', f(x)", f);
@@ -600,13 +600,13 @@ void free_memory()
     while (current_list != NULL) {
       current = current_list->head;
       while (current != NULL) {
-	current_list->head = current->next_packet;
-	free(current);
-	current = current_list->head;
+        current_list->head = current->next_packet;
+        free(current);
+        current = current_list->head;
       }
       all_known_computers = current_list->next_computer;
       if (current_list->name != NULL)
-	free(current_list->name);
+        free(current_list->name);
       free(current_list);
       current_list = all_known_computers;
     }
