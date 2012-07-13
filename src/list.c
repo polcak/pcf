@@ -627,8 +627,6 @@ void free_memory()
         current = current_list->head_packet;
       }
       all_known_computers = current_list->next_computer;
-      if (current_list->name != NULL)
-        free(current_list->name);
       free(current_list);
       current_list = all_known_computers;
     }
