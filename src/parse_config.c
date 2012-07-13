@@ -131,79 +131,79 @@ pcf_config *get_config(const char *filename)
     if (parse(buf, name, value) == 0) {
       // interface
       if (strcmp(name, "interface") == 0) {
-	if (strlen(value) > 10) {
-	  fprintf(stderr, "Config: Device name too long (%s)\nSetting to any", value);
-	  break;
-	}
-	strncpy(config->dev, value, strlen(value));
+        if (strlen(value) > 10) {
+          fprintf(stderr, "Config: Device name too long (%s)\nSetting to any", value);
+          break;
+        }
+        strncpy(config->dev, value, strlen(value));
       }
       // num_packets
       else if (strcmp(name, "num_packets") == 0) {
-	config->number = atoi(value);
+        config->number = atoi(value);
       }
       // time
       else if (strcmp(name, "time") == 0) {
-	config->time = atoi(value);
+        config->time = atoi(value);
       }
       // port
       else if (strcmp(name, "port") == 0) {
-	config->port = atoi(value);
-	if (config->port < 0 || config->port > 65535) {
-	  fprintf(stderr, "Config: Wrong port number\n");
-	  config->port = 0;
-	}
+        config->port = atoi(value);
+        if (config->port < 0 || config->port > 65535) {
+          fprintf(stderr, "Config: Wrong port number\n");
+          config->port = 0;
+        }
       }
       // source_address
       else if (strcmp(name, "src_address") == 0) {
-	if (strlen(value) > 16) {
-	  fprintf(stderr, "Config: Source address too long (%s)\n", value);
-	  break;
-	}
-	strncpy(config->src, value, strlen(value));
+        if (strlen(value) > 16) {
+          fprintf(stderr, "Config: Source address too long (%s)\n", value);
+          break;
+        }
+        strncpy(config->src, value, strlen(value));
       }
       // destination address
       else if (strcmp(name, "dst_address") == 0) {
-	if (strlen(value) > 16) {
-	  fprintf(stderr, "Config: Destination address too long (%s)\n", value);
-	  break;
-	}
-	strncpy(config->dst, value, strlen(value));
+        if (strlen(value) > 16) {
+          fprintf(stderr, "Config: Destination address too long (%s)\n", value);
+          break;
+        }
+        strncpy(config->dst, value, strlen(value));
       }
       // syn
       else if (strcmp(name, "syn") == 0)
-	config->syn = atoi(value);
+        config->syn = atoi(value);
       // ack
       else if (strcmp(name, "ack") == 0)
-	config->ack = atoi(value);
+        config->ack = atoi(value);
       // filter
       else if (strcmp(name, "filter") == 0)
-	strncpy(config->filter, value, strlen(value));
+        strncpy(config->filter, value, strlen(value));
       
       // active
       else if (strcmp(name, "active") == 0)
-	strncpy(config->active, value, strlen(value));
+        strncpy(config->active, value, strlen(value));
       
       // database
       else if (strcmp(name, "database") == 0)
-	strncpy(config->database, value, strlen(value));
+        strncpy(config->database, value, strlen(value));
       
       // BLOCK
       else if (strcmp(name, "BLOCK") == 0) {
-	config->block = atoi(value);
-	if (config->block == 0)
-	  config->block = 100;
+        config->block = atoi(value);
+        if (config->block == 0)
+          config->block = 100;
       }
       // TIME_LIMIT
       else if (strcmp(name, "TIME_LIMIT") == 0) {
-	config->time_limit = atoi(value);
-	if (config->time_limit == 0)
-	  config->time_limit = 3600;
+        config->time_limit = atoi(value);
+        if (config->time_limit == 0)
+          config->time_limit = 3600;
       }
       // THRESHOLD
       else if (strcmp(name, "THRESHOLD") == 0) {
-	config->threshold = atof(value);
-	/*if (config->threshold == 0.0)
-	  config->threshold = 0.001;*/
+        config->threshold = atof(value);
+        /*if (config->threshold == 0.0)
+          config->threshold = 0.001;*/
       }
     }
   }

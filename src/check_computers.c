@@ -222,19 +222,19 @@ char *check_computers(double skew, double *diff)
       /// Comparison
       tmp_skew = fabs(skew - skew2);
       if (tmp_skew < THRESHOLD) {
-	if (first == 1 || (tmp_skew < best_skew)) {
+        if (first == 1 || (tmp_skew < best_skew)) {
 #ifdef DEBUG
-	  printf("\n\nSkew: %f (now: %f. diff: %f)\n", skew2, skew, tmp_skew);
+          printf("\n\nSkew: %f (now: %f. diff: %f)\n", skew2, skew, tmp_skew);
 #endif
-	  best_skew = tmp_skew;
-	  *diff = best_skew;
-	  print = 1;
-	  nl = 1;
-	  first = 0;
-	}
+          best_skew = tmp_skew;
+          *diff = best_skew;
+          print = 1;
+          nl = 1;
+          first = 0;
+        }
       }
       else if (print == 1)
-	print = 0;
+        print = 0;
     }
     /// Print computer and set name
     if (print)

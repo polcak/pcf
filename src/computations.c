@@ -83,11 +83,11 @@ my_point *convex_hull(my_point points[], unsigned long *number)
   for (i = 2; i < *number; i++) {
     while (ccw(points[m - 1], points[m], points[i]) >= 0) {
       if (m == 1) {
-	swap(&points[m], &points[i]);
-	i++;
+        swap(&points[m], &points[i]);
+        i++;
       }
       else
-	m--;
+        m--;
     }
     m++;
     swap(&points[m], &points[i]);
@@ -209,7 +209,7 @@ int set_skew(computer_info *list)
     for (current = list->head_packet; current != NULL; current = current->next_packet) {
       sum += (alpha * current->offset.x + beta - current->offset.y);
       if (sum >= min)
-	break;
+        break;
     }
     
 #ifdef DEBUG

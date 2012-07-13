@@ -35,9 +35,9 @@
 void print_banner()
 {
   printf("pcf  Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>\n\n"
-	 "This program comes with ABSOLUTELY NO WARRANTY.\n"
-	 "This is free software, and you are welcome to redistribute it\n"
-	 "under certain conditions.\n\n");
+         "This program comes with ABSOLUTELY NO WARRANTY.\n"
+         "This is free software, and you are welcome to redistribute it\n"
+         "under certain conditions.\n\n");
 }
 
 /**
@@ -46,13 +46,13 @@ void print_banner()
 void print_help()
 {
   printf("Usage: pcf [Options] [Interface]\n\n"
-	 "  -h\t\tPrint this help\n"
-	 "  -n\t\tNumber of packets to capture (0 for infinity)\n"
-	 "  -t\t\tTime for capturing (in seconds, 0 for infinity)\n"
-	 "  -p\t\tPort number (1-65535)\n\n"
-	 "Examples:\n"
-	 "  pcf\n"
-	 "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
+         "  -h\t\tPrint this help\n"
+         "  -n\t\tNumber of packets to capture (0 for infinity)\n"
+         "  -t\t\tTime for capturing (in seconds, 0 for infinity)\n"
+         "  -p\t\tPort number (1-65535)\n\n"
+         "Examples:\n"
+         "  pcf\n"
+         "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
 }
 
 /**
@@ -84,26 +84,26 @@ int main(int argc, char *argv[])
   while ((c = getopt(argc, argv, "hn:t:p:")) != -1) {
     switch(c) {
       case 'h':
-	print_help();
-	return(0);
+        print_help();
+        return(0);
       case 'n':
-	if (atoi(optarg))
-	  config->number = atoi(optarg);
-	else
-	  fprintf(stderr, "Wrong number of packets\n");
-	break;
+        if (atoi(optarg))
+          config->number = atoi(optarg);
+        else
+          fprintf(stderr, "Wrong number of packets\n");
+        break;
       case 't':
-	if (atoi(optarg))
-	  config->time = atoi(optarg);
-	else
-	  fprintf(stderr, "Wrong time for capturing\n");
-	break;
+        if (atoi(optarg))
+          config->time = atoi(optarg);
+        else
+          fprintf(stderr, "Wrong time for capturing\n");
+        break;
       case 'p':
-	if (atoi(optarg) && (atoi(optarg) < 65535))
-	  config->port = atoi(optarg);
-	else
-	  fprintf(stderr, "Wrong port number\n");
-	break;
+        if (atoi(optarg) && (atoi(optarg) < 65535))
+          config->port = atoi(optarg);
+        else
+          fprintf(stderr, "Wrong port number\n");
+        break;
     }
   }
   c = optind;
