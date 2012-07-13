@@ -32,11 +32,11 @@ int compute_clock_frequency(packet_time_info *packets);
 
 /**
  * Compute and set offsets (x, y)
- * @param[in] head Pointer to the first packet
+ * @param[in] head_packet Pointer to the first packet
  * @param[in] from Pointer to the packet from where to set offsets till end
  * @param[in] freq Frequency
  */
-void set_offsets(packet_time_info *head, packet_time_info *from, int freq);
+void set_offsets(packet_time_info *head_packet, packet_time_info *from, int freq);
 
 /**
  * Compute and set clock skew

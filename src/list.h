@@ -51,8 +51,8 @@ struct packet_time_info {
 typedef struct computer_info computer_info;
 
 struct computer_info {
-  packet_time_info *head;
-  packet_time_info *tail;
+  packet_time_info *head_packet;
+  packet_time_info *tail_packet;
   char address[ADDRESS_SIZE];
   int freq;
   char *name;
@@ -90,10 +90,10 @@ int new_packet(const char *address, double time, unsigned long int timestamp);
 
 /**
  * Packets count
- * @param[in] head Pointer to the packets list
+ * @param[in] head_packet Pointer to the packets list
  * @return Packets count
  */
-unsigned long packets_count(packet_time_info *head);
+unsigned long packets_count(packet_time_info *head_packet);
 
 /**
  * Process and print results
