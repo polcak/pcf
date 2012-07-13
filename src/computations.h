@@ -28,7 +28,7 @@
  * @param[in] head Pointer to the list of packets
  * @return Frequency
  */
-int get_frequency(my_packet *head);
+int get_frequency(packet_time_info *head);
 
 /**
  * Compute and set offsets (x, y)
@@ -36,7 +36,7 @@ int get_frequency(my_packet *head);
  * @param[in] from Pointer to the packet from where to set offsets till end
  * @param[in] freq Frequency
  */
-void set_offsets(my_packet *head, my_packet *from, int freq);
+void set_offsets(packet_time_info *head, packet_time_info *from, int freq);
 
 /**
  * Compute and set clock skew

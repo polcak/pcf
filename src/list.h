@@ -30,9 +30,9 @@
 /**
  * Packets list structure
  */
-typedef struct my_pkt my_packet;
+typedef struct packet_time_info packet_time_info;
 
-struct my_pkt {
+struct packet_time_info {
   double time;
   unsigned long int timestamp;
   struct set {
@@ -41,8 +41,8 @@ struct my_pkt {
     // Offset
     double y;
   } offset;
-  struct my_pkt *next;
-  struct my_pkt *prev;
+  struct packet_time_info *next;
+  struct packet_time_info *prev;
 };
 
 /**
@@ -51,8 +51,8 @@ struct my_pkt {
 typedef struct my_lst my_list;
 
 struct my_lst {
-  my_packet *head;
-  my_packet *tail;
+  packet_time_info *head;
+  packet_time_info *tail;
   char address[ADDRESS_SIZE];
   int freq;
   char *name;
@@ -93,7 +93,7 @@ int new_packet(const char *address, double time, unsigned long int timestamp);
  * @param[in] head Pointer to the packets list
  * @return Packets count
  */
-unsigned long packets_count(my_packet *head);
+unsigned long packets_count(packet_time_info *head);
 
 /**
  * Process and print results

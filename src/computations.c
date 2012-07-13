@@ -98,13 +98,13 @@ my_point *convex_hull(my_point points[], unsigned long *number)
 }
 
 
-int get_frequency(my_packet *head)
+int get_frequency(packet_time_info *head)
 {
   
   if (head == NULL)
     printf("FREQ NULL\n");
   
-  my_packet *current = head;
+  packet_time_info *current = head;
   double tmp = 0.0;
   int count = 0;
   
@@ -130,9 +130,9 @@ int get_frequency(my_packet *head)
   return freq;
 }
 
-void set_offsets(my_packet *head, my_packet *from, int freq)
+void set_offsets(packet_time_info *head, packet_time_info *from, int freq)
 {
-  my_packet *current;
+  packet_time_info *current;
   double tmp;
   
   for (current = from; current != NULL; current = current->next) {
@@ -153,7 +153,7 @@ int set_skew(my_list *list)
 {
   unsigned long number = packets_count(list->head);
   my_point points[number];
-  my_packet *current = list->head;
+  packet_time_info *current = list->head;
   
   /// First point
   points[0].x = current->offset.x;

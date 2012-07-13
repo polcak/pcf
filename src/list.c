@@ -40,7 +40,7 @@ my_list *list = NULL;
  * @param[in] timestamp Timestamp of the new packet
  * @return 0 if ok
  */
-my_packet *insert_packet(my_packet *tail, double time, unsigned long int timestamp);
+packet_time_info *insert_packet(packet_time_info *tail, double time, unsigned long int timestamp);
 
 /**
  * Remove lists older (last recieved packet) than TIME_LIMIT
@@ -53,7 +53,7 @@ void remove_old_lists(double time);
  * @param[in] current Pointer to the packet to be removed
  * @return Packet next to the removed packet
  */
-my_packet *remove_packet(my_packet *current);
+packet_time_info *remove_packet(packet_time_info *current);
 
 /**
  * Reduce list of packets - only ascending/descending packets stay
@@ -75,7 +75,7 @@ int save_packets(my_list* current_list, int count, short int first);
  * @param[in] tail Pointer to the last packet of the list
  * @param[in] freq Frequency
  */
-void print_uptime(my_packet *tail, const int freq);
+void print_uptime(packet_time_info *tail, const int freq);
 
 /**
  * Generate graph
@@ -240,9 +240,9 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   return(0);
 }
 
-my_packet *insert_packet(my_packet *tail, double time, unsigned long int timestamp)
+packet_time_info *insert_packet(packet_time_info *tail, double time, unsigned long int timestamp)
 {  
-  my_packet *new_packet = (my_packet*)malloc(sizeof(my_packet));
+  packet_time_info *new_packet = (packet_time_info*)malloc(sizeof(packet_time_info));
   if (!new_packet) {
     fprintf(stderr, "Malloc: Not enough memory\n");
     return(NULL);
@@ -302,7 +302,7 @@ void remove_old_lists(double time)
   }
 }
 
-my_packet *remove_packet(my_packet *current)
+packet_time_info *remove_packet(packet_time_info *current)
 {
   if (current == NULL)
     return(NULL);
@@ -312,7 +312,7 @@ my_packet *remove_packet(my_packet *current)
   if (current->next != NULL)
     current->next->prev = current->prev;
   
-  my_packet *tmp;
+  packet_time_info *tmp;
   
   if (current->prev != NULL)
     tmp = current->prev;
@@ -332,7 +332,7 @@ void reduce_packets(my_list *current_list)
   if (current_list->skew.alpha == 0)
     return;
   
-  my_packet *current;
+  packet_time_info *current;
   
   /// Don't reduce if skew is too small
   if (current_list->skew.alpha < 0.01 && current_list->skew.alpha > -0.01)
@@ -395,7 +395,7 @@ int save_packets(my_list *current_list, int count, short first)
   }
   
   /// Get back
-  my_packet *current = current_list->tail;
+  packet_time_info *current = current_list->tail;
   while (count-- > 1 && current != NULL)
     current = current->prev;
   
@@ -413,9 +413,9 @@ int save_packets(my_list *current_list, int count, short first)
   return(0);
 }
 
-unsigned long packets_count(my_packet *head)
+unsigned long packets_count(packet_time_info *head)
 {
-  my_packet *current;
+  packet_time_info *current;
   unsigned long result = 0;
   
   for (current = head; current != NULL; current = current->next)
@@ -482,7 +482,7 @@ void process_results(short save, short uptime, short graph)
   }
 }
 
-void print_uptime(my_packet *tail, int freq)
+void print_uptime(packet_time_info *tail, int freq)
 {
   time_t now = time(NULL);
   int uptime = (int)round((tail->timestamp / freq));
@@ -594,7 +594,7 @@ void free_memory()
 {
   if (list != NULL) {
     my_list *current_list = list;
-    my_packet *current;
+    packet_time_info *current;
     
     while (current_list != NULL) {
       current = current_list->head;
