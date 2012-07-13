@@ -59,7 +59,7 @@ echo "<span style='position: absolute; top: 120px; right: 10px'><a href='javascr
 $i = 200;
 foreach ($computers->computer as $computer) {
 	echo "<b><font color='#0000b2'><a href=\"javascript:aktual('", $i, "')\">", $computer->name, "</font></a></b><br />";
-	echo "<form method='post' action='", $SERVER['PHP_SELF'], "'>";
+	echo "<form method='post' action='", $_SERVER['PHP_SELF'], "'>";
 	echo "<table id='",$i, "'>";
 	echo "<tr><td width='40%'>Skew:</td><td>", $computer["skew"], "</td></tr>";
 	echo "<tr><td>Address:</td><td>", $computer->address, "</td></tr>";
