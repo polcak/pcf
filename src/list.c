@@ -30,7 +30,7 @@
 
 
 /// List of all packet lists
-computer_info *list = NULL;
+computer_info *all_known_computers = NULL;
 
 
 /**
@@ -90,9 +90,9 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   printf("\r%lu packets captured", ++total);
   fflush(stdout);
 
-  if (list != NULL) {
+  if (all_known_computers != NULL) {
     computer_info *current_list;
-    for (current_list = list; current_list != NULL; current_list = current_list->next_computer) {
+    for (current_list = all_known_computers; current_list != NULL; current_list = current_list->next_computer) {
       if (strcmp(current_list->address, address) == 0) {
 
         /// Too much time since last packet so start from the beginning
@@ -173,7 +173,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Check active computers
-          char *tmp = check_actives(list, current_list);
+          char *tmp = check_actives(all_known_computers, current_list);
           if (tmp)
             current_list->name = tmp;
 
@@ -187,7 +187,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Save active computers
-          save_active(list);
+          save_active(all_known_computers);
 
           /// Too much packets -> remove packets from the beginning
           while (current_list->count > (BLOCK * 100)) {
@@ -234,8 +234,9 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   
   new_list->head = new_list->tail;
   
-  new_list->next_computer = list;
-  list = new_list;
+  // Insert new computer to the beginning of the list of all known computers
+  new_list->next_computer = all_known_computers;
+  all_known_computers = new_list;
   
   return(0);
 }
@@ -272,24 +273,24 @@ packet_time_info *insert_packet(packet_time_info *tail, double time, unsigned lo
 
 void remove_old_lists(double time)
 {
-  if (list == NULL)
+  if (all_known_computers == NULL)
     return;
   
   computer_info *current_list;
-  computer_info *tmp = list;
+  computer_info *tmp = all_known_computers;
   
   /// Removing first list
-  while ((time - list->tail->time) > TIME_LIMIT) {
-    list = list->next_computer;
+  while ((time - all_known_computers->tail->time) > TIME_LIMIT) {
+    all_known_computers = all_known_computers->next_computer;
     if (tmp->name != NULL)
       free(tmp->name);
     free(tmp);
-    tmp = list;
-    if (list == NULL)
+    tmp = all_known_computers;
+    if (all_known_computers == NULL)
       return;
   }
   
-  for (current_list = list->next_computer; current_list != NULL; current_list = current_list->next_computer) {
+  for (current_list = all_known_computers->next_computer; current_list != NULL; current_list = current_list->next_computer) {
     if ((time - current_list->tail->time) > TIME_LIMIT) {
       tmp->next_computer = current_list->next_computer;
       if (current_list->name != NULL)
@@ -430,9 +431,9 @@ void process_results(short save, short uptime, short graph)
 	 "- Results -\n"
 	 "-----------\n\n");
   
-  if (list != NULL) {
+  if (all_known_computers != NULL) {
     computer_info *current_list;
-    for (current_list = list; current_list != NULL; current_list = current_list->next_computer) {
+    for (current_list = all_known_computers; current_list != NULL; current_list = current_list->next_computer) {
       
       /// Freq == 0 => not enough packets
       if (current_list->freq == 0)
@@ -592,8 +593,8 @@ void generate_graph(computer_info *current_list)
 
 void free_memory()
 {
-  if (list != NULL) {
-    computer_info *current_list = list;
+  if (all_known_computers != NULL) {
+    computer_info *current_list = all_known_computers;
     packet_time_info *current;
     
     while (current_list != NULL) {
@@ -603,11 +604,11 @@ void free_memory()
 	free(current);
 	current = current_list->head;
       }
-      list = current_list->next_computer;
+      all_known_computers = current_list->next_computer;
       if (current_list->name != NULL)
 	free(current_list->name);
       free(current_list);
-      current_list = list;
+      current_list = all_known_computers;
     }
   }
 }
