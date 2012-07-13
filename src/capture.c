@@ -35,6 +35,8 @@
 #include "capture.h"
 #include "list.h"
 
+/// Capture all packets on the wire
+#define PROMISC 1
 
 /// Pcap session handle
 pcap_t *handle;
@@ -294,7 +296,7 @@ int capture(my_config *config)
     fprintf(stderr, "(Can't get netmask for device: %s)\n\n", dev);
   
   /// Open the device for sniffing
-  handle = pcap_open_live(dev, BUFSIZ, 0, 1000, errbuf);
+  handle = pcap_open_live(dev, BUFSIZ, PROMISC, 1000, errbuf);
   if (handle == NULL) {
     fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
     return(2);
