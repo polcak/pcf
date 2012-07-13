@@ -66,9 +66,10 @@ void reduce_packets(computer_info *list);
  * Compute and set frequency before saving
  * @param[in] current_list Pointer to header of packet list
  * @param[in] count Number of packets to save
+ * @param[in] rewrite Boolean that conrols if the file is overwritten or the packets are appended
  * @return 0 if ok
  * */
-int save_packets(computer_info* current_list, int count, short int first);
+int save_packets(computer_info* current_list, int count, short int rewrite);
 
 /**
  * Print uptime
@@ -369,7 +370,7 @@ void reduce_packets(computer_info *current_list)
   }
 }
 
-int save_packets(computer_info *current_list, int count, short first)
+int save_packets(computer_info *current_list, int count, short rewrite)
 {
   /*
   if (count == 0) {
@@ -383,9 +384,12 @@ int save_packets(computer_info *current_list, int count, short first)
   char filename[50] = "log/";
   strcat(filename, current_list->address);
   strcat(filename, ".log");
+#ifdef DEBUG
+  int lines = 0;
+#endif
   
   /// Open file
-  if (first == 1)
+  if (rewrite == 1)
     f = fopen(filename, "w");
   else
     f = fopen(filename, "a");
