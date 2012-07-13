@@ -108,7 +108,7 @@ int compute_clock_frequency(packet_time_info *packets)
   double tmp = 0.0;
   int count = 0;
   
-  for (packet_time_info *current = first->next; current != NULL; current = current->next) {
+  for (packet_time_info *current = first->next_packet; current != NULL; current = current->next_packet) {
     double local_diff = current->time - first->time;
     if (local_diff > 0.0) {
       tmp += ((current->timestamp - first->timestamp) / local_diff);
@@ -135,7 +135,7 @@ void set_offsets(packet_time_info *head, packet_time_info *from, int freq)
   packet_time_info *current;
   double tmp;
   
-  for (current = from; current != NULL; current = current->next) {
+  for (current = from; current != NULL; current = current->next_packet) {
     current->offset.x = current->time - head->time;
     
     tmp = current->timestamp - head->timestamp;
@@ -161,7 +161,7 @@ int set_skew(computer_info *list)
   
   
   int i = 1;
-  for (current = current->next; current != NULL; current = current->next) {
+  for (current = current->next_packet; current != NULL; current = current->next_packet) {
     points[i].x = current->offset.x;
     points[i].y = current->offset.y;
     i++;
@@ -181,7 +181,7 @@ int set_skew(computer_info *list)
   
   beta = hull[j - 1].y - (alpha * hull[j - 1].x);
   min = 0.0;
-  for (current = list->head; current != NULL; current = current->next) {
+  for (current = list->head; current != NULL; current = current->next_packet) {
     min += alpha * current->offset.x + beta - current->offset.y;
   }
   list->skew.alpha = alpha;
@@ -206,7 +206,7 @@ int set_skew(computer_info *list)
     
     /// SUM
     sum = 0.0;
-    for (current = list->head; current != NULL; current = current->next) {
+    for (current = list->head; current != NULL; current = current->next_packet) {
       sum += (alpha * current->offset.x + beta - current->offset.y);
       if (sum >= min)
 	break;

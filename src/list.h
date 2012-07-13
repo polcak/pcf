@@ -41,8 +41,8 @@ struct packet_time_info {
     // Offset
     double y;
   } offset;
-  struct packet_time_info *next;
-  struct packet_time_info *prev;
+  struct packet_time_info *next_packet;
+  struct packet_time_info *prev_packet;
 };
 
 /**
@@ -67,7 +67,7 @@ struct computer_info {
     double beta;
     double diff;
   } skew;
-  struct computer_info *next;
+  struct computer_info *next_computer;
 };
 
 /// Files

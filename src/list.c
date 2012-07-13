@@ -92,7 +92,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
 
   if (list != NULL) {
     computer_info *current_list;
-    for (current_list = list; current_list != NULL; current_list = current_list->next) {
+    for (current_list = list; current_list != NULL; current_list = current_list->next_computer) {
       if (strcmp(current_list->address, address) == 0) {
 
         /// Too much time since last packet so start from the beginning
@@ -234,7 +234,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   
   new_list->head = new_list->tail;
   
-  new_list->next = list;
+  new_list->next_computer = list;
   list = new_list;
   
   return(0);
@@ -253,13 +253,13 @@ packet_time_info *insert_packet(packet_time_info *tail, double time, unsigned lo
   
   if (tail == NULL) {
     tail = new_packet;
-    tail->prev = NULL;
-    tail->next = NULL;
+    tail->prev_packet = NULL;
+    tail->next_packet = NULL;
   }
   else {
-    tail->next = new_packet;
-    tail->next->prev = tail;
-    tail->next->next = NULL;
+    tail->next_packet = new_packet;
+    tail->next_packet->prev_packet = tail;
+    tail->next_packet->next_packet = NULL;
   }
   
 #ifdef PACKETS
@@ -280,7 +280,7 @@ void remove_old_lists(double time)
   
   /// Removing first list
   while ((time - list->tail->time) > TIME_LIMIT) {
-    list = list->next;
+    list = list->next_computer;
     if (tmp->name != NULL)
       free(tmp->name);
     free(tmp);
@@ -289,9 +289,9 @@ void remove_old_lists(double time)
       return;
   }
   
-  for (current_list = list->next; current_list != NULL; current_list = current_list->next) {
+  for (current_list = list->next_computer; current_list != NULL; current_list = current_list->next_computer) {
     if ((time - current_list->tail->time) > TIME_LIMIT) {
-      tmp->next = current_list->next;
+      tmp->next_computer = current_list->next_computer;
       if (current_list->name != NULL)
 	free(current_list->name);
       free(current_list);
@@ -307,17 +307,17 @@ packet_time_info *remove_packet(packet_time_info *current)
   if (current == NULL)
     return(NULL);
   
-  if (current->prev != NULL)
-    current->prev->next = current->next;
-  if (current->next != NULL)
-    current->next->prev = current->prev;
+  if (current->prev_packet != NULL)
+    current->prev_packet->next_packet = current->next_packet;
+  if (current->next_packet != NULL)
+    current->next_packet->prev_packet = current->prev_packet;
   
   packet_time_info *tmp;
   
-  if (current->prev != NULL)
-    tmp = current->prev;
+  if (current->prev_packet != NULL)
+    tmp = current->prev_packet;
   else
-    tmp = current->next;
+    tmp = current->next_packet;
   
   free(current);
   
@@ -341,13 +341,13 @@ void reduce_packets(computer_info *current_list)
   /// Ascending
   if (current_list->skew.alpha > 0) {
     current = current_list->head;
-    while (current_list->count > 3 && current->next != NULL) {
-      if (current->next->offset.y <= current->offset.y) {
-	current = remove_packet(current->next);
+    while (current_list->count > 3 && current->next_packet != NULL) {
+      if (current->next_packet->offset.y <= current->offset.y) {
+	current = remove_packet(current->next_packet);
 	current_list->count--;
       }
       else
-	current = current->next;
+	current = current->next_packet;
     }
     current_list->tail = current;
   }
@@ -355,14 +355,14 @@ void reduce_packets(computer_info *current_list)
   /// Descending
   else {
     current = current_list->tail;
-    while (current_list->count > 3 && current->prev != NULL) {
-      if (current->prev->offset.y <= current->offset.y) {
-	current = remove_packet(current->prev);
-	current = current->next;
+    while (current_list->count > 3 && current->prev_packet != NULL) {
+      if (current->prev_packet->offset.y <= current->offset.y) {
+	current = remove_packet(current->prev_packet);
+	current = current->next_packet;
 	current_list->count--;
       }
       else
-	current = current->prev;
+	current = current->prev_packet;
     }
     current_list->head = current;
   }
@@ -397,11 +397,11 @@ int save_packets(computer_info *current_list, int count, short first)
   /// Get back
   packet_time_info *current = current_list->tail;
   while (count-- > 1 && current != NULL)
-    current = current->prev;
+    current = current->prev_packet;
   
   /// Write to file
   char str[100];
-  for (; current != NULL; current = current->next) {
+  for (; current != NULL; current = current->next_packet) {
     sprintf(str, "%lf\t%lf\n", current->offset.x, current->offset.y);
     fputs(str, f);
   }
@@ -418,7 +418,7 @@ unsigned long packets_count(packet_time_info *head)
   packet_time_info *current;
   unsigned long result = 0;
   
-  for (current = head; current != NULL; current = current->next)
+  for (current = head; current != NULL; current = current->next_packet)
     result++;
   
   return(result);
@@ -432,7 +432,7 @@ void process_results(short save, short uptime, short graph)
   
   if (list != NULL) {
     computer_info *current_list;
-    for (current_list = list; current_list != NULL; current_list = current_list->next) {
+    for (current_list = list; current_list != NULL; current_list = current_list->next_computer) {
       
       /// Freq == 0 => not enough packets
       if (current_list->freq == 0)
@@ -599,11 +599,11 @@ void free_memory()
     while (current_list != NULL) {
       current = current_list->head;
       while (current != NULL) {
-	current_list->head = current->next;
+	current_list->head = current->next_packet;
 	free(current);
 	current = current_list->head;
       }
-      list = current_list->next;
+      list = current_list->next_computer;
       if (current_list->name != NULL)
 	free(current_list->name);
       free(current_list);

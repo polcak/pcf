@@ -257,7 +257,7 @@ char *check_computers(double skew, double *diff)
 char *check_actives(computer_info *list, computer_info *current_list)
 {
   computer_info *tmp;
-  for (tmp = list; tmp != NULL; tmp = tmp->next) {
+  for (tmp = list; tmp != NULL; tmp = tmp->next_computer) {
     if (tmp == current_list)
       continue;
     if (tmp->freq == 0)
@@ -306,7 +306,7 @@ int save_active(computer_info *list)
   
   computer_info *current_list;
   
-  for (current_list = list; current_list != NULL; current_list = current_list->next) {
+  for (current_list = list; current_list != NULL; current_list = current_list->next_computer) {
     
     if (current_list->freq == 0) {
 #ifdef DEBUG
