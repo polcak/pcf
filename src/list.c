@@ -163,7 +163,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Save offsets into file - reduced
-          save_packets(current_list, packets_count(current_list->head_packet), current_list->first);
+          save_packets(current_list, packets_count(current_list->head_packet), 1);
 
           /// Set skew
           if (set_skew(current_list) != 0) {
@@ -225,8 +225,6 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   new_list->tail_packet = NULL;
   new_list->name = NULL;
   time(&new_list->rawtime);
-  
-  new_list->first = 1;
   
   new_list->tail_packet = insert_packet(new_list->tail_packet, ttime, timestamp);
   if (new_list->head_packet == NULL)
