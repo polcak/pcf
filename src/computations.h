@@ -24,26 +24,26 @@
 
 
 /**
- * Compute clock frequency
- * @param[in] head Pointer to the list of packets
+ * Computes clock frequency according to given packet set
+ * @param[in] packets Pointer to the list of packets
  * @return Frequency
  */
-int get_frequency(my_packet *head);
+int compute_clock_frequency(packet_time_info *packets);
 
 /**
  * Compute and set offsets (x, y)
- * @param[in] head Pointer to the first packet
+ * @param[in] head_packet Pointer to the first packet
  * @param[in] from Pointer to the packet from where to set offsets till end
  * @param[in] freq Frequency
  */
-void set_offsets(my_packet *head, my_packet *from, int freq);
+void set_offsets(packet_time_info *head_packet, packet_time_info *from, int freq);
 
 /**
  * Compute and set clock skew
  * @param[in] list Pointer to header of packet list
  * @return 0 if ok
  */
-int set_skew(my_list *list);
+int set_skew(computer_info *list);
 
 
 #endif

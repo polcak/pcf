@@ -23,16 +23,14 @@ OBJ = capture.o main.o list.o parse_config.o computations.o check_computers.o
 HEAD = capture.h list.h parse_config.h computations.h check_computers.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = gcc
-CFLAGS = -O2 -Wall -std=gnu99
+CFLAGS ?= -O2 -Wall -std=gnu99
 
 
 all: $(program)
 
-debug: CC += -DDEBUG -g
-debug: $(program)
-
-packets: CC += -DPACKETS -g
-packets: $(program)
+debug:
+	make clean
+	make CFLAGS="-DDEBUG -g -Wall -std=gnu99"
 
 install: all
 	cp -r pcf gen_pics.sh config ../bin

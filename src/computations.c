@@ -18,6 +18,7 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -82,11 +83,11 @@ my_point *convex_hull(my_point points[], unsigned long *number)
   for (i = 2; i < *number; i++) {
     while (ccw(points[m - 1], points[m], points[i]) >= 0) {
       if (m == 1) {
-	swap(&points[m], &points[i]);
-	i++;
+        swap(&points[m], &points[i]);
+        i++;
       }
       else
-	m--;
+        m--;
     }
     m++;
     swap(&points[m], &points[i]);
@@ -98,20 +99,19 @@ my_point *convex_hull(my_point points[], unsigned long *number)
 }
 
 
-int get_frequency(my_packet *head)
+int compute_clock_frequency(packet_time_info *packets)
 {
+  assert(packets != NULL);
   
-  if (head == NULL)
-    printf("FREQ NULL\n");
-  
-  my_packet *current = head;
+  packet_time_info *first = packets;
+
   double tmp = 0.0;
   int count = 0;
   
-  for (current = current->next; current != NULL; current = current->next) {
-    double local_diff = current->time - head->time;
+  for (packet_time_info *current = first->next_packet; current != NULL; current = current->next_packet) {
+    double local_diff = current->time - first->time;
     if (local_diff > 0.0) {
-      tmp += ((current->timestamp - head->timestamp) / local_diff);
+      tmp += ((current->timestamp - first->timestamp) / local_diff);
     }
     count++;
   }
@@ -130,15 +130,15 @@ int get_frequency(my_packet *head)
   return freq;
 }
 
-void set_offsets(my_packet *head, my_packet *from, int freq)
+void set_offsets(packet_time_info *head_packet, packet_time_info *from, int freq)
 {
-  my_packet *current;
+  packet_time_info *current;
   double tmp;
   
-  for (current = from; current != NULL; current = current->next) {
-    current->offset.x = current->time - head->time;
+  for (current = from; current != NULL; current = current->next_packet) {
+    current->offset.x = current->time - head_packet->time;
     
-    tmp = current->timestamp - head->timestamp;
+    tmp = current->timestamp - head_packet->timestamp;
     tmp /= freq;
     tmp -= current->offset.x;
     
@@ -149,11 +149,11 @@ void set_offsets(my_packet *head, my_packet *from, int freq)
   }
 }
 
-int set_skew(my_list *list)
+int set_skew(computer_info *list)
 {
-  unsigned long number = packets_count(list->head);
+  unsigned long number = packets_count(list->head_packet);
   my_point points[number];
-  my_packet *current = list->head;
+  packet_time_info *current = list->head_packet;
   
   /// First point
   points[0].x = current->offset.x;
@@ -161,7 +161,7 @@ int set_skew(my_list *list)
   
   
   int i = 1;
-  for (current = current->next; current != NULL; current = current->next) {
+  for (current = current->next_packet; current != NULL; current = current->next_packet) {
     points[i].x = current->offset.x;
     points[i].y = current->offset.y;
     i++;
@@ -181,7 +181,7 @@ int set_skew(my_list *list)
   
   beta = hull[j - 1].y - (alpha * hull[j - 1].x);
   min = 0.0;
-  for (current = list->head; current != NULL; current = current->next) {
+  for (current = list->head_packet; current != NULL; current = current->next_packet) {
     min += alpha * current->offset.x + beta - current->offset.y;
   }
   list->skew.alpha = alpha;
@@ -206,10 +206,10 @@ int set_skew(my_list *list)
     
     /// SUM
     sum = 0.0;
-    for (current = list->head; current != NULL; current = current->next) {
+    for (current = list->head_packet; current != NULL; current = current->next_packet) {
       sum += (alpha * current->offset.x + beta - current->offset.y);
       if (sum >= min)
-	break;
+        break;
     }
     
 #ifdef DEBUG

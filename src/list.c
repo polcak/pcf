@@ -30,17 +30,17 @@
 
 
 /// List of all packet lists
-my_list *list = NULL;
+computer_info *all_known_computers = NULL;
 
 
 /**
  * Insert new packet into the list
- * @param[in] tail Pointer to the end of the list
+ * @param[in] tail_packet Pointer to the end of the list
  * @param[in] time Arrival time of the new packet
  * @param[in] timestamp Timestamp of the new packet
  * @return 0 if ok
  */
-my_packet *insert_packet(my_packet *tail, double time, unsigned long int timestamp);
+packet_time_info *insert_packet(packet_time_info *tail_packet, double time, unsigned long int timestamp);
 
 /**
  * Remove lists older (last recieved packet) than TIME_LIMIT
@@ -53,13 +53,13 @@ void remove_old_lists(double time);
  * @param[in] current Pointer to the packet to be removed
  * @return Packet next to the removed packet
  */
-my_packet *remove_packet(my_packet *current);
+packet_time_info *remove_packet(packet_time_info *current);
 
 /**
  * Reduce list of packets - only ascending/descending packets stay
  * @param[in] list Pointer to the list of packets
  */
-void reduce_packets(my_list *list);
+void reduce_packets(computer_info *list);
 
 /** 
  * Save 'count' packets into file (called 'IP address.log')
@@ -68,20 +68,20 @@ void reduce_packets(my_list *list);
  * @param[in] count Number of packets to save
  * @return 0 if ok
  * */
-int save_packets(my_list* current_list, int count, short int first);
+int save_packets(computer_info* current_list, int count, short int first);
 
 /**
  * Print uptime
- * @param[in] tail Pointer to the last packet of the list
+ * @param[in] tail_packet Pointer to the last packet of the list
  * @param[in] freq Frequency
  */
-void print_uptime(my_packet *tail, const int freq);
+void print_uptime(packet_time_info *tail_packet, const int freq);
 
 /**
  * Generate graph
  * @param[in] list Pointer to header of packet list
  */
-void generate_graph(my_list *current_list);
+void generate_graph(computer_info *current_list);
 
 
 int new_packet(const char *address, double ttime, unsigned long int timestamp)
@@ -90,21 +90,21 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   printf("\r%lu packets captured", ++total);
   fflush(stdout);
 
-  if (list != NULL) {
-    my_list *current_list;
-    for (current_list = list; current_list != NULL; current_list = current_list->next) {
+  if (all_known_computers != NULL) {
+    computer_info *current_list;
+    for (current_list = all_known_computers; current_list != NULL; current_list = current_list->next_computer) {
       if (strcmp(current_list->address, address) == 0) {
 
         /// Too much time since last packet so start from the beginning
-        if ((ttime - current_list->tail->time) > TIME_LIMIT) {
+        if ((ttime - current_list->tail_packet->time) > TIME_LIMIT) {
           remove_old_lists(ttime);
           return(3);
         }
 
         /// Check if packet has the same or lower timestamp
-        if (timestamp <= current_list->tail->timestamp) {
+        if (timestamp <= current_list->tail_packet->timestamp) {
 #ifdef DEBUG
-          if (timestamp < current_list->tail->timestamp)
+          if (timestamp < current_list->tail_packet->timestamp)
             fprintf(stderr, "%s: Lower timestamp\n", current_list->address);
 #endif
           return(1);
@@ -115,8 +115,8 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           return(0);
 
         /// Insert packet
-        current_list->tail = insert_packet(current_list->tail, ttime, timestamp);
-        if (current_list->tail == NULL)
+        current_list->tail_packet = insert_packet(current_list->tail_packet, ttime, timestamp);
+        if (current_list->tail_packet == NULL)
           return(-1);
 
         /// Increment number of packets
@@ -133,11 +133,11 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
 
           /// Set frequency
           if (current_list->freq == 0) {
-            if ((ttime - current_list->head->time) < 60) {
+            if ((ttime - current_list->head_packet->time) < 60) {
               return 2;
             }
             else {
-              current_list->freq = get_frequency(current_list->head);
+              current_list->freq = compute_clock_frequency(current_list->head_packet);
 #if 0
               fprintf(stderr, "Found %s with frequency %d", current_list->address, current_list->freq);
 #endif
@@ -145,7 +145,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Set offsets
-          set_offsets(current_list->head, current_list->head, current_list->freq);
+          set_offsets(current_list->head_packet, current_list->head_packet, current_list->freq);
 
           /// Set date
           time(&current_list->rawtime);
@@ -162,7 +162,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Save offsets into file - reduced
-          save_packets(current_list, packets_count(current_list->head), current_list->first);
+          save_packets(current_list, packets_count(current_list->head_packet), current_list->first);
 
           /// Set skew
           if (set_skew(current_list) != 0) {
@@ -173,7 +173,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Check active computers
-          char *tmp = check_actives(list, current_list);
+          char *tmp = check_actives(all_known_computers, current_list);
           if (tmp)
             current_list->name = tmp;
 
@@ -187,12 +187,12 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Save active computers
-          save_active(list);
+          save_active(all_known_computers);
 
           /// Too much packets -> remove packets from the beginning
           while (current_list->count > (BLOCK * 100)) {
             for (int i = 0; i < BLOCK; i++) {
-              current_list->head = remove_packet(current_list->head);
+              current_list->head_packet = remove_packet(current_list->head_packet);
               current_list->count--;
             }
           }
@@ -210,7 +210,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   }
   
   /// New packet list
-  my_list *new_list = (my_list*)malloc(sizeof(my_list));
+  computer_info *new_list = (computer_info*)malloc(sizeof(computer_info));
   if (!new_list) {
     fprintf(stderr, "Malloc: Not enough memory\n");
     return(-1);
@@ -221,28 +221,29 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   
   new_list->freq = 0;
   new_list->skew.alpha = 0;
-  new_list->tail = NULL;
+  new_list->tail_packet = NULL;
   new_list->name = NULL;
   time(&new_list->rawtime);
   
   new_list->first = 1;
   
-  new_list->tail = insert_packet(new_list->tail, ttime, timestamp);
-  if (new_list->head == NULL)
+  new_list->tail_packet = insert_packet(new_list->tail_packet, ttime, timestamp);
+  if (new_list->head_packet == NULL)
     return(-1);
   new_list->count = 1;
   
-  new_list->head = new_list->tail;
+  new_list->head_packet = new_list->tail_packet;
   
-  new_list->next = list;
-  list = new_list;
+  // Insert new computer to the beginning of the list of all known computers
+  new_list->next_computer = all_known_computers;
+  all_known_computers = new_list;
   
   return(0);
 }
 
-my_packet *insert_packet(my_packet *tail, double time, unsigned long int timestamp)
+packet_time_info *insert_packet(packet_time_info *tail_packet, double time, unsigned long int timestamp)
 {  
-  my_packet *new_packet = (my_packet*)malloc(sizeof(my_packet));
+  packet_time_info *new_packet = (packet_time_info*)malloc(sizeof(packet_time_info));
   if (!new_packet) {
     fprintf(stderr, "Malloc: Not enough memory\n");
     return(NULL);
@@ -251,15 +252,15 @@ my_packet *insert_packet(my_packet *tail, double time, unsigned long int timesta
   new_packet->time = time;
   new_packet->timestamp = timestamp;
   
-  if (tail == NULL) {
-    tail = new_packet;
-    tail->prev = NULL;
-    tail->next = NULL;
+  if (tail_packet == NULL) {
+    tail_packet = new_packet;
+    tail_packet->prev_packet = NULL;
+    tail_packet->next_packet = NULL;
   }
   else {
-    tail->next = new_packet;
-    tail->next->prev = tail;
-    tail->next->next = NULL;
+    tail_packet->next_packet = new_packet;
+    tail_packet->next_packet->prev_packet = tail_packet;
+    tail_packet->next_packet->next_packet = NULL;
   }
   
 #ifdef PACKETS
@@ -272,28 +273,28 @@ my_packet *insert_packet(my_packet *tail, double time, unsigned long int timesta
 
 void remove_old_lists(double time)
 {
-  if (list == NULL)
+  if (all_known_computers == NULL)
     return;
   
-  my_list *current_list;
-  my_list *tmp = list;
+  computer_info *current_list;
+  computer_info *tmp = all_known_computers;
   
   /// Removing first list
-  while ((time - list->tail->time) > TIME_LIMIT) {
-    list = list->next;
+  while ((time - all_known_computers->tail_packet->time) > TIME_LIMIT) {
+    all_known_computers = all_known_computers->next_computer;
     if (tmp->name != NULL)
       free(tmp->name);
     free(tmp);
-    tmp = list;
-    if (list == NULL)
+    tmp = all_known_computers;
+    if (all_known_computers == NULL)
       return;
   }
   
-  for (current_list = list->next; current_list != NULL; current_list = current_list->next) {
-    if ((time - current_list->tail->time) > TIME_LIMIT) {
-      tmp->next = current_list->next;
+  for (current_list = all_known_computers->next_computer; current_list != NULL; current_list = current_list->next_computer) {
+    if ((time - current_list->tail_packet->time) > TIME_LIMIT) {
+      tmp->next_computer = current_list->next_computer;
       if (current_list->name != NULL)
-	free(current_list->name);
+        free(current_list->name);
       free(current_list);
       current_list = tmp;
     }
@@ -302,29 +303,29 @@ void remove_old_lists(double time)
   }
 }
 
-my_packet *remove_packet(my_packet *current)
+packet_time_info *remove_packet(packet_time_info *current)
 {
   if (current == NULL)
     return(NULL);
   
-  if (current->prev != NULL)
-    current->prev->next = current->next;
-  if (current->next != NULL)
-    current->next->prev = current->prev;
+  if (current->prev_packet != NULL)
+    current->prev_packet->next_packet = current->next_packet;
+  if (current->next_packet != NULL)
+    current->next_packet->prev_packet = current->prev_packet;
   
-  my_packet *tmp;
+  packet_time_info *tmp;
   
-  if (current->prev != NULL)
-    tmp = current->prev;
+  if (current->prev_packet != NULL)
+    tmp = current->prev_packet;
   else
-    tmp = current->next;
+    tmp = current->next_packet;
   
   free(current);
   
   return(tmp);
 }
 
-void reduce_packets(my_list *current_list)
+void reduce_packets(computer_info *current_list)
 { 
   if (current_list->count < 4)
     return;
@@ -332,7 +333,7 @@ void reduce_packets(my_list *current_list)
   if (current_list->skew.alpha == 0)
     return;
   
-  my_packet *current;
+  packet_time_info *current;
   
   /// Don't reduce if skew is too small
   if (current_list->skew.alpha < 0.01 && current_list->skew.alpha > -0.01)
@@ -340,35 +341,35 @@ void reduce_packets(my_list *current_list)
   
   /// Ascending
   if (current_list->skew.alpha > 0) {
-    current = current_list->head;
-    while (current_list->count > 3 && current->next != NULL) {
-      if (current->next->offset.y <= current->offset.y) {
-	current = remove_packet(current->next);
-	current_list->count--;
+    current = current_list->head_packet;
+    while (current_list->count > 3 && current->next_packet != NULL) {
+      if (current->next_packet->offset.y <= current->offset.y) {
+        current = remove_packet(current->next_packet);
+        current_list->count--;
       }
       else
-	current = current->next;
+        current = current->next_packet;
     }
-    current_list->tail = current;
+    current_list->tail_packet = current;
   }
   
   /// Descending
   else {
-    current = current_list->tail;
-    while (current_list->count > 3 && current->prev != NULL) {
-      if (current->prev->offset.y <= current->offset.y) {
-	current = remove_packet(current->prev);
-	current = current->next;
-	current_list->count--;
+    current = current_list->tail_packet;
+    while (current_list->count > 3 && current->prev_packet != NULL) {
+      if (current->prev_packet->offset.y <= current->offset.y) {
+        current = remove_packet(current->prev_packet);
+        current = current->next_packet;
+        current_list->count--;
       }
       else
-	current = current->prev;
+        current = current->prev_packet;
     }
-    current_list->head = current;
+    current_list->head_packet = current;
   }
 }
 
-int save_packets(my_list *current_list, int count, short first)
+int save_packets(computer_info *current_list, int count, short first)
 {
   /*
   if (count == 0) {
@@ -395,13 +396,13 @@ int save_packets(my_list *current_list, int count, short first)
   }
   
   /// Get back
-  my_packet *current = current_list->tail;
+  packet_time_info *current = current_list->tail_packet;
   while (count-- > 1 && current != NULL)
-    current = current->prev;
+    current = current->prev_packet;
   
   /// Write to file
   char str[100];
-  for (; current != NULL; current = current->next) {
+  for (; current != NULL; current = current->next_packet) {
     sprintf(str, "%lf\t%lf\n", current->offset.x, current->offset.y);
     fputs(str, f);
   }
@@ -413,12 +414,12 @@ int save_packets(my_list *current_list, int count, short first)
   return(0);
 }
 
-unsigned long packets_count(my_packet *head)
+unsigned long packets_count(packet_time_info *head_packet)
 {
-  my_packet *current;
+  packet_time_info *current;
   unsigned long result = 0;
   
-  for (current = head; current != NULL; current = current->next)
+  for (current = head_packet; current != NULL; current = current->next_packet)
     result++;
   
   return(result);
@@ -427,65 +428,65 @@ unsigned long packets_count(my_packet *head)
 void process_results(short save, short uptime, short graph)
 {
   printf("-----------\n"
-	 "- Results -\n"
-	 "-----------\n\n");
+         "- Results -\n"
+         "-----------\n\n");
   
-  if (list != NULL) {
-    my_list *current_list;
-    for (current_list = list; current_list != NULL; current_list = current_list->next) {
+  if (all_known_computers != NULL) {
+    computer_info *current_list;
+    for (current_list = all_known_computers; current_list != NULL; current_list = current_list->next_computer) {
       
       /// Freq == 0 => not enough packets
       if (current_list->freq == 0)
-	continue;
+        continue;
       
       /// Stupid frequency
       if (fabs(current_list->freq) > 10000)
-	continue;
+        continue;
       
       printf("%s (%ld packets)\n\n"
-	     "Frequency: %d\n", current_list->address, current_list->count, current_list->freq);
+             "Frequency: %d\n", current_list->address, current_list->count, current_list->freq);
       /// Print uptime
       if (uptime)
-	print_uptime(current_list->tail, current_list->freq);
+        print_uptime(current_list->tail_packet, current_list->freq);
       printf("Skew: f(x) = %lfx + %lf\n\n", current_list->skew.alpha, current_list->skew.beta);
       
       /// Save new computer
       if (save) {
-	printf("Save this computer? (y/n) [n]: ");
-	if (getchar() == 'y') {
-	  printf("Name: ");
-	  
-	  /// Flush stdin
-	  int c;
-	  while ((c = fgetc(stdin)) != EOF && c != '\n' );
-	  
-	  /// Name
-	  char name[256];
-	  fgets(name, sizeof(name), stdin);
-	  name[255] = '\0';
-	  c = 0;
-	  while (name[c] != EOF && name[c] != '\n')
-	    c++;
-	  if (name[c] == '\n')
-	    name[c] = '\0';
-	  
-	  /// Save
-	  if (save_computer(name, current_list->skew.alpha, current_list->freq, current_list->address) != 0)
-	    fprintf(stderr, "Cannot save new computer\n");
-	}
+        printf("Save this computer? (y/n) [n]: ");
+        if (getchar() == 'y') {
+          printf("Name: ");
+          
+          /// Flush stdin
+          int c;
+          while ((c = fgetc(stdin)) != EOF && c != '\n' );
+          
+          /// Name
+          char name[256];
+          fgets(name, sizeof(name), stdin);
+          name[255] = '\0';
+          c = 0;
+          while (name[c] != EOF && name[c] != '\n')
+            c++;
+          if (name[c] == '\n')
+            name[c] = '\0';
+          
+          /// Save
+          if (save_computer(name, current_list->skew.alpha, current_list->freq, current_list->address) != 0)
+            fprintf(stderr, "Cannot save new computer\n");
+        }
       }
       
       /// Generate graph
       if (graph)
-	generate_graph(current_list);
+        generate_graph(current_list);
     }
   }
 }
 
-void print_uptime(my_packet *tail, int freq)
+void print_uptime(packet_time_info *tail_packet, int freq)
 {
   time_t now = time(NULL);
-  int uptime = (int)round((tail->timestamp / freq));
+  int uptime = (int)round((tail_packet->timestamp / freq));
   
   time_t tmp = difftime(now, uptime);
   char *date_uptime = ctime(&tmp);
@@ -503,7 +504,7 @@ void print_uptime(my_packet *tail, int freq)
   printf("Uptime: %dd %dh %dm (since %s, %d seconds)\n", days, hours, minutes, date_uptime, seconds);
 }
 
-void generate_graph(my_list *current_list)
+void generate_graph(computer_info *current_list)
 {
   static const char* filename_template =  "graph/%s.gp";
   FILE *f;
@@ -525,15 +526,15 @@ void generate_graph(my_list *current_list)
 
   fputs("set encoding iso_8859_2\n"
         "set terminal postscript font \"DejaVuSans\"\n"
-	//"set terminal postscript\n"
-	"set output 'graph/", f);
-  fputs(current_list->address, f);
-  fputs(".ps'\n\n"
-	//"set xlabel 'Elapsed time [s]'\n"
-	"set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
-	//"set ylabel 'Offset [ms]'\n\n"
-	"set ylabel \"Odchylka [ms]\"\n\n"
-	"f(x) = ", f);
+        //"set terminal postscript\n"
+        "set output 'graph/", f);
+        fputs(current_list->address, f);
+        fputs(".ps'\n\n"
+        //"set xlabel 'Elapsed time [s]'\n"
+        "set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
+        //"set ylabel 'Offset [ms]'\n\n"
+        "set ylabel \"Odchylka [ms]\"\n\n"
+        "f(x) = ", f);
   
   /// f(x)
   sprintf(tmp, "%lf", current_list->skew.alpha);
@@ -542,7 +543,7 @@ void generate_graph(my_list *current_list)
   sprintf(tmp, "%lf", current_list->skew.beta);
   fputs(tmp, f);
   fputs("\n\nset grid\n"
-	"set title \"", f);
+        "set title \"", f);
   
   /// Title
   time_t rawtime;
@@ -564,7 +565,7 @@ void generate_graph(my_list *current_list)
   
   /// Plot
   fputs("\n\n"
-	"plot '", f);
+        "plot '", f);
   fputs("log/", f);
   fputs(current_list->address, f);
   fputs(".log' title '', f(x)", f);
@@ -592,22 +593,22 @@ void generate_graph(my_list *current_list)
 
 void free_memory()
 {
-  if (list != NULL) {
-    my_list *current_list = list;
-    my_packet *current;
+  if (all_known_computers != NULL) {
+    computer_info *current_list = all_known_computers;
+    packet_time_info *current;
     
     while (current_list != NULL) {
-      current = current_list->head;
+      current = current_list->head_packet;
       while (current != NULL) {
-	current_list->head = current->next;
-	free(current);
-	current = current_list->head;
+        current_list->head_packet = current->next_packet;
+        free(current);
+        current = current_list->head_packet;
       }
-      list = current_list->next;
+      all_known_computers = current_list->next_computer;
       if (current_list->name != NULL)
-	free(current_list->name);
+        free(current_list->name);
       free(current_list);
-      current_list = list;
+      current_list = all_known_computers;
     }
   }
 }
