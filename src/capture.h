@@ -28,7 +28,7 @@
  * @param[in] config Config data
  * @return 0 if ok
  */
-int capture(my_config *config);
+int capture(pcf_config *config);
 
 
 #endif

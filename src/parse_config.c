@@ -29,7 +29,7 @@
  * Fill the config structure with default data
  * @param[in] config Config structure
  */
-void init(my_config *config)
+void init(pcf_config *config)
 {
   strcpy(config->dev, "");
   config->number = 0;
@@ -107,7 +107,7 @@ int parse(const char *buf, char *name, char *value)
   return(0);
 }
 
-my_config *get_config(const char *filename)
+pcf_config *get_config(const char *filename)
 {
   FILE *f;
   f = fopen(filename, "r");
@@ -117,7 +117,7 @@ my_config *get_config(const char *filename)
   }
   
   /// Initialisation
-  my_config *config = (my_config*)malloc(sizeof(my_config));
+  pcf_config *config = (pcf_config*)malloc(sizeof(pcf_config));
   init(config);
   
   /// Parse the file
@@ -214,7 +214,7 @@ my_config *get_config(const char *filename)
   return config;
 }
 
-void free_config(my_config *config)
+void free_config(pcf_config *config)
 {
   if (config != NULL)
     free(config);

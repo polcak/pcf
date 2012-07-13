@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
   
   /// Get config
   char filename[] = "config";
-  my_config *config = get_config(filename);
+  pcf_config *config = get_config(filename);
   if (config == NULL) {
     fprintf(stderr, "Cannot parse config file: %s", filename);
     return(2);

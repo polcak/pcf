@@ -24,9 +24,9 @@
 /**
  * Structure with all config data
  */
-typedef struct my_cfg my_config;
+typedef struct pcf_config pcf_config;
 
-struct my_cfg {
+struct pcf_config {
   char dev[10];
   int number;
   unsigned int time;
@@ -50,13 +50,13 @@ struct my_cfg {
  * @param[in] filename Config file name
  * @return Filled config structure, NULL if error
  */
-my_config *get_config(const char *filename);
+pcf_config *get_config(const char *filename);
 
 /**
  * Free the config structure
  * @param[in] config Structure with config data
  */
-void free_config(my_config *config);
+void free_config(pcf_config *config);
 
 
 #endif

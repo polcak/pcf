@@ -234,7 +234,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 }
 
 
-int capture(my_config *config)
+int capture(pcf_config *config)
 {
   // Dot notation network address
   char *net;
