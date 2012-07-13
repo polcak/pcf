@@ -28,7 +28,6 @@
 <center>
 <?php
 	#system("./gen_pics.sh", $retval);
-	system("ls /home/kuba/pcf/pcf/");
 
 	$directory = "graph/";
 	$graphs = array_diff(scandir($directory), array('..', '.','.gitignore'));
