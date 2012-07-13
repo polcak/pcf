@@ -238,8 +238,10 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   time(&new_list->rawtime);
   
   new_list->tail_packet = insert_packet(new_list->tail_packet, ttime, timestamp);
-  if (new_list->head_packet == NULL)
+  if (new_list->tail_packet == NULL) {
+    free(new_list);
     return(-1);
+  }
   new_list->count = 1;
   
   new_list->head_packet = new_list->tail_packet;
