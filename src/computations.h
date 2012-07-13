@@ -24,11 +24,11 @@
 
 
 /**
- * Compute clock frequency
- * @param[in] head Pointer to the list of packets
+ * Computes clock frequency according to given packet set
+ * @param[in] packets Pointer to the list of packets
  * @return Frequency
  */
-int get_frequency(packet_time_info *head);
+int compute_clock_frequency(packet_time_info *packets);
 
 /**
  * Compute and set offsets (x, y)

@@ -18,6 +18,7 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -98,20 +99,19 @@ my_point *convex_hull(my_point points[], unsigned long *number)
 }
 
 
-int get_frequency(packet_time_info *head)
+int compute_clock_frequency(packet_time_info *packets)
 {
+  assert(packets != NULL);
   
-  if (head == NULL)
-    printf("FREQ NULL\n");
-  
-  packet_time_info *current = head;
+  packet_time_info *first = packets;
+
   double tmp = 0.0;
   int count = 0;
   
-  for (current = current->next; current != NULL; current = current->next) {
-    double local_diff = current->time - head->time;
+  for (packet_time_info *current = first->next; current != NULL; current = current->next) {
+    double local_diff = current->time - first->time;
     if (local_diff > 0.0) {
-      tmp += ((current->timestamp - head->timestamp) / local_diff);
+      tmp += ((current->timestamp - first->timestamp) / local_diff);
     }
     count++;
   }

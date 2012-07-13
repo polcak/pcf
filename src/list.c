@@ -137,7 +137,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
               return 2;
             }
             else {
-              current_list->freq = get_frequency(current_list->head);
+              current_list->freq = compute_clock_frequency(current_list->head);
 #if 0
               fprintf(stderr, "Found %s with frequency %d", current_list->address, current_list->freq);
 #endif
