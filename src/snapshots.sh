@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+rm -f graph/* log/* www/graph/*
 
 while [ 1 ]
 do
