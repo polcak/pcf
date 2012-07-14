@@ -166,7 +166,7 @@ int set_skew(computer_info *list)
     points[i].y = current->offset.y;
     i++;
   }
-  pckts_count = i;
+  pckts_count = i-1;
   
   my_point *hull = convex_hull(points, &pckts_count);
   
