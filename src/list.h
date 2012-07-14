@@ -55,7 +55,6 @@ struct computer_info {
   packet_time_info *tail_packet;
   char address[ADDRESS_SIZE];
   int freq;
-  char *name;
   unsigned long count;
   time_t rawtime;
   

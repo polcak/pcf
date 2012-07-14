@@ -184,20 +184,6 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
             return(1);
           }
 
-          /// Check active computers
-          char *tmp = check_actives(all_known_computers, known_computer);
-          if (tmp)
-            known_computer->name = tmp;
-
-          /// Check saved computers
-          else {
-            char *tmp = check_computers(known_computer->skew.alpha, &known_computer->skew.diff);
-            if (tmp)
-              known_computer->name = tmp;
-            else
-              known_computer->name = NULL;
-          }
-
           /// Save active computers
           save_active(all_known_computers);
 
@@ -234,7 +220,6 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   new_list->freq = 0;
   new_list->skew.alpha = 0;
   new_list->tail_packet = NULL;
-  new_list->name = NULL;
   time(&new_list->rawtime);
   
   new_list->tail_packet = insert_packet(new_list->tail_packet, ttime, timestamp);
@@ -294,8 +279,6 @@ void remove_old_lists(double time)
   /// Removing first list
   while ((time - all_known_computers->tail_packet->time) > TIME_LIMIT) {
     all_known_computers = all_known_computers->next_computer;
-    if (tmp->name != NULL)
-      free(tmp->name);
     free(tmp);
     tmp = all_known_computers;
     if (all_known_computers == NULL)
@@ -305,8 +288,6 @@ void remove_old_lists(double time)
   for (current_list = all_known_computers->next_computer; current_list != NULL; current_list = current_list->next_computer) {
     if ((time - current_list->tail_packet->time) > TIME_LIMIT) {
       tmp->next_computer = current_list->next_computer;
-      if (current_list->name != NULL)
-        free(current_list->name);
       free(current_list);
       current_list = tmp;
     }
@@ -577,6 +558,8 @@ void generate_graph(computer_info *current_list)
   fputs(current_list->address, f);
   
   /// Recognized computer
+	// FIXME find known computers with similar skew
+#if 0
   if (current_list->name != NULL) {
     fputs("\\n", f);
     fputs(current_list->name, f);
@@ -584,7 +567,8 @@ void generate_graph(computer_info *current_list)
   }
   else
     fputs("\\nunknown\" textcolor lt 1", f);
-  
+#endif
+
   /// Plot
   fputs("\n\n"
         "plot '", f);

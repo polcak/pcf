@@ -322,6 +322,8 @@ int save_active(computer_info *list)
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
+		// FIXME find computers with similar clock skew
+#if 0
     /// <name>
     if (current_list->name) {
       node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST current_list->name);
@@ -334,7 +336,8 @@ int save_active(computer_info *list)
       xmlAddChild(node, node_child);
       xmlAddChild(nodeptr, node);
     }
-    
+#endif
+
     /// <address>
     node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST current_list->address);
     xmlAddChild(node, node_child);
