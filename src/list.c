@@ -92,125 +92,125 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   fflush(stdout);
 
   if (all_known_computers != NULL) {
-    computer_info *current_list;
-    for (current_list = all_known_computers; current_list != NULL; current_list = current_list->next_computer) {
-      if (strcmp(current_list->address, address) == 0) {
+    computer_info *known_computer;
+    for (known_computer = all_known_computers; known_computer != NULL; known_computer = known_computer->next_computer) {
+      if (strcmp(known_computer->address, address) == 0) {
 
         /// Too much time since last packet so start from the beginning
-        if ((ttime - current_list->tail_packet->time) > TIME_LIMIT) {
+        if ((ttime - known_computer->tail_packet->time) > TIME_LIMIT) {
           remove_old_lists(ttime);
 #ifdef DEBUG
-          fprintf(stderr, "%s timeout: starting a new tracking\n", current_list->address);
+          fprintf(stderr, "%s timeout: starting a new tracking\n", known_computer->address);
 #endif
           return(3);
         }
 
         /// Check if packet has the same or lower timestamp
-        if (timestamp <= current_list->tail_packet->timestamp) {
+        if (timestamp <= known_computer->tail_packet->timestamp) {
 #ifdef DEBUG
-          if (timestamp < current_list->tail_packet->timestamp)
-            fprintf(stderr, "%s: Lower timestamp\n", current_list->address);
+          if (timestamp < known_computer->tail_packet->timestamp)
+            fprintf(stderr, "%s: Lower timestamp\n", known_computer->address);
 #endif
           return(1);
         }
 
         /// Stop supporting lists with stupid frequency
-        if (fabs(current_list->freq) > 10000) {
+        if (fabs(known_computer->freq) > 10000) {
 #ifdef DEBUG
-        fprintf(stderr, "%s: too high frequency of %d\n", current_list->address, current_list->freq);
+        fprintf(stderr, "%s: too high frequency of %d\n", known_computer->address, known_computer->freq);
 #endif
           return(0);
         }
 
         /// Insert packet
-        current_list->tail_packet = insert_packet(current_list->tail_packet, ttime, timestamp);
-        if (current_list->tail_packet == NULL) {
+        known_computer->tail_packet = insert_packet(known_computer->tail_packet, ttime, timestamp);
+        if (known_computer->tail_packet == NULL) {
 #ifdef DEBUG
-          fprintf(stderr, "%s: Packet was not inserted correctly (insert_packet)\n", current_list->address);
+          fprintf(stderr, "%s: Packet was not inserted correctly (insert_packet)\n", known_computer->address);
 #endif
           return(-1);
         }
 
         /// Increment number of packets
-        current_list->count++;
+        known_computer->count++;
 #if 0
-        fprintf(stderr, "%s: %ld\n", current_list->address, current_list->count);
+        fprintf(stderr, "%s: %ld\n", known_computer->address, known_computer->count);
 #endif
 
         /// Operations do every BLOCK
-        if ((current_list->count % BLOCK) == 0) {
+        if ((known_computer->count % BLOCK) == 0) {
 
           /// Remove old lists
           remove_old_lists(ttime);
 
           /// Set frequency
-          if (current_list->freq == 0) {
-            if ((ttime - current_list->head_packet->time) < 60) {
+          if (known_computer->freq == 0) {
+            if ((ttime - known_computer->head_packet->time) < 60) {
               return 2;
             }
             else {
-              current_list->freq = compute_clock_frequency(current_list->head_packet);
+              known_computer->freq = compute_clock_frequency(known_computer->head_packet);
 #if 0
-              fprintf(stderr, "Found %s with frequency %d", current_list->address, current_list->freq);
+              fprintf(stderr, "Found %s with frequency %d", known_computer->address, known_computer->freq);
 #endif
             }
           }
 
           /// Set offsets
-          set_offsets(current_list->head_packet, current_list->head_packet, current_list->freq);
+          set_offsets(known_computer->head_packet, known_computer->head_packet, known_computer->freq);
 
           /// Set date
-          time(&current_list->rawtime);
+          time(&known_computer->rawtime);
 
           /// Save offsets into file - all
-          //save_packets(current_list, BLOCK, current_list->first);
-          //current_list->first = 0;
+          //save_packets(known_computer, BLOCK, known_computer->first);
+          //known_computer->first = 0;
 
           /// Reduce packets
           static short reduce = 0;
-          if (reduce || current_list->count > (BLOCK * 5)) {
-            reduce_packets(current_list);
+          if (reduce || known_computer->count > (BLOCK * 5)) {
+            reduce_packets(known_computer);
             reduce = 1;
           }
 
           /// Save offsets into file - reduced
-          save_packets(current_list, packets_count(current_list->head_packet), 1);
+          save_packets(known_computer, packets_count(known_computer->head_packet), 1);
 
           /// Set skew
-          if (set_skew(current_list) != 0) {
+          if (set_skew(known_computer) != 0) {
 #ifdef DEBUG
-            fprintf(stderr, "Clock skew not set for %s\n", current_list->address);
+            fprintf(stderr, "Clock skew not set for %s\n", known_computer->address);
 #endif
             return(1);
           }
 
           /// Check active computers
-          char *tmp = check_actives(all_known_computers, current_list);
+          char *tmp = check_actives(all_known_computers, known_computer);
           if (tmp)
-            current_list->name = tmp;
+            known_computer->name = tmp;
 
           /// Check saved computers
           else {
-            char *tmp = check_computers(current_list->skew.alpha, &current_list->skew.diff);
+            char *tmp = check_computers(known_computer->skew.alpha, &known_computer->skew.diff);
             if (tmp)
-              current_list->name = tmp;
+              known_computer->name = tmp;
             else
-              current_list->name = NULL;
+              known_computer->name = NULL;
           }
 
           /// Save active computers
           save_active(all_known_computers);
 
           /// Too much packets -> remove packets from the beginning
-          while (current_list->count > (BLOCK * 100)) {
+          while (known_computer->count > (BLOCK * 100)) {
             for (int i = 0; i < BLOCK; i++) {
-              current_list->head_packet = remove_packet(current_list->head_packet);
-              current_list->count--;
+              known_computer->head_packet = remove_packet(known_computer->head_packet);
+              known_computer->count--;
             }
           }
 
           /// Generate graph
-          generate_graph(current_list);
+          generate_graph(known_computer);
 
           /// WWW
           system("./gen_pics.sh 1>/dev/null");
