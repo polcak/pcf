@@ -89,6 +89,7 @@ If this is not what you want, you are able to lower the THRESHOLD.
 
 A correction is applied to computed frequencies:
 freq >= 970 && freq <= 1030	=>	freq = 1000
+freq >= 230 && freq <= 270	=>	freq = 250
 freq >= 95 && freq <= 105	=>	freq = 100
 In many cases this means that the frequency is fixed but sometimes it may result
 to wrong frequency because some systems may use unusual frequency.

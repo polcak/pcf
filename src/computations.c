@@ -122,6 +122,8 @@ int compute_clock_frequency(packet_time_info *packets)
     freq = 1000;
   else if (freq >= 95 && freq <= 105)
     freq = 100;
+  else if (freq >= 230 && freq <= 270)
+    freq = 250;
   
 #ifdef DEBUG
   printf("Frequency (Hz): %d\n", freq);
