@@ -66,9 +66,10 @@ void reduce_packets(computer_info *list);
  * Compute and set frequency before saving
  * @param[in] current_list Pointer to header of packet list
  * @param[in] count Number of packets to save
+ * @param[in] rewrite Boolean that conrols if the file is overwritten or the packets are appended
  * @return 0 if ok
  * */
-int save_packets(computer_info* current_list, int count, short int first);
+int save_packets(computer_info* current_list, int count, short int rewrite);
 
 /**
  * Print uptime
@@ -98,6 +99,9 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
         /// Too much time since last packet so start from the beginning
         if ((ttime - current_list->tail_packet->time) > TIME_LIMIT) {
           remove_old_lists(ttime);
+#ifdef DEBUG
+          fprintf(stderr, "%s timeout: starting a new tracking\n", current_list->address);
+#endif
           return(3);
         }
 
@@ -111,13 +115,21 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
         }
 
         /// Stop supporting lists with stupid frequency
-        if (fabs(current_list->freq) > 10000)
+        if (fabs(current_list->freq) > 10000) {
+#ifdef DEBUG
+        fprintf(stderr, "%s: too high frequency of %d\n", current_list->address, current_list->freq);
+#endif
           return(0);
+        }
 
         /// Insert packet
         current_list->tail_packet = insert_packet(current_list->tail_packet, ttime, timestamp);
-        if (current_list->tail_packet == NULL)
+        if (current_list->tail_packet == NULL) {
+#ifdef DEBUG
+          fprintf(stderr, "%s: Packet was not inserted correctly (insert_packet)\n", current_list->address);
+#endif
           return(-1);
+        }
 
         /// Increment number of packets
         current_list->count++;
@@ -162,7 +174,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           }
 
           /// Save offsets into file - reduced
-          save_packets(current_list, packets_count(current_list->head_packet), current_list->first);
+          save_packets(current_list, packets_count(current_list->head_packet), 1);
 
           /// Set skew
           if (set_skew(current_list) != 0) {
@@ -225,11 +237,11 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   new_list->name = NULL;
   time(&new_list->rawtime);
   
-  new_list->first = 1;
-  
   new_list->tail_packet = insert_packet(new_list->tail_packet, ttime, timestamp);
-  if (new_list->head_packet == NULL)
+  if (new_list->tail_packet == NULL) {
+    free(new_list);
     return(-1);
+  }
   new_list->count = 1;
   
   new_list->head_packet = new_list->tail_packet;
@@ -369,7 +381,7 @@ void reduce_packets(computer_info *current_list)
   }
 }
 
-int save_packets(computer_info *current_list, int count, short first)
+int save_packets(computer_info *current_list, int count, short rewrite)
 {
   /*
   if (count == 0) {
@@ -383,9 +395,12 @@ int save_packets(computer_info *current_list, int count, short first)
   char filename[50] = "log/";
   strcat(filename, current_list->address);
   strcat(filename, ".log");
+#ifdef DEBUG
+  int lines = 0;
+#endif
   
   /// Open file
-  if (first == 1)
+  if (rewrite == 1)
     f = fopen(filename, "w");
   else
     f = fopen(filename, "a");
@@ -405,11 +420,18 @@ int save_packets(computer_info *current_list, int count, short first)
   for (; current != NULL; current = current->next_packet) {
     sprintf(str, "%lf\t%lf\n", current->offset.x, current->offset.y);
     fputs(str, f);
+#ifdef DEBUG
+    lines++;
+#endif
   }
   
   /// Close file
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close file: %s\n", filename);
+
+#ifdef DEBUG
+    fprintf(stderr, "%s: %d lines written", current_list->address, lines);
+#endif
   
   return(0);
 }
@@ -605,8 +627,6 @@ void free_memory()
         current = current_list->head_packet;
       }
       all_known_computers = current_list->next_computer;
-      if (current_list->name != NULL)
-        free(current_list->name);
       free(current_list);
       current_list = all_known_computers;
     }

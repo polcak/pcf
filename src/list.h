@@ -59,9 +59,6 @@ struct computer_info {
   unsigned long count;
   time_t rawtime;
   
-  /// Manage saving
-  short first;
-  
   struct {
     double alpha;
     double beta;
