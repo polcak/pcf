@@ -287,31 +287,33 @@ void remove_old_lists(double time)
 {
   if (all_known_computers == NULL)
     return;
-  
-  computer_info *current_list;
-  computer_info *tmp = all_known_computers;
-  
+
+  computer_info *first_computer = all_known_computers;
+
   /// Removing first list
-  while ((time - all_known_computers->tail_packet->time) > TIME_LIMIT) {
+  while ((time - first_computer->tail_packet->time) > TIME_LIMIT) {
     all_known_computers = all_known_computers->next_computer;
-    if (tmp->name != NULL)
-      free(tmp->name);
-    free(tmp);
-    tmp = all_known_computers;
+    if (first_computer->name != NULL)
+      free(first_computer->name);
+    free(first_computer);
+    first_computer = all_known_computers;
     if (all_known_computers == NULL)
       return;
   }
-  
-  for (current_list = all_known_computers->next_computer; current_list != NULL; current_list = current_list->next_computer) {
-    if ((time - current_list->tail_packet->time) > TIME_LIMIT) {
-      tmp->next_computer = current_list->next_computer;
-      if (current_list->name != NULL)
-        free(current_list->name);
-      free(current_list);
-      current_list = tmp;
+
+  computer_info *prev_computer = first_computer;
+  for (computer_info *computer_i = first_computer->next_computer; computer_i != NULL; computer_i = computer_i->next_computer) {
+    if ((time - computer_i->tail_packet->time) > TIME_LIMIT) {
+      prev_computer->next_computer = computer_i->next_computer;
+      if (computer_i->name != NULL)
+        free(computer_i->name);
+      free(computer_i);
+      computer_i = prev_computer;
     }
     else
-      tmp = current_list;
+    {
+      prev_computer = computer_i;
+    }
   }
 }
 
