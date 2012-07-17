@@ -71,17 +71,17 @@ echo "<span style='position: absolute; top: 120px; right: 10px'><a href='javascr
 
 $i = 100;
 foreach ($computers->computer as $computer) {
-	if ($computer->name != "") {
+	if (isset($computer->identity)) {
 		echo "<b><font color='green'><a href=\"javascript:aktual('", $i, "')\">", $computer->address, "</a></font></b><br />";
         	echo "<div id='", $i, "'>";
 	        echo "<form method='post' action='", $_SERVER['PHP_SELF'], "'>";
 	        echo "<table>";
-	        foreach ($computer->name as $key => $value) {
-	               echo "<tr><td>Identity:</td><td>", $value, "</td></tr>";
-	               echo "<tr><td>Diff:</td><td>", $computer->diff[$key], "</td></tr>";
-	        }
 	        echo "<tr><td width='40%'>Skew:</td><td>", $computer["skew"], "</td></tr>";
 		echo "<tr><td>Packets:</td><td>", $computer->packets, "</td></tr>";
+	        foreach ($computer->identity as $identity) {
+	               echo "<tr><td>Similar skew:</td><td>", $identity->name, "</td></tr>";
+	               echo "<tr><td>Diff:</td><td>", $identity->diff, "</td></tr>";
+	        }
 	        echo "<tr><td>Date:</td><td name='date'>", $computer->date, "</td></tr>";
 	        echo "<tr><td>Name:</td><td><input type='text' name='name' size='31' /></td><td><input type='submit' value='Save computer'></td></tr>";
 
@@ -107,7 +107,7 @@ foreach ($computers->computer as $computer) {
 echo "<br />";
 
 foreach ($computers->computer as $computer) {
-	if ($computer->name == "") {
+	if (!isset($computer->identity)) {
 		echo "<b><font color='#0000b2'><a href=\"javascript:aktual('", $i, "')\">", $computer->address, "</a></font></b><br />";
 		echo "<div id='", $i, "'>";
 		echo "<form method='post' action='", $_SERVER['PHP_SELF'], "'>";
