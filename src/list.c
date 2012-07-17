@@ -293,8 +293,6 @@ void remove_old_lists(double time)
   /// Removing first list
   while ((time - first_computer->tail_packet->time) > TIME_LIMIT) {
     all_known_computers = all_known_computers->next_computer;
-    if (first_computer->name != NULL)
-      free(first_computer->name);
     free(first_computer);
     first_computer = all_known_computers;
     if (all_known_computers == NULL)
@@ -305,8 +303,6 @@ void remove_old_lists(double time)
   for (computer_info *computer_i = first_computer->next_computer; computer_i != NULL; computer_i = computer_i->next_computer) {
     if ((time - computer_i->tail_packet->time) > TIME_LIMIT) {
       prev_computer->next_computer = computer_i->next_computer;
-      if (computer_i->name != NULL)
-        free(computer_i->name);
       free(computer_i);
       computer_i = prev_computer;
     }
