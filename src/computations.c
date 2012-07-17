@@ -153,8 +153,8 @@ void set_offsets(packet_time_info *head_packet, packet_time_info *from, int freq
 
 int set_skew(computer_info *list)
 {
-  unsigned long number = packets_count(list->head_packet);
-  my_point points[number];
+  unsigned long pckts_count = packets_count(list->head_packet);
+  my_point points[pckts_count];
   packet_time_info *current = list->head_packet;
   
   /// First point
@@ -168,14 +168,14 @@ int set_skew(computer_info *list)
     points[i].y = current->offset.y;
     i++;
   }
-  number = i;
+  pckts_count = i-1;
   
-  my_point *hull = convex_hull(points, &number);
+  my_point *hull = convex_hull(points, &pckts_count);
   
   double alpha, beta;
   double min, sum;
   
-  int j = (number / 2);
+  int j = (pckts_count / 2);
   alpha = ((hull[j].y - hull[j - 1].y) / (hull[j].x - hull[j - 1].x));
   
   if (fabs(alpha) > 100)
@@ -194,7 +194,7 @@ int set_skew(computer_info *list)
   printf("[%lf,%lf],[%lf,%lf], f(x) = %lf*x + %lf, sum = %lf\n", hull[j - 1].x, hull[j - 1].y, hull[j].x, hull[j].y, alpha, beta, min);
 #endif
   
-  for (i = 1; i < number; i++) {
+  for (i = 1; i < pckts_count; i++) {
     if (i == j)
       continue;
     
