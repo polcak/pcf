@@ -307,19 +307,18 @@ int save_active(computer_info *list)
     xmlAddChild(nodeptr , node);
 
     // find computers with similar clock skew
-    /// <name>
     computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, list);
     if (similar_skew != NULL) {
       for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
-        node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST identity->name_address);
-        xmlAddChild(node, node_child);
-        xmlAddChild(nodeptr, node);
-
+        /// <identity>
+        node_child = xmlNewNode(NULL, BAD_CAST "identity");
+        /// <name>
+        xmlNewChild(node_child, NULL, BAD_CAST "name", BAD_CAST identity->name_address);
         /// <diff>
-        sprintf(tmp, "%lf", current_list->skew.diff);
-        node_child = xmlNewChild(node, NULL, BAD_CAST "diff", BAD_CAST tmp);
+        sprintf(tmp, "%lf", identity->skew_diff);
+        xmlNewChild(node_child, NULL, BAD_CAST "diff", BAD_CAST tmp);
+        // Add to tree
         xmlAddChild(node, node_child);
-        xmlAddChild(nodeptr, node);
       }
     }
 
