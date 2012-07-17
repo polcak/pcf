@@ -72,12 +72,13 @@ echo "<span style='position: absolute; top: 120px; right: 10px'><a href='javascr
 $i = 100;
 foreach ($computers->computer as $computer) {
 	if ($computer->name != "") {
-		echo "<b><font color='green'><a href=\"javascript:aktual('", $i, "')\">", $computer->address, " (", $computer->name, ")</a></font></b><br />";
+		echo "<b><font color='green'><a href=\"javascript:aktual('", $i, "')\">", $computer->address, "</a></font></b><br />";
         	echo "<div id='", $i, "'>";
 	        echo "<form method='post' action='", $_SERVER['PHP_SELF'], "'>";
 	        echo "<table>";
-	        if ($computer->name != "") {
-        	        echo "<tr><td>Diff:</td><td>", $computer->diff, "</td></tr>";
+	        foreach ($computer->name as $key => $value) {
+	               echo "<tr><td>Identity:</td><td>", $value, "</td></tr>";
+	               echo "<tr><td>Diff:</td><td>", $computer->diff[$key], "</td></tr>";
 	        }
 	        echo "<tr><td width='40%'>Skew:</td><td>", $computer["skew"], "</td></tr>";
 		echo "<tr><td>Packets:</td><td>", $computer->packets, "</td></tr>";

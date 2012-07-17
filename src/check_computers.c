@@ -25,6 +25,7 @@
 #include <time.h>
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "check_computers.h"
@@ -33,9 +34,6 @@
 
 #define MY_ENCODING "UTF-8"
 
-
-/// Found computer name
-xmlChar *computer_name = NULL;
 
 
 /**
@@ -46,12 +44,20 @@ xmlChar *computer_name = NULL;
 int first_computer(const char *filename);
 
 /**
- * Print node and info (depends on actual reader position)
- * Set name of the recognized computer
- * @param[in] reader Actual position in tree
+ * Search for computers with similar skew in active computers
+ * @param[in] known_computers List of known computers
+ * @param[inout] identities List of identities of the computer that is being searched for
+ * @return true if success, false otherwise
  */
-void print_node(xmlTextReaderPtr reader);
+bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities);
 
+/**
+ * Search for computers with similar skew in saved computers
+ * @param[in] known_computers List of known computers
+ * @param[inout] identities List of identities of the computer that is being searched for
+ * @return true if success, false otherwise
+ */
+bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities);
 
 int first_computer(const char *filename)
 {
@@ -155,120 +161,98 @@ int save_computer(const char *name, double skew, int freq, const char *address)
   return(0);
 }
 
-void print_node(xmlTextReaderPtr reader)
+computer_identity_list *find_computers_by_skew(const char* address, double skew, computer_info *known_computers)
 {
-  static short save = 0;
-  xmlChar *name, *value;
-  
-  /// Name
-  name = xmlTextReaderName(reader);
-  if (xmlStrcmp(name, BAD_CAST "name") == 0) {
-#ifdef DEBUG
-    printf("Name: ");
-#endif
-    save = 1;
+  computer_identity_list *identities = malloc(sizeof(computer_identity_list));
+  if (identities == NULL) {
+    return NULL;
   }
-#ifdef DEBUG
-  else if (xmlStrcmp(name, BAD_CAST "address") == 0)
-    printf("Address: ");
-  else if (xmlStrcmp(name, BAD_CAST "frequency") == 0)
-    printf("Frequency: ");
-  else if (xmlStrcmp(name, BAD_CAST "date") == 0)
-    printf("Date: ");
-#endif
-  xmlFree(name);
-  
-  /// Value
-  if (xmlTextReaderHasValue(reader)) {
-    value = xmlTextReaderValue(reader);
-#ifdef DEBUG
-    printf("%s\n", value);
-#endif
-    if (save) {
-      computer_name = value;
-      save = 0;
-    }
-    else
-      xmlFree(value);
+
+  computer_identity_list_init(identities, address, skew);
+
+  if (!find_computer_in_saved(known_computers, identities)) {
+    computer_identity_list_release(identities);
+    free(identities);
+    return NULL;
   }
+  if (!find_computer_in_active(known_computers, identities)) {
+    computer_identity_list_release(identities);
+    free(identities);
+    return NULL;
+  }
+
+  return identities;
 }
 
-char *check_computers(double skew, double *diff)
+bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities)
 {
   /// No computers
   if (access(database, F_OK) != 0) {
-    return(NULL);
+    return false;
   }
-  
+
   xmlTextReaderPtr reader;
   reader = xmlNewTextReaderFilename(database);
-  
-  if (!reader)
-    return(NULL);
-  
-  double skew2, tmp_skew, best_skew = 0.0;
-  short print = 0;
-  short nl = 0;
-  short first = 1;
+
+  if (!reader) {
+    return(false);
+  }
+
   while (xmlTextReaderRead(reader) == 1) {
-    
+
     /// End of element
-    if (xmlTextReaderNodeType(reader) == 15)
+    if (xmlTextReaderNodeType(reader) == 15) {
       continue;
-    
-    if (xmlTextReaderHasAttributes(reader)) {
-      skew2 = atof((char *)xmlTextReaderGetAttribute(reader, BAD_CAST "skew"));
-      
-      /// Comparison
-      tmp_skew = fabs(skew - skew2);
-      if (tmp_skew < THRESHOLD) {
-        if (first == 1 || (tmp_skew < best_skew)) {
-#ifdef DEBUG
-          printf("\n\nSkew: %f (now: %f. diff: %f)\n", skew2, skew, tmp_skew);
-#endif
-          best_skew = tmp_skew;
-          *diff = best_skew;
-          print = 1;
-          nl = 1;
-          first = 0;
-        }
-      }
-      else if (print == 1)
-        print = 0;
     }
-    /// Print computer and set name
-    if (print)
-      print_node(reader);
-  }
-  
-  if (nl) {
+
+    if (xmlTextReaderHasAttributes(reader)) {
+      double skew_xml = atof((char *)xmlTextReaderGetAttribute(reader, BAD_CAST "skew"));
+
+      /// Comparison
+      double skew_diff = fabs(identities->referenced_skew - skew_xml);
+      if (skew_diff < THRESHOLD) {
+        bool name_reached = false;
+        while (!name_reached) {
+          if (xmlTextReaderRead(reader) != 1) {
+            break;
+          }
+          xmlChar *element_name = xmlTextReaderName(reader);
+          if (xmlStrcmp(element_name, BAD_CAST "name") == 0) {
+            name_reached = true;
+            if (xmlTextReaderHasValue(reader)) {
+              xmlChar *element_value = xmlTextReaderValue(reader);
+              computer_identity_list_add_item(identities, (char *) element_value, skew_xml);
+              xmlFree(element_value);
+            }
+          }
+          xmlFree(element_name);
+        }
 #ifdef DEBUG
-    printf("\n");
+        printf("\n\n%s skew: %f (now %s: %f. diff: %f)\n", identities->first->name_address, skew_xml, identities->referenced_address, identities->referenced_skew, skew_diff);
 #endif
+      }
+    }
   }
-  else
-    computer_name = NULL;
-  
+
   xmlTextReaderClose(reader);
-  
-  return((char *) computer_name);
+
+  return true;
 }
 
-char *check_actives(computer_info *list, computer_info *current_list)
+bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities)
 {
-  computer_info *tmp;
-  for (tmp = list; tmp != NULL; tmp = tmp->next_computer) {
-    if (tmp == current_list)
+  computer_info *computer_i;
+  for (computer_i = known_computers; computer_i != NULL; computer_i = computer_i->next_computer) {
+    if (strcmp(computer_i->address, identities->referenced_address) == 0)
       continue;
-    if (tmp->freq == 0)
+    if (computer_i->freq == 0)
       continue;
-    if (fabs(tmp->skew.alpha - current_list->skew.alpha) < THRESHOLD) {
-      current_list->skew.diff = fabs(tmp->skew.alpha - current_list->skew.alpha);
-      return(tmp->address);
+    if (fabs(computer_i->skew.alpha - identities->referenced_skew) < THRESHOLD) {
+      computer_identity_list_add_item(identities, computer_i->address, computer_i->skew.alpha);
     }
   }
-  
-  return(NULL);
+
+  return true;
 }
 
 int save_active(computer_info *list)
@@ -322,19 +306,23 @@ int save_active(computer_info *list)
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
+    // find computers with similar clock skew
     /// <name>
-    if (current_list->name) {
-      node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST current_list->name);
-      xmlAddChild(node, node_child);
-      xmlAddChild(nodeptr, node);
-      
-      /// <diff>
-      sprintf(tmp, "%lf", current_list->skew.diff);
-      node_child = xmlNewChild(node, NULL, BAD_CAST "diff", BAD_CAST tmp);
-      xmlAddChild(node, node_child);
-      xmlAddChild(nodeptr, node);
+    computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, list);
+    if (similar_skew != NULL) {
+      for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
+        node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST identity->name_address);
+        xmlAddChild(node, node_child);
+        xmlAddChild(nodeptr, node);
+
+        /// <diff>
+        sprintf(tmp, "%lf", current_list->skew.diff);
+        node_child = xmlNewChild(node, NULL, BAD_CAST "diff", BAD_CAST tmp);
+        xmlAddChild(node, node_child);
+        xmlAddChild(nodeptr, node);
+      }
     }
-    
+
     /// <address>
     node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST current_list->address);
     xmlAddChild(node, node_child);

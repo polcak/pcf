@@ -28,7 +28,7 @@
 
 
 /**
- * Packets list structure
+ * Stores packets time information. Each packet also contain pointer to next and previous packet
  */
 typedef struct packet_time_info packet_time_info;
 
@@ -46,7 +46,8 @@ struct packet_time_info {
 };
 
 /**
- * List of all packet lists (header for every packet list)
+ * List of all informations known of all computers. Each computers have pointers to time information
+ * about received packets.
  */
 typedef struct computer_info computer_info;
 
@@ -55,7 +56,6 @@ struct computer_info {
   packet_time_info *tail_packet;
   char address[ADDRESS_SIZE];
   int freq;
-  char *name;
   unsigned long count;
   time_t rawtime;
   
@@ -86,7 +86,7 @@ double THRESHOLD;
 int new_packet(const char *address, double time, unsigned long int timestamp);
 
 /**
- * Packets count
+ * Counts packets in a given list of packets
  * @param[in] head_packet Pointer to the packets list
  * @return Packets count
  */
@@ -101,7 +101,7 @@ unsigned long packets_count(packet_time_info *head_packet);
 void process_results(short save, short uptime, short graph);
 
 /**
- * Free all memory
+ * Free memory used for storing informations about currently known active computers.
  */
 void free_memory();
 

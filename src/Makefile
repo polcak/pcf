@@ -19,8 +19,8 @@
 
 program = pcf
 
-OBJ = capture.o main.o list.o parse_config.o computations.o check_computers.o
-HEAD = capture.h list.h parse_config.h computations.h check_computers.h
+OBJ = capture.o main.o list.o parse_config.o computations.o check_computers.o computer_identity.o
+HEAD = capture.h list.h parse_config.h computations.h check_computers.h computer_identity.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = gcc
 CFLAGS ?= -O2 -Wall -std=gnu99

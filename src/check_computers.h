@@ -21,6 +21,7 @@
 #define _CHECK_COMPUTERS_H
 
 #include "list.h"
+#include "computer_identity.h"
 
 /**
  * Save new computer
@@ -34,19 +35,13 @@
 int save_computer(const char *name, double skew, int freq, const char *address);
 
 /**
- * Check new skew in saved computers
- * @param[in] skew Actual measured skew
- * @return Name of the computer if found, NULL otherwise
+ * Search for computers with similar skew in saved computers
+ * @param[in] address IP address of the computer to be searched
+ * @param[in] skew Skew of the computer that is beign search for
+ * @param[in] known_computers List of computers to be searched
+ * @return computer_identity_list filled with computers with similar clock skew
  */
-char *check_computers(double skew, double *diff);
-
-/**
- * Check new skew in active computers
- * @param[in] list List of active computers
- * @param[in] current_list Computer to be checked
- * @return Name of the computer if found, NULL otherwise
- */
-char *check_actives(computer_info *list, computer_info *current_list);
+computer_identity_list *find_computers_by_skew(const char *address, double skew, computer_info *known_computers);
 
 /**
  * Save active computers into file
