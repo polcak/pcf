@@ -27,6 +27,7 @@
 #include "list.h"
 #include "computations.h"
 #include "check_computers.h"
+#include "computer_identity.h"
 
 
 /// List of all packet lists
@@ -557,17 +558,19 @@ void generate_graph(computer_info *current_list)
   fputs("\\n", f);
   fputs(current_list->address, f);
   
-  /// Recognized computer
-	// FIXME find known computers with similar skew
-#if 0
-  if (current_list->name != NULL) {
-    fputs("\\n", f);
-    fputs(current_list->name, f);
-    fputs("\" textcolor lt 2", f);
+  // Search for computers with similar skew
+  computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, all_known_computers);
+  if (similar_skew != NULL) {
+    if (similar_skew->first == NULL) {
+      fputs("\\nunknown\" textcolor lt 1", f);
+    }
+    for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
+      fputs("\\n", f);
+      fputs(identity->name_address, f);
+      fputs("\" textcolor lt 2", f);
+    }
+    computer_identity_list_release(similar_skew);
   }
-  else
-    fputs("\\nunknown\" textcolor lt 1", f);
-#endif
 
   /// Plot
   fputs("\n\n"

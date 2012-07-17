@@ -306,21 +306,22 @@ int save_active(computer_info *list)
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
-		// FIXME find computers with similar clock skew
-#if 0
+    // find computers with similar clock skew
     /// <name>
-    if (current_list->name) {
-      node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST current_list->name);
-      xmlAddChild(node, node_child);
-      xmlAddChild(nodeptr, node);
-      
-      /// <diff>
-      sprintf(tmp, "%lf", current_list->skew.diff);
-      node_child = xmlNewChild(node, NULL, BAD_CAST "diff", BAD_CAST tmp);
-      xmlAddChild(node, node_child);
-      xmlAddChild(nodeptr, node);
+    computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, list);
+    if (similar_skew != NULL) {
+      for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
+        node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST identity->name_address);
+        xmlAddChild(node, node_child);
+        xmlAddChild(nodeptr, node);
+
+        /// <diff>
+        sprintf(tmp, "%lf", current_list->skew.diff);
+        node_child = xmlNewChild(node, NULL, BAD_CAST "diff", BAD_CAST tmp);
+        xmlAddChild(node, node_child);
+        xmlAddChild(nodeptr, node);
+      }
     }
-#endif
 
     /// <address>
     node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST current_list->address);
