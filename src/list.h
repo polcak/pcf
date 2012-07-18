@@ -62,7 +62,6 @@ struct computer_info {
   struct {
     double alpha;
     double beta;
-    double diff;
   } skew;
   struct computer_info *next_computer;
 };
