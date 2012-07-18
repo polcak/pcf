@@ -168,13 +168,6 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           //save_packets(known_computer, BLOCK, known_computer->first);
           //known_computer->first = 0;
 
-          /// Reduce packets
-          static short reduce = 0;
-          if (reduce || known_computer->count > (BLOCK * 5)) {
-            reduce_packets(known_computer);
-            reduce = 1;
-          }
-
           /// Save offsets into file - reduced
           save_packets(known_computer, packets_count(known_computer->head_packet), 1);
 
@@ -189,19 +182,23 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
           /// Save active computers
           save_active(all_known_computers);
 
-          /// Too much packets -> remove packets from the beginning
-          while (known_computer->count > (BLOCK * 100)) {
-            for (int i = 0; i < BLOCK; i++) {
-              known_computer->head_packet = remove_packet(known_computer->head_packet);
-              known_computer->count--;
-            }
-          }
-
           /// Generate graph
           generate_graph(known_computer);
 
           /// WWW
           system("./gen_pics.sh 1>/dev/null");
+
+          /// Reduce packets
+          if (known_computer->count > (BLOCK * 5)) {
+            reduce_packets(known_computer);
+            /// Not enough packets removed -> remove packets from the beginning
+            while (known_computer->count > (BLOCK * 3)) {
+              for (int i = 0; i < BLOCK; i++) {
+                known_computer->head_packet = remove_packet(known_computer->head_packet);
+                known_computer->count--;
+              }
+            }
+          }
         }
 
         return(0);
