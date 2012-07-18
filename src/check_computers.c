@@ -171,12 +171,12 @@ computer_identity_list *find_computers_by_skew(const char* address, double skew,
 
   computer_identity_list_init(identities, address, skew);
 
-  if (!find_computer_in_saved(known_computers, identities)) {
+  if (!find_computer_in_active(known_computers, identities)) {
     computer_identity_list_release(identities);
     free(identities);
     return NULL;
   }
-  if (!find_computer_in_active(known_computers, identities)) {
+  if (!find_computer_in_saved(known_computers, identities)) {
     computer_identity_list_release(identities);
     free(identities);
     return NULL;
