@@ -563,12 +563,14 @@ void generate_graph(computer_info *current_list)
   // Search for computers with similar skew
   computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, all_known_computers);
   if (similar_skew != NULL) {
-    if (similar_skew->first == NULL) {
-      fputs("\\nunknown\" textcolor lt 1", f);
-    }
     for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
       fputs("\\n", f);
       fputs(identity->name_address, f);
+    }
+    if (similar_skew->first == NULL) {
+      fputs("\\nunknown\" textcolor lt 1", f);
+    }
+    else {
       fputs("\" textcolor lt 2", f);
     }
     computer_identity_list_release(similar_skew);
