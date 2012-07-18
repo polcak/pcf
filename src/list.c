@@ -18,6 +18,7 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -321,47 +322,57 @@ packet_time_info *remove_packet(packet_time_info *current)
   return(tmp);
 }
 
-void reduce_packets(computer_info *current_list)
-{ 
-  if (current_list->count < 4)
+void reduce_packets(computer_info *computer)
+{
+  if (computer->count < 4) {
     return;
-  
-  if (current_list->skew.alpha == 0)
-    return;
-  
-  packet_time_info *current;
-  
-  /// Don't reduce if skew is too small
-  if (current_list->skew.alpha < 0.01 && current_list->skew.alpha > -0.01)
-    return;
-  
-  /// Ascending
-  if (current_list->skew.alpha > 0) {
-    current = current_list->head_packet;
-    while (current_list->count > 3 && current->next_packet != NULL) {
-      if (current->next_packet->offset.y <= current->offset.y) {
-        current = remove_packet(current->next_packet);
-        current_list->count--;
-      }
-      else
-        current = current->next_packet;
-    }
-    current_list->tail_packet = current;
   }
-  
-  /// Descending
-  else {
-    current = current_list->tail_packet;
-    while (current_list->count > 3 && current->prev_packet != NULL) {
-      if (current->prev_packet->offset.y <= current->offset.y) {
-        current = remove_packet(current->prev_packet);
-        current = current->next_packet;
-        current_list->count--;
-      }
-      else
-        current = current->prev_packet;
+
+  if (computer->head_packet == NULL) {
+    return;
+  }
+
+  packet_time_info *current = computer->head_packet->next_packet;
+  if (current == NULL) {
+    return;
+  }
+
+  while (computer->count > 3 && current->next_packet != NULL) {
+    double prev_x = current->prev_packet->offset.x;
+    double curr_x = current->offset.x;
+    double next_x = current->next_packet->offset.x;
+    double prev_y = current->prev_packet->offset.y;
+    double curr_y = current->offset.y;
+    double next_y = current->next_packet->offset.y;
+    bool reduce = false;
+    if ((prev_y > curr_y) && (curr_y < next_y)) {
+      reduce = true;
     }
-    current_list->head_packet = current;
+    else if ((prev_y <= curr_y) && (curr_y < next_y)) {
+      double tan_curr = (curr_y - prev_y) / (curr_x - prev_x);
+      double tan_next = (next_y - prev_y) / (next_x - prev_x);
+      if (tan_curr <= tan_next) {
+        reduce = true;
+      }
+    }
+    else if ((prev_y > curr_y) && (curr_y >= next_y)) {
+      double tan_curr = (curr_y - next_y) / (next_x - curr_x);
+      double tan_prev = (prev_y - next_y) / (next_x - prev_x);
+      if (tan_curr <= tan_prev) {
+        reduce = true;
+      }
+    }
+    if (reduce) {
+      current = remove_packet(current);
+      computer->count--;
+      if (current == computer->head_packet) {
+        // First packet has no previous packet
+        current = current->next_packet;
+      }
+    }
+    else {
+      current = current->next_packet;
+    }
   }
 }
 
