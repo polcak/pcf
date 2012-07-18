@@ -60,6 +60,7 @@ computer_identity_item *computer_identity_list_add_item(computer_identity_list* 
   new_item->name_address = malloc(name_address_bytes);
   if (new_item->name_address == NULL)
   {
+    free(new_item);
     return NULL;
   }
   strncpy(new_item->name_address, name_address, name_address_bytes);
