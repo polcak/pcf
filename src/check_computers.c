@@ -23,7 +23,8 @@
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
-#include <libxml/xmlreader.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <stdbool.h>
 #include <string.h>
@@ -191,50 +192,61 @@ bool find_computer_in_saved(computer_info *known_computers, computer_identity_li
     return false;
   }
 
-  xmlTextReaderPtr reader;
-  reader = xmlNewTextReaderFilename(database);
+  xmlDoc *xml_doc = xmlReadFile(database, NULL, 0);
 
-  if (!reader) {
+  if (xml_doc == NULL) {
     return(false);
   }
 
-  while (xmlTextReaderRead(reader) == 1) {
+  xmlNode *root_element = xmlDocGetRootElement(xml_doc);
 
-    /// End of element
-    if (xmlTextReaderNodeType(reader) == 15) {
+  for(xmlNode *computer_node = root_element->children; computer_node != NULL; computer_node = computer_node->next) {
+
+    if (computer_node->type != XML_ELEMENT_NODE) {
       continue;
     }
 
-    if (xmlTextReaderHasAttributes(reader)) {
-      double skew_xml = atof((char *)xmlTextReaderGetAttribute(reader, BAD_CAST "skew"));
+    if (strcmp((char *) computer_node->name, "computer") != 0) {
+      continue;
+    }
+
+    xmlChar *xml_skew_prop = xmlGetProp(computer_node, BAD_CAST "skew");
+    if (xml_skew_prop != NULL) {
+      double skew_xml = atof((char *) xml_skew_prop);
 
       /// Comparison
       double skew_diff = fabs(identities->referenced_skew - skew_xml);
       if (skew_diff < THRESHOLD) {
         bool name_reached = false;
-        while (!name_reached) {
-          if (xmlTextReaderRead(reader) != 1) {
-            break;
+        xmlNode *computer_child_node = computer_node->children;
+
+        while (!name_reached && computer_child_node != NULL) {
+          if (computer_child_node->type != XML_ELEMENT_NODE) {
+            continue;
           }
-          xmlChar *element_name = xmlTextReaderName(reader);
-          if (xmlStrcmp(element_name, BAD_CAST "name") == 0) {
-            name_reached = true;
-            if (xmlTextReaderHasValue(reader)) {
-              xmlChar *element_value = xmlTextReaderValue(reader);
-              computer_identity_list_add_item(identities, (char *) element_value, skew_xml);
-              xmlFree(element_value);
+
+          if (strcmp((char *) computer_child_node->name, "name") == 0) {
+            xmlChar *computer_name  = xmlNodeGetContent(computer_child_node);
+            if (computer_name != NULL) {
+              computer_identity_item *item = computer_identity_list_add_item(identities, (char *) computer_name, skew_xml);
+              if (item != NULL) {
+                name_reached = true;
+              }
+              xmlFree(computer_name);
             }
           }
-          xmlFree(element_name);
         }
 #ifdef DEBUG
-        printf("\n\n%s skew: %f (now %s: %f. diff: %f)\n", identities->first->name_address, skew_xml, identities->referenced_address, identities->referenced_skew, skew_diff);
+        if (name_reached == true) {
+          printf("\n\n%s skew: %f (now %s: %f. diff: %f)\n", identities->first->name_address, skew_xml, identities->referenced_address, identities->referenced_skew, skew_diff);
+        }
 #endif
       }
+      xmlFree(xml_skew_prop);
     }
   }
 
-  xmlTextReaderClose(reader);
+  xmlFreeDoc(xml_doc);
 
   return true;
 }
