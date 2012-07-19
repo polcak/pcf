@@ -25,6 +25,7 @@ OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = gcc
 CFLAGS ?= -O2 -Wall -std=gnu99
 
+.PHONY: debug uninstall clean
 
 all: $(program)
 
