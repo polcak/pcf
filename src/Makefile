@@ -26,13 +26,16 @@ CC = gcc
 DEFINE ?= 
 CFLAGS ?= -O2 -Wall -std=gnu99 $(DEFINE)
 
-.PHONY: debug uninstall clean
+.PHONY: debug uninstall clean donotreduce
 
 all: $(program)
 
 debug:
 	make clean
 	make CFLAGS="-DDEBUG -g -Wall -std=gnu99 $(DEFINE)"
+
+donotreduce:
+	make debug DEFINE="-DDO_NOT_REDUCE"
 
 install: all
 	cp -r pcf gen_pics.sh config ../bin
