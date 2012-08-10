@@ -546,10 +546,10 @@ void generate_graph(computer_info *current_list)
         "set output 'graph/", f);
         fputs(current_list->address, f);
         fputs(".ps'\n\n"
-        //"set xlabel 'Elapsed time [s]'\n"
-        "set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
-        //"set ylabel 'Offset [ms]'\n\n"
-        "set ylabel \"Odchylka [ms]\"\n\n"
+        "set xlabel 'Elapsed time [s]'\n"
+        //"set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
+        "set ylabel 'Offset [ms]'\n\n"
+        //"set ylabel \"Odchylka [ms]\"\n\n"
         "f(x) = ", f);
   
   /// f(x)
