@@ -25,6 +25,8 @@ OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = gcc
 DEFINE ?= 
 CFLAGS ?= -O2 -Wall -std=gnu99 $(DEFINE)
+LDFLAGS ?= 
+LD = gcc
 
 .PHONY: debug uninstall clean donotreduce
 
@@ -49,7 +51,7 @@ clean:
 	rm -f *.o *~ $(program)
 
 $(program): $(OBJ)
-	$(CC) $(OBJ) -o $(program) $(OPT)
+	$(LD) $(OBJ) $(LDFLAGS) -o $(program) $(OPT)
 
 $(OBJ): $(HEAD)
 
