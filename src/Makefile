@@ -28,13 +28,17 @@ CFLAGS ?= -O2 -Wall -std=gnu99 $(DEFINE)
 LDFLAGS ?= 
 LD = gcc
 
-.PHONY: debug uninstall clean donotreduce
+.PHONY: debug profiling uninstall clean donotreduce
 
 all: $(program)
 
 debug:
 	make clean
 	make CFLAGS="-DDEBUG -g -Wall -std=gnu99 $(DEFINE)"
+
+profiling:
+	make clean
+	make CFLAGS="-pg -Wall -std=gnu99 $(DEFINE)" LDFLAGS="-pg"
 
 donotreduce:
 	make debug DEFINE="-DDO_NOT_REDUCE"
