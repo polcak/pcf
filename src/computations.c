@@ -110,11 +110,16 @@ int compute_clock_frequency(packet_time_info *packets)
   
   for (packet_time_info *current = first->next_packet; current != NULL; current = current->next_packet) {
     double local_diff = current->time - first->time;
-    if (local_diff > 0.0) {
+    if (local_diff > 60.0) {
       tmp += ((current->timestamp - first->timestamp) / local_diff);
+      count++;
     }
-    count++;
   }
+
+	if (count < 10) {
+		// Wait for more packets
+		return 0;
+	}
   
   /// According to the real world, but sometimes can be wrong, it depends...
   int freq = (int)round(tmp / count);
