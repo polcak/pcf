@@ -111,7 +111,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
   // Packet arrival time (us)
   double arrival_time;
   // Timestamp
-  unsigned long int timestamp;
+  uint32_t timestamp;
   
   // Sizes
   int size_ethernet;

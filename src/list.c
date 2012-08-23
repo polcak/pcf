@@ -42,7 +42,7 @@ computer_info *all_known_computers = NULL;
  * @param[in] timestamp Timestamp of the new packet
  * @return 0 if ok
  */
-packet_time_info *insert_packet(packet_time_info *tail_packet, double time, unsigned long int timestamp);
+packet_time_info *insert_packet(packet_time_info *tail_packet, double time, uint32_t timestamp);
 
 /**
  * Remove lists older (last recieved packet) than TIME_LIMIT
@@ -87,7 +87,7 @@ void print_uptime(packet_time_info *tail_packet, const int freq);
 void generate_graph(computer_info *current_list);
 
 
-int new_packet(const char *address, double ttime, unsigned long int timestamp)
+int new_packet(const char *address, double ttime, uint32_t timestamp)
 {
   static unsigned long total = 0;
   printf("\r%lu packets captured", ++total);
@@ -239,7 +239,7 @@ int new_packet(const char *address, double ttime, unsigned long int timestamp)
   return(0);
 }
 
-packet_time_info *insert_packet(packet_time_info *tail_packet, double time, unsigned long int timestamp)
+packet_time_info *insert_packet(packet_time_info *tail_packet, double time, uint32_t timestamp)
 {  
   packet_time_info *new_packet = (packet_time_info*)malloc(sizeof(packet_time_info));
   if (!new_packet) {

@@ -22,6 +22,7 @@
 #define _LIST_H
 
 #include <time.h>
+#include <stdint.h>
 
 // IPv6 addr length (39B) + '\0' + some padding
 #define ADDRESS_SIZE 64
@@ -34,7 +35,7 @@ typedef struct packet_time_info packet_time_info;
 
 struct packet_time_info {
   double time;
-  unsigned long int timestamp;
+  uint32_t timestamp;
   struct set {
     // Measured time
     double x;
@@ -82,7 +83,7 @@ double THRESHOLD;
  * @param[in] timestamp Timestamp of the packet
  * @return 0 if ok
  */
-int new_packet(const char *address, double time, unsigned long int timestamp);
+int new_packet(const char *address, double time, uint32_t timestamp);
 
 /**
  * Counts packets in a given list of packets
