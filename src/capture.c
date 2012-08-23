@@ -177,16 +177,29 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     return;
   }
   /// TCP options
-  u_char *txt = (u_char *)(packet + size_ethernet + size_ip + sizeof(struct tcphdr));
+  u_char *tcp_options = (u_char *)(packet + size_ethernet + size_ip + sizeof(struct tcphdr));
+
+  int options_size = size_tcp - 20;
+  int options_offset = 0;
   
   // TCP options
   // +--------+--------+---------+--------+
   // |  Kind  | Length |       Data       |
   // +--------+--------+---------+--------+
 
-  int kind = (int)txt[0];
+  while (options_offset < options_size) {
+    int kind = (int)tcp_options[options_offset];
+    int option_len = 0;
 
-  while (kind != 8) {
+    if (kind == 8) {
+      timestamp = ntohl(*((uint32_t*) (&tcp_options[options_offset + 2])));
+      /// Packet arrival time
+      arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
+
+      /// Save packet
+      new_packet(address, arrival_time, timestamp);
+      return; // Packet processed
+    }
 
     switch(kind) {
 
@@ -199,40 +212,15 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 
       /// NOP
       case 1:
-        txt++;
-        kind = (int)txt[0];
+        options_offset++;
         break;
 
       default:
-        txt++;
-        kind = (int)txt[0];
-        txt += kind - 1;
-        kind = (int)txt[0];
+        option_len = (int)tcp_options[options_offset + 1];
+        options_offset += option_len;
         break;
     }
   }
-
-  /// Skip length
-  txt += 2;
-  int i;
-  char c[10];
-  c[0] = '0';
-  c[1] = 'x';
-  char *tmp = c;
-  tmp += 2;
-  for(i = 0; i < 4; i++) {
-    sprintf(tmp, "%02x", *txt);
-    tmp += 2;
-    txt++;
-  }  
-  
-  /// Timestamp
-  timestamp = strtoul(c, NULL, 16);
-  /// Packet arrival time
-  arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
-  
-  /// Save packet
-  new_packet(address, arrival_time, timestamp);
 }
 
 
