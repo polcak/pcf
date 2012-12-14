@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+# Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
 # 
 # This file is part of pcf - PC fingerprinter.
 #
@@ -19,12 +19,4 @@
 # along with pcf. If not, see <http://www.gnu.org/licenses/>.
 #
 
-find graph/ -maxdepth 1 -name *.ps -type f -mmin +60 -delete
-find www/graph/ -maxdepth 1 -name *.jpg -type f -mmin +60 -delete
-
-i=0
-for image in graph/*.ps; do
-	gs -sDEVICE=jpeg -r65 -dBATCH -dNOPAUSE -sOutputFile="www/${image%.*}.jpg" -c "<</Orientation 3>> setpagedevice" -f "$image"
-	echo "image: $image"
-	i=$[$i+1];
-done
+cp graph/*.svg www/graph/

@@ -541,11 +541,11 @@ void generate_graph(computer_info *current_list)
   char tmp[100];
 
   fputs("set encoding iso_8859_2\n"
-        "set terminal postscript font \"DejaVuSans\"\n"
+        "set terminal svg\n"
         //"set terminal postscript\n"
         "set output 'graph/", f);
         fputs(current_list->address, f);
-        fputs(".ps'\n\n"
+        fputs(".svg'\n\n"
         "set xlabel 'Elapsed time [s]'\n"
         //"set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
         "set ylabel 'Offset [ms]'\n\n"

@@ -96,7 +96,7 @@ foreach ($computers->computer as $computer) {
 
         	$i = $i + 1;
 		echo "<font color='#0000b2'><a href=\"javascript:aktual('", $i, "')\">Show graph</a></font><br /><br />";
-	        echo "<center><img id='", $i, "' src='graph/", $computer->address, ".jpg' /></center>";
+	        echo "<center><img id='", $i, "' src='graph/", $computer->address, ".svg' /></center>";
 
 	        echo "</div>";
 
@@ -131,7 +131,7 @@ foreach ($computers->computer as $computer) {
 
 		$i = $i + 1;
 		echo "<font color='#0000b2'><a href=\"javascript:aktual('", $i, "')\">Show graph</a></font><br /><br />";
-		echo "<center><img id='", $i, "' src='graph/", $computer->address, ".jpg' /></center>";
+		echo "<center><img id='", $i, "' src='graph/", $computer->address, ".svg' /></center>";
 
 		echo "</div>";
 
