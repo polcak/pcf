@@ -40,8 +40,8 @@ profiling:
 	make clean
 	make CFLAGS="-pg -Wall -std=gnu99 $(DEFINE)" LDFLAGS="-pg"
 
-donotreduce:
-	make debug DEFINE="-DDO_NOT_REDUCE"
+reduce:
+	make DEFINE="-DREDUCE"
 
 install: all
 	cp -r pcf gen_pics.sh config ../bin

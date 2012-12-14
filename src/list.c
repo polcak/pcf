@@ -201,7 +201,7 @@ int new_packet(const char *address, double ttime, uint32_t timestamp)
           system("./gen_pics.sh 1>/dev/null");
 
           /// Reduce packets
-#ifndef DO_NOT_REDUCE
+#ifdef REDUCE
           if (known_computer->count > (BLOCK * 5)) {
             reduce_packets(known_computer);
             /// Not enough packets removed -> remove packets from the beginning
