@@ -59,6 +59,7 @@ struct computer_info {
   int freq;
   unsigned long count;
   time_t rawtime;
+	time_t start_time;
   
   struct {
     double alpha;

@@ -31,6 +31,10 @@
 #include "computer_identity.h"
 
 
+/// Constant selecting the buffer size for short strings
+const size_t STRLEN_MAX = 100;
+
+
 /// List of all packet lists
 computer_info *all_known_computers = NULL;
 
@@ -79,6 +83,14 @@ int save_packets(computer_info* current_list, int count, short int rewrite);
  * @param[in] freq Frequency
  */
 void print_uptime(packet_time_info *tail_packet, const int freq);
+
+/**
+ * Conversts time to its string representation in human readable format
+ * @param[out] buffer Pre-allocated buffer where the output is stored
+ * @param[in] buffer_size Size of the buffer
+ * @param[in] time Unix time to be converted
+ */
+void time_to_str(char *buffer, size_t buffer_size, time_t time);
 
 /**
  * Generate graph
@@ -221,7 +233,7 @@ int new_packet(const char *address, double ttime, uint32_t timestamp)
   new_list->freq = 0;
   new_list->skew.alpha = 0;
   new_list->tail_packet = NULL;
-  time(&new_list->rawtime);
+  new_list->start_time = time(&new_list->rawtime);
   
   new_list->tail_packet = insert_packet(new_list->tail_packet, ttime, timestamp);
   if (new_list->tail_packet == NULL) {
@@ -410,9 +422,9 @@ int save_packets(computer_info *current_list, int count, short rewrite)
     current = current->prev_packet;
   
   /// Write to file
-  char str[100];
+  char str[STRLEN_MAX];
   for (; current != NULL; current = current->next_packet) {
-    sprintf(str, "%lf\t%lf\n", current->offset.x, current->offset.y);
+    snprintf(str, STRLEN_MAX, "%lf\t%lf\n", current->offset.x, current->offset.y);
     fputs(str, f);
 #ifdef DEBUG
     lines++;
@@ -520,6 +532,12 @@ void print_uptime(packet_time_info *tail_packet, int freq)
   printf("Uptime: %dd %dh %dm (since %s, %d seconds)\n", days, hours, minutes, date_uptime, seconds);
 }
 
+void time_to_str(char *buffer, size_t buffer_size, time_t time)
+{
+  struct tm time_data = *localtime(&time);
+  strftime(buffer, buffer_size, "%Y-%m-%d %H:%M:%S", &time_data);
+}
+
 void generate_graph(computer_info *current_list)
 {
   static const char* filename_template =  "graph/%s.gp";
@@ -537,8 +555,11 @@ void generate_graph(computer_info *current_list)
   if (current_list->skew.alpha == 0.0)
     if (set_skew(current_list) != 0)
       return;
-  
-  char tmp[100];
+
+  const unsigned interval_count = 10;
+  unsigned interval_min = current_list->head_packet->offset.x + current_list->start_time;
+  unsigned interval_max = current_list->tail_packet->offset.x + current_list->start_time;
+  unsigned interval_size = (interval_max - interval_min) / interval_count;
 
   fputs("set encoding iso_8859_2\n"
         "set terminal svg\n"
@@ -546,19 +567,40 @@ void generate_graph(computer_info *current_list)
         "set output 'graph/", f);
         fputs(current_list->address, f);
         fputs(".svg'\n\n"
+        "set x2label 'Date and time'\n"
         "set xlabel 'Elapsed time [s]'\n"
-        //"set xlabel \"\310as od po\350\341tku m\354\370en\355 [s]\"\n"
         "set ylabel 'Offset [ms]'\n\n"
-        //"set ylabel \"Odchylka [ms]\"\n\n"
-        "f(x) = ", f);
-  
+        "set x2tics axis in rotate by 270 textcolor lt 4\n"
+        "set xtics mirror 0, ", f);
+  fprintf(f, "%u\n\n", interval_size);
+  fputs("set datafile separator '\\t'\n\n"
+        "set x2tics ("
+        , f);
+
+  char tmp[100];
+
+  time_t boundary = interval_min;
+  unsigned boundary_m = 0;
+  for (int i = 0; i <= interval_count; i++) {
+    char date_time[STRLEN_MAX];
+    time_to_str(date_time, STRLEN_MAX, boundary);
+    sprintf(tmp, "'%s' %u", date_time, boundary_m);
+    fputs(tmp, f);
+    boundary += interval_size;
+    boundary_m += interval_size;
+    if (i < interval_count) {
+      fputs(", ", f);
+    }
+  }
+
+  fputs (")\n\nf(x) = ", f);
   /// f(x)
   sprintf(tmp, "%lf", current_list->skew.alpha);
   fputs(tmp, f);
   fputs("*x + ", f);
   sprintf(tmp, "%lf", current_list->skew.beta);
   fputs(tmp, f);
-  fputs("\n\nset grid\n"
+  fputs("\n\nset grid xtics x2tics ytics\n"
         "set title \"", f);
   
   /// Title
