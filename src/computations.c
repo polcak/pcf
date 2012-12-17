@@ -29,9 +29,9 @@
 /**
  * Point
  */
-typedef struct my_pnt my_point;
+typedef struct point2d point2d;
 
-struct my_pnt {
+struct point2d {
   double x;
   double y;
 };
@@ -41,7 +41,7 @@ struct my_pnt {
  * Swap two points
  * @param[in] x, @param[in] y Points
  */
-void swap(my_point *x, my_point *y);
+void swap(point2d *x, point2d *y);
 
 /**
  * Compute upper bound as a upper convex hull. Graham scan algorithm is used.
@@ -51,7 +51,7 @@ void swap(my_point *x, my_point *y);
  * @param[in,out] number List size
  * @return Pointer to list with convex hull points
  */
-my_point *convex_hull(my_point points[], unsigned long *number);
+point2d *convex_hull(point2d points[], unsigned long *number);
 
 /**
  * Counter-clockwise test
@@ -61,18 +61,18 @@ my_point *convex_hull(my_point points[], unsigned long *number);
  * @param[in] p1, @param[in] p2, @param[in] p3 Points
  * @return > 0 if counter-clockwise, < 0 if clockwise, = 0 collinear
  */
-double ccw(my_point p1, my_point p2, my_point p3);
+double ccw(point2d p1, point2d p2, point2d p3);
 
 
-void swap(my_point *x, my_point *y)
+void swap(point2d *x, point2d *y)
 {
-   my_point tmp;
+   point2d tmp;
    tmp = *x;
    *x = *y;
    *y = tmp;
 }
 
-double ccw(my_point p1, my_point p2, my_point p3)
+double ccw(point2d p1, point2d p2, point2d p3)
 {
   return((p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x));
 }
@@ -81,7 +81,7 @@ double ccw(my_point p1, my_point p2, my_point p3)
 // Graham, R. L.: An efficient algorithm for determining the convex hull of a finite
 // planar set. Information Processing Letters, vol. 1, no. 4, jan 1972: pp. 132–133,
 // ISSN 0020-0190.
-my_point *convex_hull(my_point points[], unsigned long *number)
+point2d *convex_hull(point2d points[], unsigned long *number)
 {
   int i;
   int m = 1;
@@ -166,7 +166,7 @@ int set_skew(computer_info *list)
 {
 	// Prepare an array of all points for convex hull computation
   unsigned long pckts_count = packets_count(list->head_packet);
-  my_point points[pckts_count];
+  point2d points[pckts_count];
   packet_time_info *current = list->head_packet;
   
   /// First point
@@ -184,7 +184,7 @@ int set_skew(computer_info *list)
 	// Compute upper convex hull, note that points are destroyed inside the function
 	// and pckts_count will refer to the number of points in the convex hull when
 	// the function finish
-  my_point *hull = convex_hull(points, &pckts_count);
+  point2d *hull = convex_hull(points, &pckts_count);
 
 	// alpha is tangent of the line, beta is the offset
 	// y = alpha * x + beta
