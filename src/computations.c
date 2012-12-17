@@ -44,7 +44,9 @@ struct my_pnt {
 void swap(my_point *x, my_point *y);
 
 /**
- * Compute upper bound as a upper convex hull
+ * Compute upper bound as a upper convex hull. Graham scan algorithm is used.
+ * Note that the input list with points is destroyed during the process and
+ * the function returns a pointer to the input list.
  * @param[in] points Points list
  * @param[in,out] number List size
  * @return Pointer to list with convex hull points
@@ -75,6 +77,10 @@ double ccw(my_point p1, my_point p2, my_point p3)
   return((p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x));
 }
 
+// More details in:
+// Graham, R. L.: An efficient algorithm for determining the convex hull of a finite
+// planar set. Information Processing Letters, vol. 1, no. 4, jan 1972: pp. 132–133,
+// ISSN 0020-0190.
 my_point *convex_hull(my_point points[], unsigned long *number)
 {
   int i;
@@ -158,6 +164,7 @@ void set_offsets(packet_time_info *head_packet, packet_time_info *from, int freq
 
 int set_skew(computer_info *list)
 {
+	// Prepare an array of all points for convex hull computation
   unsigned long pckts_count = packets_count(list->head_packet);
   my_point points[pckts_count];
   packet_time_info *current = list->head_packet;
@@ -165,7 +172,6 @@ int set_skew(computer_info *list)
   /// First point
   points[0].x = current->offset.x;
   points[0].y = current->offset.y;
-  
   
   int i = 1;
   for (current = current->next_packet; current != NULL; current = current->next_packet) {
@@ -175,12 +181,23 @@ int set_skew(computer_info *list)
   }
   pckts_count = i-1;
   
+	// Compute upper convex hull, note that points are destroyed inside the function
+	// and pckts_count will refer to the number of points in the convex hull when
+	// the function finish
   my_point *hull = convex_hull(points, &pckts_count);
-  
+
+	// alpha is tangent of the line, beta is the offset
+	// y = alpha * x + beta
   double alpha, beta;
+
+	// These two variables are used to compute the distance of a sector in the found convex hull to
+	// all points. Min is the minimal distance, sum is valid for actual sector.
   double min, sum;
-  
+
+	// Compute j-th sector first
   int j = (pckts_count / 2);
+
+	// Compute alpha, beta, min for the j-th sector (sum is not used atm)
   alpha = ((hull[j].y - hull[j - 1].y) / (hull[j].x - hull[j - 1].x));
   
   if (fabs(alpha) > 100)
@@ -191,6 +208,9 @@ int set_skew(computer_info *list)
   for (current = list->head_packet; current != NULL; current = current->next_packet) {
     min += alpha * current->offset.x + beta - current->offset.y;
   }
+
+	// Store computed alpha, beta; it may change if other sectors of convex hull are part
+	// of the line with minimal distance
   list->skew.alpha = alpha;
   list->skew.beta = beta;
   
@@ -198,9 +218,10 @@ int set_skew(computer_info *list)
   printf("\n");
   printf("[%lf,%lf],[%lf,%lf], f(x) = %lf*x + %lf, sum = %lf\n", hull[j - 1].x, hull[j - 1].y, hull[j].x, hull[j].y, alpha, beta, min);
 #endif
-  
+
+	// Compute alpha, beta, sum for other sectors
   for (i = 1; i < pckts_count; i++) {
-    if (i == j)
+    if (i == j) // We already computed j-th sector
       continue;
     
     alpha = ((hull[i].y - hull[i - 1].y) / (hull[i].x - hull[i - 1].x));
@@ -215,7 +236,7 @@ int set_skew(computer_info *list)
     sum = 0.0;
     for (current = list->head_packet; current != NULL; current = current->next_packet) {
       sum += (alpha * current->offset.x + beta - current->offset.y);
-      if (sum >= min)
+      if (sum >= min) // The sum is already higher than the sum of all points of other sectors
         break;
     }
     
@@ -223,7 +244,7 @@ int set_skew(computer_info *list)
     printf("[%lf,%lf],[%lf,%lf], f(x) = %lf*x + %lf, sum = %lf\n", hull[i - 1].x, hull[i - 1].y, hull[i].x, hull[i].y, alpha, beta, sum);
 #endif
     
-    /// MIN
+    // A new min was fuound, update alpha, beta, and min
     if (sum < min) {
       list->skew.alpha = alpha;
       list->skew.beta = beta;
