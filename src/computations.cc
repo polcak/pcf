@@ -83,7 +83,7 @@ double ccw(point2d p1, point2d p2, point2d p3)
 // ISSN 0020-0190.
 point2d *convex_hull(point2d points[], unsigned long *number)
 {
-  int i;
+  unsigned long i;
   int m = 1;
   
   for (i = 2; i < *number; i++) {
@@ -173,7 +173,7 @@ int set_skew(computer_info *list)
   points[0].x = current->offset.x;
   points[0].y = current->offset.y;
   
-  int i = 1;
+  unsigned long i = 1;
   for (current = current->next_packet; current != NULL; current = current->next_packet) {
     points[i].x = current->offset.x;
     points[i].y = current->offset.y;
@@ -195,7 +195,7 @@ int set_skew(computer_info *list)
   double min, sum;
 
 	// Compute j-th sector first
-  int j = (pckts_count / 2);
+  unsigned long j = (pckts_count / 2);
 
 	// Compute alpha, beta, min for the j-th sector (sum is not used atm)
   alpha = ((hull[j].y - hull[j - 1].y) / (hull[j].x - hull[j - 1].x));

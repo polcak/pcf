@@ -30,6 +30,12 @@
 #include "check_computers.h"
 #include "computer_identity.h"
 
+/// Global variables defined in the header file
+char *active;
+char *database;
+int BLOCK;
+int TIME_LIMIT;
+double THRESHOLD;
 
 /// Constant selecting the buffer size for short strings
 const size_t STRLEN_MAX = 100;
@@ -581,7 +587,7 @@ void generate_graph(computer_info *current_list)
 
   time_t boundary = interval_min;
   unsigned boundary_m = 0;
-  for (int i = 0; i <= interval_count; i++) {
+  for (unsigned int i = 0; i <= interval_count; i++) {
     char date_time[STRLEN_MAX];
     time_to_str(date_time, STRLEN_MAX, boundary);
     sprintf(tmp, "'%s' %u", date_time, boundary_m);

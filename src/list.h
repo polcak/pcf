@@ -69,13 +69,13 @@ struct computer_info {
 };
 
 /// Files
-char *active;
-char *database;
+extern char *active;
+extern char *database;
 
 /// Program constants
-int BLOCK;
-int TIME_LIMIT;
-double THRESHOLD;
+extern int BLOCK;
+extern int TIME_LIMIT;
+extern double THRESHOLD;
 
 /**
  * New packet processing (classify, save, compute...)

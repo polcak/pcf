@@ -56,13 +56,13 @@ void init(pcf_config *config)
 void remove_whitespaces(char *buf)
 {
   /// Remove whitespaces from the beginning
-  int i = 0;
+  size_t i = 0;
   while (buf[i] == ' ' || buf[i] == '\t' || buf[i] == '\r' || buf[i] == '\n')
     i++;
   
   /// Move the string
   if (i > 0) {
-    int j;
+    size_t j;
     for (j = 0; j < strlen(buf); j++)
       buf[j] = buf[i + j];
     buf[j] = '\0';

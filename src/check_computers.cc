@@ -164,7 +164,7 @@ int save_computer(const char *name, double skew, int freq, const char *address)
 
 computer_identity_list *find_computers_by_skew(const char* address, double skew, computer_info *known_computers)
 {
-  computer_identity_list *identities = malloc(sizeof(computer_identity_list));
+  computer_identity_list *identities = new computer_identity_list();
   if (identities == NULL) {
     return NULL;
   }
@@ -173,12 +173,12 @@ computer_identity_list *find_computers_by_skew(const char* address, double skew,
 
   if (!find_computer_in_active(known_computers, identities)) {
     computer_identity_list_release(identities);
-    free(identities);
+    delete identities;
     return NULL;
   }
   if (!find_computer_in_saved(known_computers, identities)) {
     computer_identity_list_release(identities);
-    free(identities);
+    delete identities;
     return NULL;
   }
 

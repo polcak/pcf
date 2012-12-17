@@ -22,11 +22,11 @@ program = pcf
 OBJ = capture.o main.o list.o parse_config.o computations.o check_computers.o computer_identity.o
 HEAD = capture.h list.h parse_config.h computations.h check_computers.h computer_identity.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
-CC = gcc
+CC = g++
 DEFINE ?= 
-CFLAGS ?= -O2 -Wall -std=gnu99 $(DEFINE)
+CXXFLAGS ?= -O2 -Wall -std=c++0x $(DEFINE)
 LDFLAGS ?= 
-LD = gcc
+LD = g++
 
 .PHONY: debug profiling uninstall clean donotreduce
 
@@ -34,11 +34,11 @@ all: $(program)
 
 debug:
 	make clean
-	make CFLAGS="-DDEBUG -g -Wall -std=gnu99 $(DEFINE)"
+	make CXXFLAGS="-DDEBUG -g -Wall -std=c++0x $(DEFINE)"
 
 profiling:
 	make clean
-	make CFLAGS="-pg -Wall -std=gnu99 $(DEFINE)" LDFLAGS="-pg"
+	make CXXFLAGS="-pg -Wall -std=c++0x $(DEFINE)" LDFLAGS="-pg"
 
 reduce:
 	make DEFINE="-DREDUCE"
@@ -59,5 +59,5 @@ $(program): $(OBJ)
 
 $(OBJ): $(HEAD)
 
-check_computers.o: check_computers.c check_computers.h
-	$(CC) $(CFLAGS) -c `xml2-config --cflags --libs` check_computers.c
+check_computers.o: check_computers.cc check_computers.h
+	$(CC) $(CXXFLAGS) -c `xml2-config --cflags --libs` check_computers.cc

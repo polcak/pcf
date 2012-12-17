@@ -38,7 +38,7 @@ void computer_identity_list_release(computer_identity_list *list)
   {
     computer_identity_item *next = act->next;
     free(act->name_address);
-    free(act);
+    delete act;
     act = next;
   }
 
@@ -48,8 +48,8 @@ void computer_identity_list_release(computer_identity_list *list)
 computer_identity_item *computer_identity_list_add_item(computer_identity_list* list, const char* name_address, double skew)
 {
   /* Malloc required space */
-  computer_identity_item *new_item;
-  if ((new_item = malloc(sizeof(computer_identity_item))) == NULL)
+  computer_identity_item *new_item = new computer_identity_item();
+  if (new_item == NULL)
   {
     return NULL;
   }
@@ -57,7 +57,7 @@ computer_identity_item *computer_identity_list_add_item(computer_identity_list* 
   new_item->next = list->first;
 
   size_t name_address_bytes = strlen(name_address) + 1;
-  new_item->name_address = malloc(name_address_bytes);
+  new_item->name_address = reinterpret_cast<char *>(malloc(name_address_bytes));
   if (new_item->name_address == NULL)
   {
     free(new_item);
