@@ -19,4 +19,3 @@
 # along with pcf. If not, see <http://www.gnu.org/licenses/>.
 #
 
-cp graph/*.svg www/graph/

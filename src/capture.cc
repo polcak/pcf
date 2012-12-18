@@ -33,7 +33,7 @@
 #include <netinet/tcp.h>
 
 #include "capture.h"
-#include "list.h"
+#include "computer_info_list.h"
 
 /// Capture all packets on the wire
 #define PROMISC 1
@@ -41,6 +41,8 @@
 /// Pcap session handle
 pcap_t *handle;
 
+// IPv6 addr length (39B) + '\0' + some padding
+#define ADDRESS_SIZE 64
 
 /**
  * Signal handler to stop capturing
@@ -197,7 +199,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
 
       /// Save packet
-      new_packet(address, arrival_time, timestamp);
+			computer_info_list *computers = reinterpret_cast<computer_info_list*>(args);
+      computers->new_packet(address, arrival_time, timestamp);
       return; // Packet processed
     }
 
@@ -355,22 +358,9 @@ int capture(pcf_config *config)
     signal(SIGALRM, stop_capturing);
     alarm(config->time);
   }
-  
-  /// Set active
-  active = config->active;
-  
-  /// Set database
-  database = config->database;
-  
-  /// Set BLOCK
-  BLOCK = config->block;
-  
-  /// Set TIME_LIMIT
-  TIME_LIMIT = config->time_limit;
-  
-  /// Set THRESHOLD
-  THRESHOLD = config->threshold;
-  
+
+	computer_info_list computers(config->active, config->database, config->block, config->time_limit, config->threshold);
+
   /// Set interrupt signal (ctrl-c or SIGTERM during capturing means stop capturing)
   struct sigaction sigact;
   memset(&sigact, 0, sizeof(sigact));
@@ -399,7 +389,7 @@ int capture(pcf_config *config)
   printf("Capturing started at: %s\n", ctime(&rawtime));
   
   /// Start capturing
-  if (pcap_loop(handle, config->number, got_packet, NULL) == -1) {
+  if (pcap_loop(handle, config->number, got_packet, reinterpret_cast<u_char*>(&computers)) == -1) {
     fprintf(stderr, "An error occured during capturing: %s\n", pcap_geterr(handle));
     return(2);
   }

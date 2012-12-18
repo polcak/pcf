@@ -30,7 +30,7 @@
 #include <string.h>
 
 #include "check_computers.h"
-#include "list.h"
+#include "computer_info.h"
 
 
 #define MY_ENCODING "UTF-8"
@@ -44,6 +44,8 @@
  */
 int first_computer(const char *filename);
 
+// FIXME rewrite C++
+#if 0
 /**
  * Search for computers with similar skew in active computers
  * @param[in] known_computers List of known computers
@@ -51,7 +53,10 @@ int first_computer(const char *filename);
  * @return true if success, false otherwise
  */
 bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities);
+#endif
 
+// FIXME rewrite C++
+#if 0
 /**
  * Search for computers with similar skew in saved computers
  * @param[in] known_computers List of known computers
@@ -59,6 +64,15 @@ bool find_computer_in_active(computer_info *known_computers, computer_identity_l
  * @return true if success, false otherwise
  */
 bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities);
+#endif
+
+/**
+ * Conversts time to its string representation in human readable format
+ * @param[out] buffer Pre-allocated buffer where the output is stored
+ * @param[in] buffer_size Size of the buffer
+ * @param[in] time Unix time to be converted
+ */
+void time_to_str(char *buffer, size_t buffer_size, time_t time);
 
 int first_computer(const char *filename)
 {
@@ -93,75 +107,8 @@ int first_computer(const char *filename)
   return(0);
 }
 
-int save_computer(const char *name, double skew, int freq, const char *address)
-{
-  xmlDocPtr doc;
-  xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
-
-  /// File doesn't exist yet
-  if (access(database, F_OK) != 0) {
-    if (first_computer(database) != 0) {
-      fprintf(stderr, "Cannot create XML file: %s\n", database);
-      return(1);
-    }
-  }
-  
-  doc = xmlParseFile(database);
-  if (doc == NULL ) {
-    fprintf(stderr, "XML document not parsed successfully: %s\n", database);
-    return(1);
-  }
-  
-  nodeptr = xmlDocGetRootElement(doc);
-  if (nodeptr == NULL) {
-    xmlFreeDoc(doc); 
-    return(1);
-  }
-  
-  /// Check root (<computers>)
-  if (xmlStrcmp(nodeptr->name, (const xmlChar *) "computers")) {
-    fprintf(stderr, "XML document of the wrong type: %s\n", database);
-    xmlFreeDoc(doc);
-    return(1);
-  }
-  
-  /// <computer skew>
-  node = xmlNewNode(NULL, BAD_CAST "computer");
-  char tmp[30];
-  sprintf(tmp, "%lf", skew);
-  xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
-  xmlAddChild(nodeptr , node);
-
-  /// <name>
-  node_child = xmlNewChild(node, NULL, BAD_CAST "name", BAD_CAST name);
-  xmlAddChild(node, node_child);
-  xmlAddChild(nodeptr, node);
-  
-  /// <address>
-  node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST address);
-  xmlAddChild(node, node_child);
-  xmlAddChild(nodeptr, node);
-  
-  /// <freq>
-  sprintf(tmp, "%d", freq);
-  node_child = xmlNewChild(node, NULL, BAD_CAST "frequency", BAD_CAST tmp);
-  xmlAddChild(node, node_child);
-  xmlAddChild(nodeptr, node);
-  
-  /// <date>
-  time_t rawtime;
-  time(&rawtime);
-  node_child = xmlNewChild(node, NULL, BAD_CAST "date", BAD_CAST ctime(&rawtime));
-  xmlAddChild(node, node_child);
-  xmlAddChild(nodeptr, node);
-
-  /// Save
-  xmlSaveFileEnc(database, doc, MY_ENCODING);
-  xmlFreeDoc(doc);
-  
-  return(0);
-}
-
+// FIXME rewrite C++
+#if 0
 computer_identity_list *find_computers_by_skew(const char* address, double skew, computer_info *known_computers)
 {
   computer_identity_list *identities = new computer_identity_list();
@@ -184,7 +131,10 @@ computer_identity_list *find_computers_by_skew(const char* address, double skew,
 
   return identities;
 }
+#endif
 
+// FIXME rewrite C++
+#if 0
 bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities)
 {
   /// No computers
@@ -250,7 +200,10 @@ bool find_computer_in_saved(computer_info *known_computers, computer_identity_li
 
   return true;
 }
+#endif
 
+// FIXME rewrite C++
+#if 0
 bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities)
 {
   computer_info *computer_i;
@@ -266,8 +219,9 @@ bool find_computer_in_active(computer_info *known_computers, computer_identity_l
 
   return true;
 }
+#endif
 
-int save_active(computer_info *list)
+int save_active(const std::list<computer_info> &all_computers, const char *active)
 {
   xmlDocPtr doc;
   xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
@@ -297,16 +251,11 @@ int save_active(computer_info *list)
     return(1);
   }
   
-  if (list == NULL)
-    return(0);
-  
-  computer_info *current_list;
-  
-  for (current_list = list; current_list != NULL; current_list = current_list->next_computer) {
+  for (auto it = all_computers.begin(); it != all_computers.end(); ++it) {
     
-    if (current_list->freq == 0) {
+    if (it->get_freq() == 0) {
 #ifdef DEBUG
-      fprintf(stderr, "XML: skipping %s - frequency is 0\n", current_list->address);
+      fprintf(stderr, "XML: skipping %s - frequency is 0\n", it->get_address().c_str());
 #endif
       continue;
     }
@@ -314,10 +263,12 @@ int save_active(computer_info *list)
     /// <computer skew>
     node = xmlNewNode(NULL, BAD_CAST "computer");
     char tmp[30];
-    sprintf(tmp, "%lf", current_list->skew.alpha);
+    sprintf(tmp, "%lf", it->get_skew().alpha);
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
+    // FIXME rewrite to C++
+#if 0
     // find computers with similar clock skew
     computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, list);
     if (similar_skew != NULL) {
@@ -333,26 +284,28 @@ int save_active(computer_info *list)
         xmlAddChild(node, node_child);
       }
     }
+#endif
 
     /// <address>
-    node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST current_list->address);
+    node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST it->get_address().c_str());
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
     /// <freq>
-    sprintf(tmp, "%d", current_list->freq);
+    sprintf(tmp, "%d", it->get_freq());
     node_child = xmlNewChild(node, NULL, BAD_CAST "frequency", BAD_CAST tmp);
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
     /// <packets>
-    sprintf(tmp, "%ld", current_list->count);
+    sprintf(tmp, "%ld", it->get_packets_count());
     node_child = xmlNewChild(node, NULL, BAD_CAST "packets", BAD_CAST tmp);
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
     /// <date>
-    node_child = xmlNewChild(node, NULL, BAD_CAST "date", BAD_CAST ctime(&current_list->rawtime));
+    const time_t last = it->get_last_packet_time();
+    node_child = xmlNewChild(node, NULL, BAD_CAST "date", BAD_CAST ctime(&last));
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
@@ -360,7 +313,7 @@ int save_active(computer_info *list)
     xmlSaveFileEnc(active, doc, MY_ENCODING);
 
 #ifdef DEBUG
-    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", current_list->address, current_list->freq, current_list->skew.alpha);
+    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", it->get_address().c_str(), it->get_freq(), it->get_skew().alpha);
 #endif
   }
   

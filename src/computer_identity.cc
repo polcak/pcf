@@ -17,6 +17,8 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// FIXME rewrite to C++
+#if 0
 
 #include <math.h>
 #include <stdlib.h>
@@ -69,3 +71,4 @@ computer_identity_item *computer_identity_list_add_item(computer_identity_list* 
   list->first = new_item;
   return new_item;
 }
+#endif

@@ -24,7 +24,6 @@
 #include <string.h>
 
 #include "capture.h"
-#include "list.h"
 #include "check_computers.h"
 #include "parse_config.h"
 
@@ -122,13 +121,7 @@ int main(int argc, char *argv[])
   
   printf("\n\n");
   
-  process_results(0, 1, 1);
-  
-  /// Clear active computers
-  save_active(NULL);
-  
   /// Free memory
-  free_memory();
   free_config(config);
   
   return(0);

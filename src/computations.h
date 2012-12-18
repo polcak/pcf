@@ -20,30 +20,26 @@
 #ifndef _COMPUTATIONS_H
 #define _COMPUTATIONS_H
 
-#include "list.h"
+#include "computer_info.h"
+#include "packet_time_info.h"
 
-
-/**
- * Computes clock frequency according to given packet set
- * @param[in] packets Pointer to the list of packets
- * @return Frequency
- */
-int compute_clock_frequency(packet_time_info *packets);
 
 /**
  * Compute and set offsets (x, y)
- * @param[in] head_packet Pointer to the first packet
- * @param[in] from Pointer to the packet from where to set offsets till end
+ * @param[inout] packet The packet whose offset is computed
+ * @param[in] head First packet
  * @param[in] freq Frequency
  */
-void set_offsets(packet_time_info *head_packet, packet_time_info *from, int freq);
+void set_offset(packet_time_info &packet, const packet_time_info &head, int freq);
 
 /**
- * Compute and set clock skew
- * @param[in] list Pointer to header of packet list
- * @return 0 if ok
+ * Compute upper bound as a upper convex hull. Graham scan algorithm is used.
+ * Note that the input list with points is destroyed during the process and
+ * the function returns a pointer to the input list.
+ * @param[in] points Points list
+ * @param[in,out] number List size
+ * @return Pointer to list with convex hull points
  */
-int set_skew(computer_info *list);
-
+point2d *convex_hull(point2d points[], unsigned long *number);
 
 #endif

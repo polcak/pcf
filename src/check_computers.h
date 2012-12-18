@@ -20,20 +20,11 @@
 #ifndef _CHECK_COMPUTERS_H
 #define _CHECK_COMPUTERS_H
 
-#include "list.h"
 #include "computer_identity.h"
+#include "computer_info_list.h"
 
-/**
- * Save new computer
- * Function not used any more (was in interactive mode)
- * @param[in] name New computer name
- * @param[in] skew Skew
- * @param[in] freq Frequency
- * @param[in] address Address
- * @return 0 if ok
- */
-int save_computer(const char *name, double skew, int freq, const char *address);
-
+// FIXME rewrite in C++
+#if 0
 /**
  * Search for computers with similar skew in saved computers
  * @param[in] address IP address of the computer to be searched
@@ -42,13 +33,14 @@ int save_computer(const char *name, double skew, int freq, const char *address);
  * @return computer_identity_list filled with computers with similar clock skew
  */
 computer_identity_list *find_computers_by_skew(const char *address, double skew, computer_info *known_computers);
+#endif
 
 /**
  * Save active computers into file
- * @param[in] list List of active computers
+ * @param[in] all_computers List of active computers
+ * @param[in] Active Fileneame of the database with active computers
  * @return 0 if ok
  */
-int save_active(computer_info *list);
-
+int save_active(const std::list<computer_info> &all_computers, const char *active);
 
 #endif

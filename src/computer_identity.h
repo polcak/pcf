@@ -17,6 +17,8 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// FIXME rewrite to C++
+#if 0
 #ifndef _COMPUTER_IDENTITY_H
 #define _COMPUTER_IDENTITY_H
 
@@ -67,4 +69,5 @@ void computer_identity_list_release(computer_identity_list *list);
  */
 computer_identity_item *computer_identity_list_add_item(computer_identity_list* list, const char* name_address, double skew);
 
+#endif
 #endif
