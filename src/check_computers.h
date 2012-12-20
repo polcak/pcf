@@ -20,20 +20,7 @@
 #ifndef _CHECK_COMPUTERS_H
 #define _CHECK_COMPUTERS_H
 
-#include "computer_identity.h"
 #include "computer_info_list.h"
-
-// FIXME rewrite in C++
-#if 0
-/**
- * Search for computers with similar skew in saved computers
- * @param[in] address IP address of the computer to be searched
- * @param[in] skew Skew of the computer that is beign search for
- * @param[in] known_computers List of computers to be searched
- * @return computer_identity_list filled with computers with similar clock skew
- */
-computer_identity_list *find_computers_by_skew(const char *address, double skew, computer_info *known_computers);
-#endif
 
 /**
  * Save active computers into file

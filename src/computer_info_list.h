@@ -23,6 +23,7 @@
 #include "time.h"
 
 #include "computer_info.h"
+#include "clock_skew_guard.h"
 
 /**
  * All informations known about a set of computers.
@@ -32,6 +33,8 @@ class computer_info_list {
   private:
     /// Informations about packet timing
     std::list<computer_info> computers;
+    /// Informations about clock skew
+    clock_skew_guard skews;
     /// Last time when inactive computers were detected
     double last_inactive;
 
@@ -47,16 +50,11 @@ class computer_info_list {
      * and the tracking is restarted
      */
     const int time_limit;
-    /**
-     * Number of PPM that controls if more addresses are treated as if they
-     * belong to the same computer.
-     */
-    const double threshold;
 
   // Constructors
   public:
     computer_info_list(char *_active, char *_database, int _block, int _time_limit, double _threshold):
-      last_inactive(time(NULL)), active(_active), database(_database), block(_block), time_limit(_time_limit), threshold(_threshold)
+      skews(_threshold), last_inactive(time(NULL)), active(_active), database(_database), block(_block), time_limit(_time_limit)
     {}
 
   // Destructor

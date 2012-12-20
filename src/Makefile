@@ -19,8 +19,8 @@
 
 program = pcf
 
-OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o computer_identity.o computer_info.o
-HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h computer_identity.h computer_info.h packet_time_info.h point2d.h
+OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o
+HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
 DEFINE ?= 

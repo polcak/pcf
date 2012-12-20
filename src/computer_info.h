@@ -23,6 +23,7 @@
 #include <list>
 #include <string>
 
+#include "clock_skew_guard.h"
 #include "packet_time_info.h"
 
 
@@ -124,11 +125,21 @@ class computer_info {
   // Functions manipulating the state
   public:
     /**
-     * Adds a new packet
+     * Adds a new packet without updating or recomputing anything
      * @param[in] packet_delivered Arrival time of the new packet
      * @param[in] timestamp TCP timestamp of the new packet
+     * @param[inout] skews Storage of clock skews of known devices
      */
     void insert_packet(double packet_delivered, uint32_t timestamp);
+
+    /**
+     * Adds a new packet and possibly recomputes related informations
+     * @param[in] packet_delivered Arrival time of the new packet
+     * @param[in] timestamp TCP timestamp of the new packet
+     * @param[inout] skews Storage of clock skews of known devices
+     */
+    void insert_packet(double packet_delivered, uint32_t timestamp, clock_skew_guard &skews);
+
     /**
      * Restart measurement
      * @param[in] packet_delivered Arrival time of the first packet
@@ -150,7 +161,7 @@ class computer_info {
      * */
     int save_packets(short int rewrite);
     /// Generate gnuplot command file
-    void generate_graph();
+    void generate_graph(clock_skew_guard &skews);
 
 };
 

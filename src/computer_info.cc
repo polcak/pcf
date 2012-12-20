@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "clock_skew_guard.h"
 #include "computations.h"
 #include "packet_time_info.h"
 #include "point2d.h"
@@ -46,7 +47,11 @@ void computer_info::insert_packet(double packet_delivered, uint32_t timestamp)
   printf("Time: %.6lf\n", new_packet.time);
   printf("Timestamp: %lu\n\n", new_packet.timestamp);
 #endif
+}
 
+void computer_info::insert_packet(double packet_delivered, uint32_t timestamp, clock_skew_guard &skews)
+{
+  insert_packet(packet_delivered, timestamp);
 
   if ((get_packets_count() % block_size) == 0) {
     // Set frequency
@@ -83,7 +88,9 @@ void computer_info::insert_packet(double packet_delivered, uint32_t timestamp)
       return;
     }
 
-    generate_graph();
+    skews.update_skew(address, skew.alpha);
+
+    generate_graph(skews);
 
     /// Reduce packets
 #ifdef REDUCE
@@ -307,7 +314,7 @@ void time_to_str(char *buffer, size_t buffer_size, time_t time)
 
 
 
-void computer_info::generate_graph()
+void computer_info::generate_graph(clock_skew_guard &skews)
 {
   static const char* filename_template =  "graph/%s.gp";
   FILE *f;
@@ -378,25 +385,19 @@ void computer_info::generate_graph()
   fputs(tmp, f);
   fputs("\\n", f);
   fputs(get_address().c_str(), f);
-  
-// FIXME rewrite
-#if 0
+
   // Search for computers with similar skew
-  computer_identity_list *similar_skew = find_computers_by_skew(computer.get_address(), computer.get_skew().alpha, all_known_computers);
-  if (similar_skew != NULL) {
-    for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
-      fputs("\\n", f);
-      fputs(identity->name_address, f);
-    }
-    if (similar_skew->first == NULL) {
-      fputs("\\nunknown\" textcolor lt 1", f);
-    }
-    else {
-      fputs("\" textcolor lt 2", f);
-    }
-    computer_identity_list_release(similar_skew);
+  clock_skew_guard::address_containter similar_devices = skews.get_similar_identities(address);
+  for (auto it = similar_devices.begin(); it != similar_devices.end(); ++it) {
+    fputs("\\n", f);
+    fputs(it->c_str(), f);
   }
-#endif
+  if (similar_devices.empty()) {
+    fputs("\\nunknown\" textcolor lt 1", f);
+    }
+  else {
+    fputs("\" textcolor lt 2", f);
+  }
 
   /// Plot
   fputs("\n\n"

@@ -109,32 +109,6 @@ int first_computer(const char *filename)
 
 // FIXME rewrite C++
 #if 0
-computer_identity_list *find_computers_by_skew(const char* address, double skew, computer_info *known_computers)
-{
-  computer_identity_list *identities = new computer_identity_list();
-  if (identities == NULL) {
-    return NULL;
-  }
-
-  computer_identity_list_init(identities, address, skew);
-
-  if (!find_computer_in_active(known_computers, identities)) {
-    computer_identity_list_release(identities);
-    delete identities;
-    return NULL;
-  }
-  if (!find_computer_in_saved(known_computers, identities)) {
-    computer_identity_list_release(identities);
-    delete identities;
-    return NULL;
-  }
-
-  return identities;
-}
-#endif
-
-// FIXME rewrite C++
-#if 0
 bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities)
 {
   /// No computers
@@ -202,7 +176,7 @@ bool find_computer_in_saved(computer_info *known_computers, computer_identity_li
 }
 #endif
 
-// FIXME rewrite C++
+// FIXME Delete, part of the clock_skew_guard
 #if 0
 bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities)
 {

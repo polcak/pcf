@@ -68,7 +68,7 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
     }
 
     // Insert packet
-    known_computer.insert_packet(ttime, timestamp);
+    known_computer.insert_packet(ttime, timestamp, skews);
 
 #if 0
     std::cerr << known_computer.get_address() << ": " << known_computer.get_packet_count() << std::endl;
