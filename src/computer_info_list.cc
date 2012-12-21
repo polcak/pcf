@@ -41,7 +41,7 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
     computer_info &known_computer = *it;
 
     /// Too much time since last packet so start from the beginning
-    if ((ttime - known_computer.get_last_packet_time()) > time_limit) {
+    if ((ttime - known_computer.get_last_packet_time()) > TIME_LIMIT) {
       known_computer.restart(ttime, timestamp);
 #ifdef DEBUG
       fprintf(stderr, "%s timeout: starting a new tracking\n", known_computer.get_address().c_str());
@@ -81,7 +81,7 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
     save_active(computers, active, skews);
   }
 
-  if (ttime > (last_inactive + time_limit / 4)) {
+  if (ttime > (last_inactive + TIME_LIMIT / 4)) {
     /// Save active computers
     // FIXME remove inactive
     save_active(computers, active, skews);

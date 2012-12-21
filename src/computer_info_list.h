@@ -48,12 +48,12 @@ class computer_info_list {
      * Number of seconds of inactivity afeter which old data are erased
      * and the tracking is restarted
      */
-    const int time_limit;
+    const int TIME_LIMIT;
 
   // Constructors
   public:
     computer_info_list(char *_active, char *saved_computers_db, int _block, int _time_limit, double _threshold):
-      skews(_threshold, saved_computers_db), last_inactive(time(NULL)), active(_active), block(_block), time_limit(_time_limit)
+      skews(_threshold, saved_computers_db), last_inactive(time(NULL)), active(_active), block(_block), TIME_LIMIT(_time_limit)
     {}
 
   // Destructor
