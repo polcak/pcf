@@ -41,7 +41,6 @@ class computer_info_list {
     // Program configuration
     // Filenames of databases
     char *active;
-    char *database;
 
     /// Number of packets in one block
     const int block;
@@ -53,8 +52,8 @@ class computer_info_list {
 
   // Constructors
   public:
-    computer_info_list(char *_active, char *_database, int _block, int _time_limit, double _threshold):
-      skews(_threshold), last_inactive(time(NULL)), active(_active), database(_database), block(_block), time_limit(_time_limit)
+    computer_info_list(char *_active, char *saved_computers_db, int _block, int _time_limit, double _threshold):
+      skews(_threshold, saved_computers_db), last_inactive(time(NULL)), active(_active), block(_block), time_limit(_time_limit)
     {}
 
   // Destructor

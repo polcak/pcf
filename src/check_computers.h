@@ -20,7 +20,18 @@
 #ifndef _CHECK_COMPUTERS_H
 #define _CHECK_COMPUTERS_H
 
+#include "clock_skew_guard.h"
 #include "computer_info_list.h"
+
+/**
+ * Search for computers with similar skew in saved computers
+ * @param[in] referenced_skew Skew to be searched
+ * @param[inout] identities Container with identities of the computer that is being searched for
+ * @param[in] THRESHOLD threshold for the similar skew
+ * @param[in] database Filename of XML database with saved computers and their skew
+ * @return true if success, false otherwise
+ */
+bool find_computer_in_saved(double referenced_skew, clock_skew_guard::address_containter &identities, const double THRESHOLD, const char *database);
 
 /**
  * Save active computers into file
@@ -28,6 +39,6 @@
  * @param[in] Active Fileneame of the database with active computers
  * @return 0 if ok
  */
-int save_active(const std::list<computer_info> &all_computers, const char *active);
+int save_active(const std::list<computer_info> &all_computers, const char *active, clock_skew_guard &skews);
 
 #endif

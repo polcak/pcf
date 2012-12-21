@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "clock_skew_guard.h"
+#include "check_computers.h"
 
 void clock_skew_guard::update_skew(const std::string &ip, double skew)
 {
@@ -51,7 +52,9 @@ const clock_skew_guard::address_containter clock_skew_guard::get_similar_identit
     return identities;
   }
 
-  auto ref_skew = ref_it->second;
+  double ref_skew = ref_it->second;
+
+  find_computer_in_saved(ref_skew, identities, THRESHOLD, saved_computers);
 
   for (auto it = known_skew.begin(); it != known_skew.end(); ++it) {
     if (it->first == ip) {

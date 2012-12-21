@@ -43,6 +43,9 @@ class clock_skew_guard
      */
     const double THRESHOLD;
 
+		/// Filename of DB with saved computers
+		const char *saved_computers;
+
   // Constructors, destructors
   public:
     /**
@@ -50,7 +53,7 @@ class clock_skew_guard
      *
      * @param[in] threshold Number of PPM that means that the address belongs to the same computer
      */
-    clock_skew_guard(const double threshold): THRESHOLD(threshold) {}
+    clock_skew_guard(const double threshold, const char* saved_computers_db): THRESHOLD(threshold), saved_computers(saved_computers_db) {}
 
     ~clock_skew_guard() {}
 

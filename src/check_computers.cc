@@ -31,6 +31,7 @@
 
 #include "check_computers.h"
 #include "computer_info.h"
+#include "clock_skew_guard.h"
 
 
 #define MY_ENCODING "UTF-8"
@@ -43,28 +44,6 @@
  * @return 0 if ok
  */
 int first_computer(const char *filename);
-
-// FIXME rewrite C++
-#if 0
-/**
- * Search for computers with similar skew in active computers
- * @param[in] known_computers List of known computers
- * @param[inout] identities List of identities of the computer that is being searched for
- * @return true if success, false otherwise
- */
-bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities);
-#endif
-
-// FIXME rewrite C++
-#if 0
-/**
- * Search for computers with similar skew in saved computers
- * @param[in] known_computers List of known computers
- * @param[inout] identities List of identities of the computer that is being searched for
- * @return true if success, false otherwise
- */
-bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities);
-#endif
 
 /**
  * Conversts time to its string representation in human readable format
@@ -107,9 +86,7 @@ int first_computer(const char *filename)
   return(0);
 }
 
-// FIXME rewrite C++
-#if 0
-bool find_computer_in_saved(computer_info *known_computers, computer_identity_list *identities)
+bool find_computer_in_saved(double referenced_skew, clock_skew_guard::address_containter &identities, const double THRESHOLD, const char *database)
 {
   /// No computers
   if (access(database, F_OK) != 0) {
@@ -139,7 +116,7 @@ bool find_computer_in_saved(computer_info *known_computers, computer_identity_li
       double skew_xml = atof((char *) xml_skew_prop);
 
       /// Comparison
-      double skew_diff = fabs(identities->referenced_skew - skew_xml);
+      double skew_diff = fabs(referenced_skew - skew_xml);
       if (skew_diff < THRESHOLD) {
         bool name_reached = false;
         xmlNode *computer_child_node = computer_node->children;
@@ -152,19 +129,12 @@ bool find_computer_in_saved(computer_info *known_computers, computer_identity_li
           if (strcmp((char *) computer_child_node->name, "name") == 0) {
             xmlChar *computer_name  = xmlNodeGetContent(computer_child_node);
             if (computer_name != NULL) {
-              computer_identity_item *item = computer_identity_list_add_item(identities, (char *) computer_name, skew_xml);
-              if (item != NULL) {
-                name_reached = true;
-              }
+              identities.insert((char *) computer_name);
+              name_reached = true;
               xmlFree(computer_name);
             }
           }
         }
-#ifdef DEBUG
-        if (name_reached == true) {
-          printf("\n\n%s skew: %f (now %s: %f. diff: %f)\n", identities->first->name_address, skew_xml, identities->referenced_address, identities->referenced_skew, skew_diff);
-        }
-#endif
       }
       xmlFree(xml_skew_prop);
     }
@@ -174,28 +144,8 @@ bool find_computer_in_saved(computer_info *known_computers, computer_identity_li
 
   return true;
 }
-#endif
 
-// FIXME Delete, part of the clock_skew_guard
-#if 0
-bool find_computer_in_active(computer_info *known_computers, computer_identity_list *identities)
-{
-  computer_info *computer_i;
-  for (computer_i = known_computers; computer_i != NULL; computer_i = computer_i->next_computer) {
-    if (strcmp(computer_i->address, identities->referenced_address) == 0)
-      continue;
-    if (computer_i->freq == 0)
-      continue;
-    if (fabs(computer_i->skew.alpha - identities->referenced_skew) < THRESHOLD) {
-      computer_identity_list_add_item(identities, computer_i->address, computer_i->skew.alpha);
-    }
-  }
-
-  return true;
-}
-#endif
-
-int save_active(const std::list<computer_info> &all_computers, const char *active)
+int save_active(const std::list<computer_info> &all_computers, const char *active, clock_skew_guard &skews)
 {
   xmlDocPtr doc;
   xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
@@ -241,24 +191,16 @@ int save_active(const std::list<computer_info> &all_computers, const char *activ
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
-    // FIXME rewrite to C++
-#if 0
     // find computers with similar clock skew
-    computer_identity_list *similar_skew = find_computers_by_skew(current_list->address, current_list->skew.alpha, list);
-    if (similar_skew != NULL) {
-      for (computer_identity_item *identity = similar_skew->first; identity != NULL; identity = identity->next) {
-        /// <identity>
-        node_child = xmlNewNode(NULL, BAD_CAST "identity");
-        /// <name>
-        xmlNewChild(node_child, NULL, BAD_CAST "name", BAD_CAST identity->name_address);
-        /// <diff>
-        sprintf(tmp, "%lf", identity->skew_diff);
-        xmlNewChild(node_child, NULL, BAD_CAST "diff", BAD_CAST tmp);
-        // Add to tree
-        xmlAddChild(node, node_child);
-      }
+    clock_skew_guard::address_containter similar_skew = skews.get_similar_identities(it->get_address());
+    for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
+      /// <identity>
+      node_child = xmlNewNode(NULL, BAD_CAST "identity");
+      /// <name>
+      xmlNewChild(node_child, NULL, BAD_CAST "name", BAD_CAST skew_it->c_str());
+      // Add to tree
+      xmlAddChild(node, node_child);
     }
-#endif
 
     /// <address>
     node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST it->get_address().c_str());

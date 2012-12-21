@@ -78,13 +78,13 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
   if (!found) {
     computer_info new_computer(ttime, timestamp, address, block);
     computers.push_back(new_computer);
-    save_active(computers, active);
+    save_active(computers, active, skews);
   }
 
   if (ttime > (last_inactive + time_limit / 4)) {
     /// Save active computers
     // FIXME remove inactive
-    save_active(computers, active);
+    save_active(computers, active, skews);
     last_inactive = ttime;
   }
 
