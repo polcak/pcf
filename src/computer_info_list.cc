@@ -83,7 +83,12 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
 
   if (ttime > (last_inactive + TIME_LIMIT / 4)) {
     /// Save active computers
-    // FIXME remove inactive
+    for (auto it = computers.begin(); it != computers.end(); ++it) {
+      if (ttime - it->get_last_packet_time() > TIME_LIMIT) {
+        it = computers.erase(it);
+      }
+    }
+
     save_active(computers, active, skews);
     last_inactive = ttime;
   }
