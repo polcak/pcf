@@ -150,6 +150,8 @@ class computer_info {
     void reduce();
 
   private:
+    ///Performs actions after a block of packets is captured
+    void block_finished(double packet_delivered, clock_skew_guard &skews);
     /// Computes a new skew
     int compute_skew();
     /// Computes a new frequency

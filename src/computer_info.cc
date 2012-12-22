@@ -54,58 +54,65 @@ void computer_info::insert_packet(double packet_delivered, uint32_t timestamp, c
   insert_packet(packet_delivered, timestamp);
 
   if ((get_packets_count() % block_size) == 0) {
-    // Set frequency
-    if (freq == 0) {
-      if ((packet_delivered - start_time) < 60) {
-        return;
-      }
-      else {
-        freq = compute_freq();
-#if 0
-        fprintf(stderr, "Found %s with frequency %d", address.c_str(), freq);
-#endif
+    block_finished(packet_delivered, skews);
+  }
+}
 
-        const packet_time_info &first = *(packets.begin());
-        if (freq != 0) {
-          for (auto it = packets.begin(); it != packets.end(); ++it) {
-            set_offset(*it, first, freq);
-          }
-        }
-        else {
-          return;
-        }
-      }
-    }
 
-    /// Save offsets into file
-    save_packets(1);
 
-    /// Set skew
-    if (compute_skew() != 0) {
-#ifdef DEBUG
-      fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
-#endif
+void computer_info::block_finished(double packet_delivered, clock_skew_guard &skews)
+{
+  // Set frequency
+  if (freq == 0) {
+    if ((packet_delivered - start_time) < 60) {
       return;
     }
+    else {
+      freq = compute_freq();
+#if 0
+      fprintf(stderr, "Found %s with frequency %d", address.c_str(), freq);
+#endif
 
-    skews.update_skew(address, skew.alpha);
-
-    generate_graph(skews);
-
-    /// Reduce packets
-#ifdef REDUCE
-    if (known_computer->count > (BLOCK * 5)) {
-      reduce_packets(known_computer);
-      /// Not enough packets removed -> remove packets from the beginning
-      while (known_computer->count > (BLOCK * 3)) {
-        for (int i = 0; i < BLOCK; i++) {
-          known_computer->head_packet = remove_packet(known_computer->head_packet);
-          known_computer->count--;
+      const packet_time_info &first = *(packets.begin());
+      if (freq != 0) {
+        for (auto it = packets.begin(); it != packets.end(); ++it) {
+          set_offset(*it, first, freq);
         }
       }
+      else {
+        return;
+      }
     }
-#endif
   }
+
+  /// Save offsets into file
+  save_packets(1);
+
+  /// Set skew
+  if (compute_skew() != 0) {
+#ifdef DEBUG
+    fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
+#endif
+    return;
+  }
+
+  skews.update_skew(address, skew.alpha);
+
+  generate_graph(skews);
+
+  /// Reduce packets
+#ifdef REDUCE
+  if (known_computer->count > (BLOCK * 5)) {
+    reduce_packets(known_computer);
+    /// Not enough packets removed -> remove packets from the beginning
+    while (known_computer->count > (BLOCK * 3)) {
+      for (int i = 0; i < BLOCK; i++) {
+        known_computer->head_packet = remove_packet(known_computer->head_packet);
+        known_computer->count--;
+      }
+    }
+  }
+#endif
 }
 
 
