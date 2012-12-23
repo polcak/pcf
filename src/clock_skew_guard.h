@@ -43,8 +43,8 @@ class clock_skew_guard
      */
     const double THRESHOLD;
 
-		/// Filename of DB with saved computers
-		const char *saved_computers;
+    /// Filename of DB with saved computers
+    const char *saved_computers;
 
   // Constructors, destructors
   public:
