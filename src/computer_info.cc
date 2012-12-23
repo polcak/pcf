@@ -32,10 +32,12 @@ const size_t STRLEN_MAX = 100;
 
 double NaN = std::numeric_limits<double>().quiet_NaN();
 
+const double SKEW_VALID_AFTER = 5*60;
+
 computer_info::computer_info(double first_packet_delivered, uint32_t first_packet_timstamp,
     const char* its_address, const int its_block_size):
   packets(), address(its_address), freq(0),
-  last_packet_time(first_packet_delivered),
+  last_packet_time(first_packet_delivered), last_confirmed_skew(first_packet_delivered),
   start_time(first_packet_delivered), skew_list(), block_size(its_block_size)
 {
   insert_packet(first_packet_delivered, first_packet_timstamp);
@@ -68,7 +70,8 @@ void computer_info::insert_packet(double packet_delivered, uint32_t timestamp, c
 {
   insert_packet(packet_delivered, timestamp);
 
-  if ((get_packets_count() % block_size) == 0) {
+  if (((get_packets_count() % block_size) == 0) ||
+      ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER)) {
     block_finished(packet_delivered, skews);
   }
 }
@@ -105,7 +108,7 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
 
   /// Recompute skew for graph
   skew_info &skew = *skew_list.rbegin();
-  clock_skew_pair new_skew = compute_skew(packets.begin(), packets.end());
+  clock_skew_pair new_skew = compute_skew(skew.first, packets.end());
   if (new_skew.first == NaN) {
 #ifdef DEBUG
     fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
@@ -113,19 +116,38 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
     return;
   }
 
-  skew.alpha = new_skew.first;
-  skew.beta = new_skew.second;
+  skews.update_skew(address, new_skew.first); // FIXME notify changing skew
+  generate_graph(new_skew, skews);
 
-  skews.update_skew(address, skew.alpha);
+  if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
+    clock_skew_pair last_skew = compute_skew(skew.confirmed, packets.end());
+    if ((std::fabs(last_skew.first - skew.alpha) < 10*skews.get_threshold()) ||
+        (skew.alpha == NaN)) {
+      skew.alpha = new_skew.first;
+      skew.beta = new_skew.second;
+      skew.confirmed = skew.last;
+      skew.last = --packets.end();
+      last_confirmed_skew = packet_delivered;
 
-  generate_graph(skews);
-
-  /// Reduce packets
 #ifndef DONOTREDUCE
+      // Reduce packets
       if (packets.size() > (block_size * 5)) {
-        reduce_packets(packets.begin(), packets.end());
+        reduce_packets(skew.first, skew.confirmed);
       }
 #endif
+    }
+    else {
+      skew.last = skew.confirmed;
+#ifndef DONOTREDUCE
+      // Reduce packets
+      reduce_packets(skew.first, skew.last);
+#endif
+
+      add_empty_skew(--packets.end());
+      last_confirmed_skew = packet_delivered;
+    }
+  }
+
 }
 
 
@@ -148,7 +170,13 @@ void computer_info::add_empty_skew(packet_time_info_list::iterator start)
   skew_info skew;
   skew.alpha = NaN;
   skew.beta = NaN;
+  skew.first = start;
+  skew.confirmed = start;
+  skew.last = --packets.end();
   skew_list.push_back(skew);
+#ifdef DEBUG
+  printf("%s: New empty skew first: %g, confirmed %g, last: %g\n", address.c_str(), (skew.first)->offset.x, (skew.confirmed)->offset.x, (skew.last)->offset.x);
+#endif
 }
 
 
@@ -418,7 +446,7 @@ void time_to_str(char *buffer, size_t buffer_size, time_t time)
 
 
 
-void computer_info::generate_graph(clock_skew_guard &skews)
+void computer_info::generate_graph(const clock_skew_pair &skew, clock_skew_guard &skews)
 {
   static const char* filename_template =  "graph/%s.gp";
   FILE *f;
@@ -432,7 +460,7 @@ void computer_info::generate_graph(clock_skew_guard &skews)
     return;
   }
   
-  if (get_skew().alpha == 0.0)
+  if (skew.first == 0.0 || skew.first == NaN)
     return;
 
   const unsigned interval_count = 10;
@@ -473,10 +501,10 @@ void computer_info::generate_graph(clock_skew_guard &skews)
 
   fputs (")\n\nf(x) = ", f);
   /// f(x)
-  sprintf(tmp, "%lf", get_skew().alpha);
+  sprintf(tmp, "%lf", skew.first);
   fputs(tmp, f);
   fputs("*x + ", f);
-  sprintf(tmp, "%lf", get_skew().beta);
+  sprintf(tmp, "%lf", skew.second);
   fputs(tmp, f);
   fputs("\n\nset grid xtics x2tics ytics\n"
         "set title \"", f);
@@ -512,10 +540,10 @@ void computer_info::generate_graph(clock_skew_guard &skews)
   
   /// Legend
   fputs(" title 'f(x) = ", f);
-  sprintf(tmp, "%lf", get_skew().alpha);
+  sprintf(tmp, "%lf", skew.first);
   fputs(tmp, f);
   fputs("*x + ", f);
-  sprintf(tmp, "%lf", get_skew().beta);
+  sprintf(tmp, "%lf", skew.second);
   fputs(tmp, f);
   fputs("'", f);
   

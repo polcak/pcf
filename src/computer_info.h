@@ -48,6 +48,9 @@ class computer_info {
     struct skew_info {
       double alpha;
       double beta;
+      packet_iterator first;
+      packet_iterator confirmed;
+      packet_iterator last;
     };
 
   // Attributes
@@ -64,6 +67,9 @@ class computer_info {
 
     /// Time of the last added packet
     double last_packet_time;
+
+    /// Time of the packet with last confirmed skew
+    double last_confirmed_skew;
 
     /// Time of the start of the capture
     double start_time;
@@ -166,7 +172,7 @@ class computer_info {
      * */
     int save_packets(short int rewrite);
     /// Generate gnuplot command file
-    void generate_graph(clock_skew_guard &skews);
+    void generate_graph(const clock_skew_pair &skew, clock_skew_guard &skews);
 
 };
 
