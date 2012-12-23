@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
+#include <limits>
 
 #include "clock_skew_guard.h"
 #include "computations.h"
@@ -28,6 +29,8 @@
 #include "point2d.h"
 
 const size_t STRLEN_MAX = 100;
+
+double NaN = std::numeric_limits<double>().quiet_NaN();
 
 void computer_info::insert_packet(double packet_delivered, uint32_t timestamp)
 {
@@ -89,12 +92,16 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   save_packets(1);
 
   /// Set skew
-  if (compute_skew() != 0) {
+  clock_skew_pair new_skew = compute_skew(packets.begin(), packets.end());
+  if (new_skew.first == NaN) {
 #ifdef DEBUG
     fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
 #endif
     return;
   }
+
+  skew.alpha = new_skew.first;
+  skew.beta = new_skew.second;
 
   skews.update_skew(address, skew.alpha);
 
@@ -130,19 +137,30 @@ void computer_info::restart(double packet_delivered, uint32_t timestamp)
 
 
 
-int computer_info::compute_skew()
+clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const packet_iterator &end)
 {
   // Prepare an array of all points for convex hull computation
   unsigned long pckts_count = get_packets_count();
   point2d points[pckts_count];
-  packet_time_info &first = *(packets.begin());
+  const packet_time_info &first = *(start);
+  clock_skew_pair result(NaN, NaN);
 
   /// First point
   points[0].x = first.offset.x;
   points[0].y = first.offset.y;
   
   unsigned long i = 1;
-  for (auto it = ++(packets.begin()); it != packets.end(); ++it) {
+  auto it = start;
+  if (it == packets.end()) {
+    return result;
+  }
+  else {
+    ++it;
+    if (it == packets.end()) {
+      return result;
+    }
+  }
+  for (; (it != end) && (it != packets.end()); ++it) {
     points[i].x = it->offset.x;
     points[i].y = it->offset.y;
     i++;
@@ -167,20 +185,21 @@ int computer_info::compute_skew()
 
   // Compute alpha, beta, min for the j-th sector (sum is not used atm)
   alpha = ((hull[j].y - hull[j - 1].y) / (hull[j].x - hull[j - 1].x));
-  
-  if (std::fabs(alpha) > 100)
-    return(1);
-  
+
+  if (std::fabs(alpha) > 100) {
+    return result;
+  }
+
   beta = hull[j - 1].y - (alpha * hull[j - 1].x);
   min = 0.0;
-  for (auto it = packets.begin(); it != packets.end(); ++it) {
+  for (auto it = start; (it != end) && (it != packets.end()); ++it) {
     min += alpha * it->offset.x + beta - it->offset.y;
   }
 
   // Store computed alpha, beta; it may change if other sectors of convex hull are part
   // of the line with minimal distance
-  skew.alpha = alpha;
-  skew.beta = beta;
+  result.first = alpha;
+  result.second = beta;
   
 #ifdef DEBUG
   printf("\n");
@@ -202,7 +221,7 @@ int computer_info::compute_skew()
     
     /// SUM
     sum = 0.0;
-    for (auto it = packets.begin(); it != packets.end(); ++it) {
+    for (auto it = start; (it != end) && (it != packets.end()); ++it) {
       sum += (alpha * it->offset.x + beta - it->offset.y);
       if (sum >= min) // The sum is already higher than the sum of all points of other sectors
         break;
@@ -214,17 +233,17 @@ int computer_info::compute_skew()
     
     // A new min was fuound, update alpha, beta, and min
     if (sum < min) {
-      skew.alpha = alpha;
-      skew.beta = beta;
+      result.first = alpha;
+      result.second = beta;
       min = sum;
     }
   }
   
 #ifdef DEBUG
-  printf("f(x) = %lfx + %lf, min = %lf\n", skew.alpha, skew.beta, min);
+  printf("f(x) = %lfx + %lf, min = %lf\n", result.first, result.second, min);
 #endif
   
-  return(0);
+  return result;
 }
 
 

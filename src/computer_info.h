@@ -160,7 +160,7 @@ class computer_info {
     ///Performs actions after a block of packets is captured
     void block_finished(double packet_delivered, clock_skew_guard &skews);
     /// Computes a new skew
-    int compute_skew();
+    clock_skew_pair compute_skew(const packet_iterator &start, const packet_iterator &end);
     /// Computes a new frequency
     int compute_freq();
     /** 
