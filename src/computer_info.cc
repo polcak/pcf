@@ -32,8 +32,20 @@ const size_t STRLEN_MAX = 100;
 
 double NaN = std::numeric_limits<double>().quiet_NaN();
 
-void computer_info::insert_packet(double packet_delivered, uint32_t timestamp)
+computer_info::computer_info(double first_packet_delivered, uint32_t first_packet_timstamp,
+    const char* its_address, const int its_block_size):
+  packets(), address(its_address), freq(0),
+  last_packet_time(first_packet_delivered),
+  start_time(first_packet_delivered), skew_list(), block_size(its_block_size)
 {
+  insert_packet(first_packet_delivered, first_packet_timstamp);
+  add_empty_skew(packets.begin());
+}
+
+
+
+void computer_info::insert_packet(double packet_delivered, uint32_t timestamp)
+{ // This method shouldn't suppose that skew_list contain valid information
   packet_time_info new_packet;
 
   new_packet.time = packet_delivered;
@@ -91,7 +103,8 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   /// Save offsets into file
   save_packets(1);
 
-  /// Set skew
+  /// Recompute skew for graph
+  skew_info &skew = *skew_list.rbegin();
   clock_skew_pair new_skew = compute_skew(packets.begin(), packets.end());
   if (new_skew.first == NaN) {
 #ifdef DEBUG
@@ -123,9 +136,19 @@ void computer_info::restart(double packet_delivered, uint32_t timestamp)
   freq = 0;
   last_packet_time = packet_delivered;
   start_time = packet_delivered;
-  skew.alpha = 0;
-  skew.beta = 0;
+  skew_list.clear();
   insert_packet(packet_delivered, timestamp);
+  add_empty_skew(packets.begin());
+}
+
+
+
+void computer_info::add_empty_skew(packet_time_info_list::iterator start)
+{
+  skew_info skew;
+  skew.alpha = NaN;
+  skew.beta = NaN;
+  skew_list.push_back(skew);
 }
 
 

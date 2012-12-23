@@ -69,7 +69,7 @@ class computer_info {
     double start_time;
 
     /// Skew information about one computer
-    skew_info skew;
+    std::list<skew_info> skew_list;
 
     /**
      * Number of packets in one block
@@ -80,13 +80,7 @@ class computer_info {
   // Constructors
   public:
     computer_info(double first_packet_delivered, uint32_t first_packet_timstamp,
-        const char* its_address, const int its_block_size):
-      packets(), address(its_address), freq(0),
-      last_packet_time(first_packet_delivered), start_time(first_packet_delivered),
-      skew(), block_size(its_block_size)
-    {
-      insert_packet(first_packet_delivered, first_packet_timstamp);
-    }
+        const char* its_address, const int its_block_size);
 
   // Destructor
   public:
@@ -126,7 +120,7 @@ class computer_info {
 
     const skew_info& get_skew() const
     {
-      return skew;
+      return *(skew_list.rbegin());
     }
 
   // Functions manipulating the state
@@ -159,6 +153,8 @@ class computer_info {
   private:
     ///Performs actions after a block of packets is captured
     void block_finished(double packet_delivered, clock_skew_guard &skews);
+    /// Adds initialized empty skew information
+    void add_empty_skew(packet_time_info_list::iterator start);
     /// Computes a new skew
     clock_skew_pair compute_skew(const packet_iterator &start, const packet_iterator &end);
     /// Computes a new frequency
