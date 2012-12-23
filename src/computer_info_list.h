@@ -32,7 +32,7 @@ class computer_info_list {
   // Attributes
   private:
     /// Informations about packet timing
-    std::list<computer_info> computers;
+    std::list<computer_info *> computers;
     /// Informations about clock skew
     clock_skew_guard skews;
     /// Last time when inactive computers were detected

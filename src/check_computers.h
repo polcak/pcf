@@ -39,6 +39,6 @@ bool find_computer_in_saved(double referenced_skew, clock_skew_guard::address_co
  * @param[in] Active Fileneame of the database with active computers
  * @return 0 if ok
  */
-int save_active(const std::list<computer_info> &all_computers, const char *active, clock_skew_guard &skews);
+int save_active(const std::list<computer_info *> &all_computers, const char *active, clock_skew_guard &skews);
 
 #endif

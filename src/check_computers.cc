@@ -145,7 +145,7 @@ bool find_computer_in_saved(double referenced_skew, clock_skew_guard::address_co
   return true;
 }
 
-int save_active(const std::list<computer_info> &all_computers, const char *active, clock_skew_guard &skews)
+int save_active(const std::list<computer_info *> &all_computers, const char *active, clock_skew_guard &skews)
 {
   xmlDocPtr doc;
   xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
@@ -177,9 +177,9 @@ int save_active(const std::list<computer_info> &all_computers, const char *activ
   
   for (auto it = all_computers.begin(); it != all_computers.end(); ++it) {
     
-    if (it->get_freq() == 0) {
+    if ((*it)->get_freq() == 0) {
 #ifdef DEBUG
-      fprintf(stderr, "XML: skipping %s - frequency is 0\n", it->get_address().c_str());
+      fprintf(stderr, "XML: skipping %s - frequency is 0\n", (*it)->get_address().c_str());
 #endif
       continue;
     }
@@ -187,12 +187,12 @@ int save_active(const std::list<computer_info> &all_computers, const char *activ
     /// <computer skew>
     node = xmlNewNode(NULL, BAD_CAST "computer");
     char tmp[30];
-    sprintf(tmp, "%lf", it->get_skew().alpha);
+    sprintf(tmp, "%lf", (*it)->get_skew().alpha);
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
     // find computers with similar clock skew
-    clock_skew_guard::address_containter similar_skew = skews.get_similar_identities(it->get_address());
+    clock_skew_guard::address_containter similar_skew = skews.get_similar_identities((*it)->get_address());
     for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
       /// <identity>
       node_child = xmlNewNode(NULL, BAD_CAST "identity");
@@ -203,24 +203,24 @@ int save_active(const std::list<computer_info> &all_computers, const char *activ
     }
 
     /// <address>
-    node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST it->get_address().c_str());
+    node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST (*it)->get_address().c_str());
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
     /// <freq>
-    sprintf(tmp, "%d", it->get_freq());
+    sprintf(tmp, "%d", (*it)->get_freq());
     node_child = xmlNewChild(node, NULL, BAD_CAST "frequency", BAD_CAST tmp);
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
     /// <packets>
-    sprintf(tmp, "%ld", it->get_packets_count());
+    sprintf(tmp, "%ld", (*it)->get_packets_count());
     node_child = xmlNewChild(node, NULL, BAD_CAST "packets", BAD_CAST tmp);
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
     /// <date>
-    const time_t last = it->get_last_packet_time();
+    const time_t last = (*it)->get_last_packet_time();
     node_child = xmlNewChild(node, NULL, BAD_CAST "date", BAD_CAST ctime(&last));
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
@@ -229,7 +229,7 @@ int save_active(const std::list<computer_info> &all_computers, const char *activ
     xmlSaveFileEnc(active, doc, MY_ENCODING);
 
 #ifdef DEBUG
-    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", it->get_address().c_str(), it->get_freq(), it->get_skew().alpha);
+    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", (*it)->get_address().c_str(), (*it)->get_freq(), (*it)->get_skew().alpha);
 #endif
   }
   

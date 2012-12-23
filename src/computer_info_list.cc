@@ -32,13 +32,13 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
 
   bool found = false;
   for (auto it = computers.begin(); it != computers.end(); ++it) {
-    if (it->get_address() != address) {
+    if ((*it)->get_address() != address) {
       continue;
     }
     found = true;
 
     // Computer already known
-    computer_info &known_computer = *it;
+    computer_info &known_computer = **it;
 
     /// Too much time since last packet so start from the beginning
     if ((ttime - known_computer.get_last_packet_time()) > TIME_LIMIT) {
@@ -76,7 +76,7 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
   }
 
   if (!found) {
-    computer_info new_computer(ttime, timestamp, address, block);
+    computer_info *new_computer = new computer_info(ttime, timestamp, address, block);
     computers.push_back(new_computer);
     save_active(computers, active, skews);
   }
@@ -84,7 +84,8 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
   if (ttime > (last_inactive + TIME_LIMIT / 4)) {
     /// Save active computers
     for (auto it = computers.begin(); it != computers.end(); ++it) {
-      if (ttime - it->get_last_packet_time() > TIME_LIMIT) {
+      if (ttime - (*it)->get_last_packet_time() > TIME_LIMIT) {
+				delete(*it);
         it = computers.erase(it);
       }
     }
