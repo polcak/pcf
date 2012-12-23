@@ -75,6 +75,11 @@ class clock_skew_guard
      * @param[in] ip The IP whose clock skew will be compared
      */
     const address_containter get_similar_identities(const std::string &ip);
+
+    /// Returns THRESHOLD
+    double get_threshold() {
+      return THRESHOLD;
+    }
 };
 
 #endif
