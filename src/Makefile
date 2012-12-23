@@ -40,8 +40,8 @@ profiling:
 	make clean
 	make CXXFLAGS="-pg -Wall -std=c++0x $(DEFINE)" LDFLAGS="-pg"
 
-reduce:
-	make DEFINE="-DREDUCE"
+donotreduce:
+	make DEFINE="-DDONOTREDUCE"
 
 install: all
 	cp -r pcf gen_pics.sh config ../bin

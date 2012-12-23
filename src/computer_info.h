@@ -154,7 +154,7 @@ class computer_info {
      */
     void restart(double packet_delivered, uint32_t timestamp);
     /// Reduces unnecessary information about packets
-    void reduce();
+    void reduce_packets(packet_iterator start, packet_iterator end);
 
   private:
     ///Performs actions after a block of packets is captured

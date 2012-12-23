@@ -108,17 +108,10 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   generate_graph(skews);
 
   /// Reduce packets
-#ifdef REDUCE
-  if (known_computer->count > (BLOCK * 5)) {
-    reduce_packets(known_computer);
-    /// Not enough packets removed -> remove packets from the beginning
-    while (known_computer->count > (BLOCK * 3)) {
-      for (int i = 0; i < BLOCK; i++) {
-        known_computer->head_packet = remove_packet(known_computer->head_packet);
-        known_computer->count--;
+#ifndef DONOTREDUCE
+      if (packets.size() > (block_size * 5)) {
+        reduce_packets(packets.begin(), packets.end());
       }
-    }
-  }
 #endif
 }
 
@@ -133,6 +126,68 @@ void computer_info::restart(double packet_delivered, uint32_t timestamp)
   skew.alpha = 0;
   skew.beta = 0;
   insert_packet(packet_delivered, timestamp);
+}
+
+
+
+void computer_info::reduce_packets(packet_iterator start, packet_iterator end)
+{
+#ifdef DEBUG
+  printf("Reduction for IP %s start: %u packets\n", address.c_str(), (unsigned int) packets.size());
+#endif
+  packet_iterator current = start;
+  ++current;
+  if ((current == packets.end()) || (current == end)) {
+    return;
+  }
+
+  while ((current != packets.end()) && (current != end)) {
+    packet_iterator prev = current;
+    --prev;
+    packet_iterator next = current;
+    ++next;
+    if ((next == end) || (next == packets.end())) {
+      break; // We can't reduce the last packet
+    }
+    double prev_x = prev->offset.x;
+    double curr_x = current->offset.x;
+    double next_x = next->offset.x;
+    double prev_y = prev->offset.y;
+    double curr_y = current->offset.y;
+    double next_y = next->offset.y;
+    bool reduce = false;
+    if ((prev_y > curr_y) && (curr_y < next_y)) {
+      reduce = true;
+    }
+    else if ((prev_y <= curr_y) && (curr_y < next_y)) {
+      double tan_curr = (curr_y - prev_y) / (curr_x - prev_x);
+      double tan_next = (next_y - prev_y) / (next_x - prev_x);
+      if (tan_curr <= tan_next) {
+        reduce = true;
+      }
+    }
+    else if ((prev_y > curr_y) && (curr_y >= next_y)) {
+      double tan_curr = (curr_y - next_y) / (next_x - curr_x);
+      double tan_prev = (prev_y - next_y) / (next_x - prev_x);
+      if (tan_curr <= tan_prev) {
+        reduce = true;
+      }
+    }
+
+    if (reduce) {
+      current = packets.erase(current);
+      --current; // Check previous packet again
+      if (current == start) {
+        ++current; // unless it is the first one
+      }
+    }
+    else {
+      ++current;
+    }
+  }
+#ifdef DEBUG
+  printf("Reduction for IP %s end: %u packets\n", address.c_str(), (unsigned int)packets.size());
+#endif
 }
 
 
