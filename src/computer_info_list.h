@@ -58,7 +58,7 @@ class computer_info_list {
 
   // Destructor
   public:
-    ~computer_info_list() {}
+    ~computer_info_list();
 
   // Public methods
   public:

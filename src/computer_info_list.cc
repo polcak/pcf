@@ -24,6 +24,15 @@
 #include "check_computers.h"
 
 
+computer_info_list::~computer_info_list()
+{
+  for (auto it = computers.begin(); it != computers.end(); ++it) {
+    delete *it;
+  }
+}
+
+
+
 void computer_info_list::new_packet(const char *address, double ttime, uint32_t timestamp)
 {
   static unsigned long total = 0;
