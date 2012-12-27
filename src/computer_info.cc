@@ -36,6 +36,7 @@ computer_info::computer_info(double first_packet_delivered, uint32_t first_packe
     const char* its_address, const int its_block_size):
   packets(), address(its_address), freq(0),
   last_packet_time(first_packet_delivered), last_confirmed_skew(first_packet_delivered),
+  confirmed_skew(UNDEFINED_SKEW, UNDEFINED_SKEW),
   start_time(first_packet_delivered), skew_list(), block_size(its_block_size)
 {
   insert_packet(first_packet_delivered, first_packet_timstamp);
@@ -114,14 +115,18 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
     return;
   }
 
+  skew.alpha = new_skew.first;
+  skew.beta = new_skew.second;
+
   skews.update_skew(address, new_skew);
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
     clock_skew_pair last_skew = compute_skew(skew.confirmed, packets.end());
-    if ((std::fabs(last_skew.first - skew.alpha) < 10*skews.get_threshold()) ||
-        (skew.alpha == UNDEFINED_SKEW)) {
-      skew.alpha = new_skew.first;
-      skew.beta = new_skew.second;
+    if ((std::fabs(last_skew.first - confirmed_skew.first) < 10*skews.get_threshold()) ||
+        (confirmed_skew.first == UNDEFINED_SKEW)) {
+      // New skew confirmed
+      confirmed_skew.first = new_skew.first;
+      confirmed_skew.second = new_skew.second;
       skew.confirmed = skew.last;
       skew.last = --packets.end();
       last_confirmed_skew = packet_delivered;
