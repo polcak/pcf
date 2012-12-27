@@ -94,7 +94,7 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
     /// Save active computers
     for (auto it = computers.begin(); it != computers.end(); ++it) {
       if (ttime - (*it)->get_last_packet_time() > TIME_LIMIT) {
-				delete(*it);
+        delete(*it);
         it = computers.erase(it);
       }
     }
