@@ -21,14 +21,16 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
+#include <limits>
 
-#include "clock_skew.h"
 #include "clock_skew_guard.h"
 #include "computations.h"
 #include "packet_time_info.h"
 #include "point2d.h"
 
 const size_t STRLEN_MAX = 100;
+
+double NaN = std::numeric_limits<double>().quiet_NaN();
 
 const double SKEW_VALID_AFTER = 5*60;
 
@@ -105,43 +107,47 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   save_packets(1);
 
   /// Recompute skew for graph
+  printf("Kvakoš 1\n");
   skew_info &skew = *skew_list.rbegin();
+  printf("Kvakoš 2\n");
   clock_skew_pair new_skew = compute_skew(skew.first, packets.end());
-  if (new_skew.first == UNDEFINED_SKEW) {
+  if (new_skew.first == NaN) {
 #ifdef DEBUG
     fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
 #endif
     return;
   }
 
-  skews.update_skew(address, new_skew);
+  printf("Kvakoš 3\n");
+  printf("%s: Kvakoš před update skew first: %g, confirmed %g, last: %g\n", address.c_str(), (skew.first)->offset.x, (skew.confirmed)->offset.x, (skew.last)->offset.x);
+  skews.update_skew(address, new_skew.first); // FIXME notify changing skew
+  generate_graph(new_skew, skews);
+  printf("Kvakoš 4\n");
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
+    printf("Kvakoš 5\n");
     clock_skew_pair last_skew = compute_skew(skew.confirmed, packets.end());
-    if ((std::fabs(last_skew.first - skew.alpha) < 10*skews.get_threshold()) ||
-        (skew.alpha == UNDEFINED_SKEW)) {
+    if ((std::fabs(last_skew.first - skew.alpha) < skews.get_threshold()) ||
+        (skew.alpha == NaN)) {
+      printf("Kvakoš 6\n");
       skew.alpha = new_skew.first;
       skew.beta = new_skew.second;
       skew.confirmed = skew.last;
-      skew.last = --packets.end();
+      skew.last = packets.end();
+      --skew.last;
       last_confirmed_skew = packet_delivered;
 
-#ifndef DONOTREDUCE
+      printf("%s: Kvakoš po 6: %g, confirmed %g, last: %g\n", address.c_str(), (skew.first)->offset.x, (skew.confirmed)->offset.x, (skew.last)->offset.x);
       // Reduce packets
+#ifndef DONOTREDUCE
       if (packets.size() > (block_size * 5)) {
         reduce_packets(skew.first, skew.confirmed);
       }
 #endif
     }
     else {
-      skew.last = skew.confirmed;
-#ifndef DONOTREDUCE
-      // Reduce packets
-      reduce_packets(skew.first, skew.last);
-#endif
-
+      printf("Kvakoš 7\n");
       add_empty_skew(--packets.end());
-      last_confirmed_skew = packet_delivered;
     }
   }
 
@@ -165,11 +171,12 @@ void computer_info::restart(double packet_delivered, uint32_t timestamp)
 void computer_info::add_empty_skew(packet_time_info_list::iterator start)
 {
   skew_info skew;
-  skew.alpha = UNDEFINED_SKEW;
-  skew.beta = UNDEFINED_SKEW;
+  skew.alpha = NaN;
+  skew.beta = NaN;
   skew.first = start;
   skew.confirmed = start;
-  skew.last = --packets.end();
+  skew.last = packets.end();
+  --skew.last;
   skew_list.push_back(skew);
 #ifdef DEBUG
   printf("%s: New empty skew first: %g, confirmed %g, last: %g\n", address.c_str(), (skew.first)->offset.x, (skew.confirmed)->offset.x, (skew.last)->offset.x);
@@ -242,38 +249,46 @@ void computer_info::reduce_packets(packet_iterator start, packet_iterator end)
 
 clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const packet_iterator &end)
 {
+  printf("Kvakoš skew 1\n");
   // Prepare an array of all points for convex hull computation
   unsigned long pckts_count = get_packets_count();
   point2d points[pckts_count];
   const packet_time_info &first = *(start);
-  clock_skew_pair result(UNDEFINED_SKEW, UNDEFINED_SKEW);
+  clock_skew_pair result(NaN, NaN);
+  printf("Kvakoš skew 1a\n");
 
   /// First point
   points[0].x = first.offset.x;
   points[0].y = first.offset.y;
   
+  printf("Kvakoš skew 1b %g %g\n", start->offset.x, end->offset.x);
   unsigned long i = 1;
   auto it = start;
   if (it == packets.end()) {
+    printf("Kvakoš skew 1b !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     return result;
   }
   else {
     ++it;
     if (it == packets.end()) {
+      printf("Kvakoš skew 1b !!!!!!!x!x!x!x!!x!x!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
       return result;
     }
   }
   for (; (it != end) && (it != packets.end()); ++it) {
+    printf("Kvakoš %s %lu paketů: %lu %g\n", address.c_str(), pckts_count, i, it->offset.x);
     points[i].x = it->offset.x;
     points[i].y = it->offset.y;
     i++;
   }
   pckts_count = i-1;
+  printf("Kvakoš skew 1c\n");
   
   // Compute upper convex hull, note that points are destroyed inside the function
   // and pckts_count will refer to the number of points in the convex hull when
   // the function finish
   point2d *hull = convex_hull(points, &pckts_count);
+  printf("Kvakoš skew 1d\n");
 
   // alpha is tangent of the line, beta is the offset
   // y = alpha * x + beta
@@ -285,6 +300,7 @@ clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const 
 
   // Compute j-th sector first
   unsigned long j = (pckts_count / 2);
+  printf("Kvakoš skew 1e\n");
 
   // Compute alpha, beta, min for the j-th sector (sum is not used atm)
   alpha = ((hull[j].y - hull[j - 1].y) / (hull[j].x - hull[j - 1].x));
@@ -292,6 +308,7 @@ clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const 
   if (std::fabs(alpha) > 100) {
     return result;
   }
+  printf("Kvakoš skew 2\n");
 
   beta = hull[j - 1].y - (alpha * hull[j - 1].x);
   min = 0.0;
@@ -313,6 +330,7 @@ clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const 
   for (i = 1; i < pckts_count; i++) {
     if (i == j) // We already computed j-th sector
       continue;
+  printf("Kvakoš skew 3\n");
     
     alpha = ((hull[i].y - hull[i - 1].y) / (hull[i].x - hull[i - 1].x));
     
@@ -329,11 +347,13 @@ clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const 
       if (sum >= min) // The sum is already higher than the sum of all points of other sectors
         break;
     }
+  printf("Kvakoš skew 4\n");
     
 #ifdef DEBUG
     printf("[%lf,%lf],[%lf,%lf], f(x) = %lf*x + %lf, sum = %lf\n", hull[i - 1].x, hull[i - 1].y, hull[i].x, hull[i].y, alpha, beta, sum);
 #endif
     
+  printf("Kvakoš skew 5\n");
     // A new min was fuound, update alpha, beta, and min
     if (sum < min) {
       result.first = alpha;
@@ -365,7 +385,8 @@ int computer_info::compute_freq()
   double tmp = 0.0;
   int count = 0;
 
-  for (auto it = ++packets.begin(); it != packets.end(); ++it) {
+  auto it = packets.begin();
+  for (++it; it != packets.end(); ++it) {
     double local_diff = it->time - first.time;
     if (local_diff > 60.0) {
       tmp += ((it->timestamp - first.timestamp) / local_diff);
@@ -431,4 +452,127 @@ int computer_info::save_packets(short rewrite)
 #endif
   
   return(0);
+}
+
+
+
+void time_to_str(char *buffer, size_t buffer_size, time_t time)
+{
+  struct tm time_data = *localtime(&time);
+  strftime(buffer, buffer_size, "%Y-%m-%d %H:%M:%S", &time_data);
+}
+
+
+
+void computer_info::generate_graph(const clock_skew_pair &skew, clock_skew_guard &skews)
+{
+  static const char* filename_template =  "graph/%s.gp";
+  FILE *f;
+  int filename_max = strlen(filename_template) + get_address().length();
+  char filename[filename_max + 1];
+  snprintf(filename, filename_max, filename_template, get_address().c_str());
+  f = fopen(filename, "w");
+  
+  if (f == NULL) {
+    fprintf(stderr, "Cannot create file: %s\n", filename);
+    return;
+  }
+  
+  if (skew.first == 0.0 || skew.first == NaN)
+    return;
+
+  const unsigned interval_count = 10;
+  unsigned interval_min = packets.begin()->offset.x + get_start_time();
+  unsigned interval_max = packets.rbegin()->offset.x + get_last_packet_time();
+  unsigned interval_size = (interval_max - interval_min) / interval_count;
+
+  fputs("set encoding iso_8859_2\n"
+        "set terminal svg\n"
+        "set output 'www/graph/", f);
+        fputs(get_address().c_str(), f);
+        fputs(".svg'\n\n"
+        "set x2label 'Date and time'\n"
+        "set xlabel 'Elapsed time [s]'\n"
+        "set ylabel 'Offset [ms]'\n\n"
+        "set x2tics axis in rotate by 270 textcolor lt 4\n"
+        "set xtics mirror 0, ", f);
+  fprintf(f, "%u\n\n", interval_size);
+  fputs("set datafile separator '\\t'\n\n"
+        "set x2tics ("
+        , f);
+
+  char tmp[100];
+
+  time_t boundary = interval_min;
+  unsigned boundary_m = 0;
+  for (unsigned int i = 0; i <= interval_count; i++) {
+    char date_time[STRLEN_MAX];
+    time_to_str(date_time, STRLEN_MAX, boundary);
+    sprintf(tmp, "'%s' %u", date_time, boundary_m);
+    fputs(tmp, f);
+    boundary += interval_size;
+    boundary_m += interval_size;
+    if (i < interval_count) {
+      fputs(", ", f);
+    }
+  }
+
+  fputs (")\n\nf(x) = ", f);
+  /// f(x)
+  sprintf(tmp, "%lf", skew.first);
+  fputs(tmp, f);
+  fputs("*x + ", f);
+  sprintf(tmp, "%lf", skew.second);
+  fputs(tmp, f);
+  fputs("\n\nset grid xtics x2tics ytics\n"
+        "set title \"", f);
+  
+  /// Title
+  time_t rawtime;
+  time(&rawtime);
+  sprintf(tmp, "%s", ctime(&rawtime));
+  tmp[strlen(tmp)-1] = '\0';
+  fputs(tmp, f);
+  fputs("\\n", f);
+  fputs(get_address().c_str(), f);
+
+  // Search for computers with similar skew
+  clock_skew_guard::address_containter similar_devices = skews.get_similar_identities(address);
+  for (auto it = similar_devices.begin(); it != similar_devices.end(); ++it) {
+    fputs("\\n", f);
+    fputs(it->c_str(), f);
+  }
+  if (similar_devices.empty()) {
+    fputs("\\nunknown\" textcolor lt 1", f);
+    }
+  else {
+    fputs("\" textcolor lt 2", f);
+  }
+
+  /// Plot
+  fputs("\n\n"
+        "plot '", f);
+  fputs("log/", f);
+  fputs(get_address().c_str(), f);
+  fputs(".log' title '', f(x)", f);
+  
+  /// Legend
+  fputs(" title 'f(x) = ", f);
+  sprintf(tmp, "%lf", skew.first);
+  fputs(tmp, f);
+  fputs("*x + ", f);
+  sprintf(tmp, "%lf", skew.second);
+  fputs(tmp, f);
+  fputs("'", f);
+  
+  if (fclose(f) != 0)
+    fprintf(stderr, "Cannot close file: %s\n", filename);
+  
+  static const char* gnuplot_template =  "gnuplot graph/%s.gp";
+  int gnuplot_max = strlen(gnuplot_template) + get_address().length();
+  char gnuplot_cmd[gnuplot_max + 1];
+  snprintf(gnuplot_cmd, gnuplot_max, gnuplot_template, get_address().c_str());
+  system(gnuplot_cmd);
+  
+  return;
 }
