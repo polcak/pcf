@@ -20,7 +20,7 @@
 #ifndef _CHECK_COMPUTERS_H
 #define _CHECK_COMPUTERS_H
 
-#include "clock_skew_guard.h"
+#include "clock_skew.h"
 #include "computer_info_list.h"
 
 /**
@@ -31,7 +31,7 @@
  * @param[in] database Filename of XML database with saved computers and their skew
  * @return true if success, false otherwise
  */
-bool find_computer_in_saved(double referenced_skew, clock_skew_guard::address_containter &identities, const double THRESHOLD, const char *database);
+bool find_computer_in_saved(double referenced_skew, identity_container &identities, const double THRESHOLD, const char *database);
 
 /**
  * Save active computers into file

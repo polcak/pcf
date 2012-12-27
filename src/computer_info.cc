@@ -23,6 +23,7 @@
 #include <cstring>
 #include <limits>
 
+#include "clock_skew.h"
 #include "clock_skew_guard.h"
 #include "computations.h"
 #include "packet_time_info.h"
@@ -519,7 +520,7 @@ void computer_info::generate_graph(const clock_skew_pair &skew, clock_skew_guard
   fputs(get_address().c_str(), f);
 
   // Search for computers with similar skew
-  clock_skew_guard::address_containter similar_devices = skews.get_similar_identities(address);
+  identity_container similar_devices = skews.get_similar_identities(address);
   for (auto it = similar_devices.begin(); it != similar_devices.end(); ++it) {
     fputs("\\n", f);
     fputs(it->c_str(), f);

@@ -22,7 +22,8 @@
 
 #include <map>
 #include <string>
-#include <set>
+
+#include "clock_skew.h"
 
 /**
  * This class stores information about current known clock skew values
@@ -57,10 +58,6 @@ class clock_skew_guard
 
     ~clock_skew_guard() {}
 
-  // Type definitions
-  public:
-    typedef std::set<std::string> address_containter;
-
   // Public methods
   public:
     /**
@@ -74,7 +71,7 @@ class clock_skew_guard
      * Returns IP addresses with similar clock skew to the IP address provided
      * @param[in] ip The IP whose clock skew will be compared
      */
-    const address_containter get_similar_identities(const std::string &ip);
+    const identity_container get_similar_identities(const std::string &ip);
 
     /// Returns THRESHOLD
     double get_threshold() {
