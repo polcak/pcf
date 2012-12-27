@@ -54,7 +54,7 @@ template <class subject>
 class observable
 {
   // Attributes
-  std::list<observer<subject>&> observers;
+  std::list<observer<subject>*> observers;
 
   // Constructors and destructors
   protected:
@@ -67,7 +67,7 @@ class observable
     /**
      * Adds a new observer
      */
-    virtual void add_observer(observer<subject>& obs)
+    virtual void add_observer(observer<subject>* obs)
     {
       observers.push_back(obs);
     }
@@ -78,7 +78,7 @@ class observable
     virtual void notify(subject& changed_subject)
     {
       for (auto it = observers.begin(); it != observers.end(); ++it) {
-        it->notify(changed_subject);
+        (*it)->notify(changed_subject);
       }
     }
 };
