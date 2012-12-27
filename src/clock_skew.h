@@ -20,6 +20,7 @@
 #ifndef _CLOCK_SKEW_H
 #define _CLOCK_SKEW_H
 
+#include <limits>
 #include <set>
 #include <string>
 #include <utility>
@@ -37,6 +38,11 @@ typedef std::pair<double, double> clock_skew_pair;
  */
 typedef std::set<std::string> identity_container;
 
+
+/**
+ * Undefined skew
+ */
+const double UNDEFINED_SKEW = std::numeric_limits<double>().quiet_NaN();
 
 /**
  * Structure that is used to transfer computed data about one computer

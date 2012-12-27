@@ -21,7 +21,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <limits>
 
 #include "clock_skew.h"
 #include "clock_skew_guard.h"
@@ -30,8 +29,6 @@
 #include "point2d.h"
 
 const size_t STRLEN_MAX = 100;
-
-double NaN = std::numeric_limits<double>().quiet_NaN();
 
 const double SKEW_VALID_AFTER = 5*60;
 
@@ -110,7 +107,7 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   /// Recompute skew for graph
   skew_info &skew = *skew_list.rbegin();
   clock_skew_pair new_skew = compute_skew(skew.first, packets.end());
-  if (new_skew.first == NaN) {
+  if (new_skew.first == UNDEFINED_SKEW) {
 #ifdef DEBUG
     fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
 #endif
@@ -123,7 +120,7 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
     clock_skew_pair last_skew = compute_skew(skew.confirmed, packets.end());
     if ((std::fabs(last_skew.first - skew.alpha) < 10*skews.get_threshold()) ||
-        (skew.alpha == NaN)) {
+        (skew.alpha == UNDEFINED_SKEW)) {
       skew.alpha = new_skew.first;
       skew.beta = new_skew.second;
       skew.confirmed = skew.last;
@@ -169,8 +166,8 @@ void computer_info::restart(double packet_delivered, uint32_t timestamp)
 void computer_info::add_empty_skew(packet_time_info_list::iterator start)
 {
   skew_info skew;
-  skew.alpha = NaN;
-  skew.beta = NaN;
+  skew.alpha = UNDEFINED_SKEW;
+  skew.beta = UNDEFINED_SKEW;
   skew.first = start;
   skew.confirmed = start;
   skew.last = --packets.end();
@@ -250,7 +247,7 @@ clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const 
   unsigned long pckts_count = get_packets_count();
   point2d points[pckts_count];
   const packet_time_info &first = *(start);
-  clock_skew_pair result(NaN, NaN);
+  clock_skew_pair result(UNDEFINED_SKEW, UNDEFINED_SKEW);
 
   /// First point
   points[0].x = first.offset.x;
@@ -461,7 +458,7 @@ void computer_info::generate_graph(const clock_skew_pair &skew, clock_skew_guard
     return;
   }
   
-  if (skew.first == 0.0 || skew.first == NaN)
+  if (skew.first == 0.0 || skew.first == UNDEFINED_SKEW)
     return;
 
   const unsigned interval_count = 10;
