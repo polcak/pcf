@@ -24,6 +24,7 @@
 
 #include "computer_info.h"
 #include "clock_skew_guard.h"
+#include "observer.h"
 
 /**
  * All informations known about a set of computers.
@@ -70,6 +71,17 @@ class computer_info_list {
      * @return 0 if ok
      */
     void new_packet(const char *address, double time, uint32_t timestamp);
+
+    /**
+     * Registers a new observer for clock changes
+     *
+     * @param[in] obs The observer to be added
+     */
+    void add_observer(observer<const computer_skew>* obs)
+    {
+      skews.add_observer(obs);
+    }
+
 };
 
 #endif
