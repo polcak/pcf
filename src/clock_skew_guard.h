@@ -24,11 +24,12 @@
 #include <string>
 
 #include "clock_skew.h"
+#include "observer.h"
 
 /**
  * This class stores information about current known clock skew values
  */
-class clock_skew_guard
+class clock_skew_guard: public observable<computer_skew>
 {
   // Attributes
   private:
@@ -57,6 +58,10 @@ class clock_skew_guard
     clock_skew_guard(const double threshold, const char* saved_computers_db): THRESHOLD(threshold), saved_computers(saved_computers_db) {}
 
     ~clock_skew_guard() {}
+
+  // Private methods
+  private:
+    void construct_notify(const std::string &ip, const identity_container &identitites, double skew) const;
 
   // Public methods
   public:

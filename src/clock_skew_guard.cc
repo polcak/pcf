@@ -23,13 +23,23 @@
 #include "clock_skew_guard.h"
 #include "check_computers.h"
 
+void clock_skew_guard::construct_notify(const std::string &ip, const identity_container &identitites, double skew) const
+{
+  computer_skew s = {ip, identitites, skew};
+}
+
+
 void clock_skew_guard::update_skew(const std::string &ip, double skew)
 {
+  identity_container old_identities = get_similar_identities(ip);
+
+  // Update database
   auto current = known_skew.find(ip);
 
   if (current == known_skew.end()) {
     // New address
     known_skew[ip] = skew;
+    current = known_skew.find(ip);
   }
   else {
     // We are updating the value
@@ -37,6 +47,22 @@ void clock_skew_guard::update_skew(const std::string &ip, double skew)
     if (old_skew != skew) {
       // Updating skew
       known_skew[ip] = skew;
+    }
+  }
+
+  // Notify observers
+  identity_container new_identities = get_similar_identities(ip);
+  construct_notify(ip, new_identities, skew);
+
+  for (auto it = old_identities.begin(); it != old_identities.end(); ++it) {
+    if (new_identities.find(*it) == new_identities.end()) {
+      construct_notify(*it, get_similar_identities(*it), known_skew[*it]);
+    }
+  }
+
+  for (auto it = new_identities.begin(); it != new_identities.end(); ++it) {
+    if (old_identities.find(*it) == old_identities.end()) {
+      construct_notify(*it, get_similar_identities(*it), known_skew[*it]);
     }
   }
 }
