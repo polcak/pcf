@@ -20,8 +20,6 @@
 #ifndef _COMPUTER_INFO_LIST_H
 #define _COMPUTER_INFO_LIST_H
 
-#include "time.h"
-
 #include "computer_info.h"
 #include "clock_skew_guard.h"
 
