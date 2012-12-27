@@ -71,6 +71,9 @@ class computer_info {
     /// Time of the packet with last confirmed skew
     double last_confirmed_skew;
 
+    /// Last confirmed skew
+    clock_skew_pair confirmed_skew;
+
     /// Time of the start of the capture
     double start_time;
 
