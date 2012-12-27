@@ -199,7 +199,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
       arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
 
       /// Save packet
-			computer_info_list *computers = reinterpret_cast<computer_info_list*>(args);
+      computer_info_list *computers = reinterpret_cast<computer_info_list*>(args);
       computers->new_packet(address, arrival_time, timestamp);
       return; // Packet processed
     }
@@ -359,7 +359,7 @@ int capture(pcf_config *config)
     alarm(config->time);
   }
 
-	computer_info_list computers(config->active, config->database, config->block, config->time_limit, config->threshold);
+  computer_info_list computers(config->active, config->database, config->block, config->time_limit, config->threshold);
 
   /// Set interrupt signal (ctrl-c or SIGTERM during capturing means stop capturing)
   struct sigaction sigact;
