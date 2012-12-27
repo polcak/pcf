@@ -29,7 +29,7 @@
 /**
  * This class stores information about current known clock skew values
  */
-class clock_skew_guard: public observable<computer_skew>
+class clock_skew_guard: public observable<const computer_skew>
 {
   // Attributes
   private:
