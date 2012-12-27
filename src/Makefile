@@ -44,12 +44,12 @@ reduce:
 	make DEFINE="-DREDUCE"
 
 install: all
-	cp -r pcf gen_pics.sh config ../bin
+	cp -r pcf config ../bin
 	cp -r http_traffic www ../bin
 	mkdir -p ../bin/graph ../bin/log
 
 uninstall:
-	rm -f ../bin/pcf ../bin/gen_pics.sh
+	rm -f ../bin/pcf
 
 clean:
 	rm -f *.o *~ $(program)
