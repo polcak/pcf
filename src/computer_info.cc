@@ -114,7 +114,7 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
     return;
   }
 
-  skews.update_skew(address, new_skew.first); // FIXME notify changing skew
+  skews.update_skew(address, new_skew);
   generate_graph(new_skew, skews);
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {

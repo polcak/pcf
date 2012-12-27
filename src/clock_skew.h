@@ -51,6 +51,6 @@ const double UNDEFINED_SKEW = std::numeric_limits<double>().quiet_NaN();
 struct computer_skew {
   const std::string& address;
   identity_container similar_identities;
-  double clock_skew;
+  clock_skew_pair clock_skew;
 };
 #endif
