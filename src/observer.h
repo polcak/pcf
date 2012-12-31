@@ -75,7 +75,7 @@ class observable
     /**
      * Notifies all observers
      */
-    virtual void notify(subject& changed_subject)
+    virtual void notify(subject& changed_subject) const
     {
       for (auto it = observers.begin(); it != observers.end(); ++it) {
         (*it)->notify(changed_subject);
