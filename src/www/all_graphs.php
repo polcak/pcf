@@ -27,8 +27,6 @@
 
 <center>
 <?php
-	#system("./gen_pics.sh", $retval);
-
 	$directory = "graph/";
 	$graphs = array_diff(scandir($directory), array('..', '.','.gitignore'));
 	foreach ($graphs as $graph) {

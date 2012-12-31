@@ -19,8 +19,8 @@
 
 program = pcf
 
-OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o
-HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h
+OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o gnuplot_graph.o
+HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h observer.h clock_skew.h computer_skew.h gnuplot_graph.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
 DEFINE ?= 
@@ -44,12 +44,12 @@ donotreduce:
 	make DEFINE="-DDONOTREDUCE"
 
 install: all
-	cp -r pcf gen_pics.sh config ../bin
+	cp -r pcf config ../bin
 	cp -r http_traffic www ../bin
 	mkdir -p ../bin/graph ../bin/log
 
 uninstall:
-	rm -f ../bin/pcf ../bin/gen_pics.sh
+	rm -f ../bin/pcf
 
 clean:
 	rm -f *.o *~ $(program)

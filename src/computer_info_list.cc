@@ -102,8 +102,4 @@ void computer_info_list::new_packet(const char *address, double ttime, uint32_t 
     save_active(computers, active, skews);
     last_inactive = ttime;
   }
-
-  /// WWW
-  system("./gen_pics.sh 1>/dev/null");
-
 }

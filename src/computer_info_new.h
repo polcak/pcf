@@ -24,7 +24,6 @@
 #include <string>
 #include <utility>
 
-#include "clock_skew.h"
 #include "clock_skew_guard.h"
 #include "packet_time_info.h"
 
@@ -36,11 +35,14 @@ typedef std::list<packet_time_info> packet_time_info_list;
 typedef packet_time_info_list::iterator packet_iterator;
 
 /**
+ * Clock skew pair (alpha, beta): y = alpha*x + beta
+ */
+typedef std::pair<double, double> clock_skew_pair;
+
+/**
  * All informations known about each computer including time information about all received packets.
  */
 class computer_info {
-
-  // Private types
   private:
     /// Structure describing clock skew
     struct skew_info {
@@ -50,9 +52,6 @@ class computer_info {
       packet_iterator confirmed;
       packet_iterator last;
     };
-
-    /// Clock skew pair (alpha, beta): y = alpha*x + beta
-    typedef std::pair<double, double> clock_skew_pair;
 
   // Attributes
   private:
@@ -71,9 +70,6 @@ class computer_info {
 
     /// Time of the packet with last confirmed skew
     double last_confirmed_skew;
-
-    /// Last confirmed skew
-    clock_skew_pair confirmed_skew;
 
     /// Time of the start of the capture
     double start_time;
@@ -175,6 +171,8 @@ class computer_info {
      * @return 0 if ok
      * */
     int save_packets(short int rewrite);
+    /// Generate gnuplot command file
+    void generate_graph(clock_skew_pair &skew, clock_skew_guard &skews);
 
 };
 

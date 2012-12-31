@@ -31,7 +31,7 @@
 
 #include "check_computers.h"
 #include "computer_info.h"
-#include "clock_skew_guard.h"
+#include "clock_skew.h"
 
 
 #define MY_ENCODING "UTF-8"
@@ -86,7 +86,7 @@ int first_computer(const char *filename)
   return(0);
 }
 
-bool find_computer_in_saved(double referenced_skew, clock_skew_guard::address_containter &identities, const double THRESHOLD, const char *database)
+bool find_computer_in_saved(double referenced_skew, identity_container &identities, const double THRESHOLD, const char *database)
 {
   /// No computers
   if (access(database, F_OK) != 0) {
@@ -192,7 +192,7 @@ int save_active(const std::list<computer_info *> &all_computers, const char *act
     xmlAddChild(nodeptr , node);
 
     // find computers with similar clock skew
-    clock_skew_guard::address_containter similar_skew = skews.get_similar_identities((*it)->get_address());
+    identity_container similar_skew = skews.get_similar_identities((*it)->get_address());
     for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
       /// <identity>
       node_child = xmlNewNode(NULL, BAD_CAST "identity");

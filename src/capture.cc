@@ -34,6 +34,7 @@
 
 #include "capture.h"
 #include "computer_info_list.h"
+#include "gnuplot_graph.h"
 
 /// Capture all packets on the wire
 #define PROMISC 1
@@ -360,6 +361,8 @@ int capture(pcf_config *config)
   }
 
   computer_info_list computers(config->active, config->database, config->block, config->time_limit, config->threshold);
+  gnuplot_graph graph_creator;
+  computers.add_observer(&graph_creator);
 
   /// Set interrupt signal (ctrl-c or SIGTERM during capturing means stop capturing)
   struct sigaction sigact;
