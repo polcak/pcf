@@ -44,7 +44,7 @@ void gnuplot_graph::notify(const computer_skew& changed_skew)
 void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
 {
   const std::string& address = changed_skew.address;
-  const clock_skew_atom& skew = changed_skew.clock_skew;
+  const skew& computer_skew = changed_skew.clock_skew;
 
   static const char* filename_template =  "graph/%s.gp";
   FILE *f;
@@ -58,13 +58,12 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
     return;
   }
   
-  if (skew.alpha == 0.0 || skew.alpha == UNDEFINED_SKEW)
+  if (computer_skew.cbegin()->alpha == 0.0 || isnan(computer_skew.cbegin()->alpha))
     return;
 
   const unsigned interval_count = 10;
-// Temporarily do not print time
-  unsigned interval_min = skew.start_time;
-  unsigned interval_max = skew.end_time;
+  unsigned interval_min = computer_skew.get_start_time();
+  unsigned interval_max = computer_skew.get_end_time();
   unsigned interval_size = (interval_max - interval_min) / interval_count;
 
   fputs("set encoding iso_8859_2\n"
@@ -98,13 +97,34 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
     }
   }
 
-  fputs (")\n\nf(x) = ", f);
-  /// f(x)
-  sprintf(tmp, "%lf", skew.alpha);
-  fputs(tmp, f);
-  fputs("*x + ", f);
-  sprintf(tmp, "%lf", skew.beta);
-  fputs(tmp, f);
+  fputs (")\n\n", f);
+  unsigned int count = 1;
+  for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {
+    if (it->relative_start_time == it->relative_end_time) {
+      continue;
+    }
+    // fn(x)
+    fputs ("f", f);
+    sprintf(tmp, "%u", count);
+    fputs (tmp, f);
+    fputs ("(x) = ", f);
+    // Intervals
+    fputs ("(", f);
+    sprintf(tmp, "%lf", it->relative_start_time);
+    fputs(tmp, f);
+    fputs(" < x && x < ", f);
+    sprintf(tmp, "%lf", it->relative_end_time);
+    fputs(tmp, f);
+    fputs (") ? ", f);
+    // alpha *x + beta
+    sprintf(tmp, "%lf", it->alpha);
+    fputs(tmp, f);
+    fputs("*x + ", f);
+    sprintf(tmp, "%lf", it->beta);
+    fputs(tmp, f);
+    fputs(" : 1/0\n", f);
+  }
+
   fputs("\n\nset grid xtics x2tics ytics\n"
         "set title \"", f);
   
@@ -135,17 +155,31 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
         "plot '", f);
   fputs("log/", f);
   fputs(address.c_str(), f);
-  fputs(".log' title '', f(x)", f);
-  
-  /// Legend
-  fputs(" title 'f(x) = ", f);
-  sprintf(tmp, "%lf", skew.alpha);
-  fputs(tmp, f);
-  fputs("*x + ", f);
-  sprintf(tmp, "%lf", skew.beta);
-  fputs(tmp, f);
-  fputs("'", f);
-  
+  fputs(".log' title ''", f);
+
+  count = 1;
+  for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {
+    if (it->relative_start_time == it->relative_end_time) {
+      continue;
+    }
+    fputs (", f", f);
+    sprintf(tmp, "%u", count);
+    fputs (tmp, f);
+    fputs ("(x)", f);
+    /// Legend
+    fputs(" title 'f", f);
+    fputs (tmp, f);
+    fputs("(x) = ", f);
+    sprintf(tmp, "%lf", it->alpha);
+    fputs(tmp, f);
+    fputs("*x + ", f);
+    sprintf(tmp, "%lf", it->beta);
+    fputs(tmp, f);
+    fputs("'", f);
+  }
+
+  fputs("\n", f);
+
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close file: %s\n", filename);
   

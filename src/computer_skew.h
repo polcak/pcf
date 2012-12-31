@@ -21,8 +21,10 @@
 #define _COMPUTER_SKEW_H
 
 #include <string>
+#include <list>
 
 #include "clock_skew.h"
+#include "skew.h"
 
 /**
  * Structure that is used to transfer computed data about one computer
@@ -31,6 +33,6 @@
 struct computer_skew {
   const std::string& address;
   identity_container similar_identities;
-  clock_skew_atom clock_skew;
+  const skew clock_skew;
 };
 #endif
