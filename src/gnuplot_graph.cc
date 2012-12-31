@@ -100,6 +100,9 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   fputs (")\n\n", f);
   unsigned int count = 1;
   for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {
+    if (it->relative_start_time == it->relative_end_time) {
+      continue;
+    }
     // fn(x)
     fputs ("f", f);
     sprintf(tmp, "%u", count);
@@ -156,6 +159,9 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
 
   count = 1;
   for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {
+    if (it->relative_start_time == it->relative_end_time) {
+      continue;
+    }
     fputs (", f", f);
     sprintf(tmp, "%u", count);
     fputs (tmp, f);
