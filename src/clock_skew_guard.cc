@@ -26,6 +26,7 @@
 void clock_skew_guard::construct_notify(const std::string &ip, const identity_container &identitites, const clock_skew_pair &skew) const
 {
   computer_skew s = {ip, identitites, skew};
+  notify(s);
 }
 
 
