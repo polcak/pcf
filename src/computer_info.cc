@@ -21,12 +21,14 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
+#include <list>
 
 #include "clock_skew.h"
 #include "clock_skew_guard.h"
 #include "computations.h"
 #include "packet_time_info.h"
 #include "point2d.h"
+#include "skew.h"
 
 const size_t STRLEN_MAX = 100;
 
@@ -106,44 +108,40 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   save_packets(1);
 
   /// Recompute skew for graph
-  skew_info &skew = *skew_list.rbegin();
-  clock_skew_pair new_skew = compute_skew(skew.first, packets.end());
-  if (new_skew.first == UNDEFINED_SKEW) {
+	skew_info &last_skew = *skew_list.rbegin();
+  clock_skew_pair new_skew = compute_skew(last_skew.first, packets.end());
+  if (std::isnan(new_skew.first)) {
 #ifdef DEBUG
     fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
 #endif
     return;
   }
 
-  skew.alpha = new_skew.first;
-  skew.beta = new_skew.second;
-
-  clock_skew_atom ns = {new_skew.first, new_skew.second,
-    packets.begin()->offset.x + get_start_time(), packets.rbegin()->offset.x + get_start_time()};
-  skews.update_skew(address, ns);
+  last_skew.alpha = new_skew.first;
+  last_skew.beta = new_skew.second;
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
-    clock_skew_pair last_skew = compute_skew(skew.confirmed, packets.end());
-    if ((std::fabs(last_skew.first - confirmed_skew.first) < 10*skews.get_threshold()) ||
-        (confirmed_skew.first == UNDEFINED_SKEW)) {
+    clock_skew_pair last_skew_pair = compute_skew(last_skew.confirmed, packets.end());
+    if ((std::fabs(last_skew_pair.first - confirmed_skew.first) < 10*skews.get_threshold()) ||
+        (std::isnan(confirmed_skew.first))) {
       // New skew confirmed
       confirmed_skew.first = new_skew.first;
       confirmed_skew.second = new_skew.second;
-      skew.confirmed = skew.last;
-      skew.last = --packets.end();
+      last_skew.confirmed = last_skew.last;
+      last_skew.last = --packets.end();
       last_confirmed_skew = packet_delivered;
 
 #ifndef DONOTREDUCE
       // Reduce packets
       if (packets.size() > (block_size * 5)) {
-        reduce_packets(skew.first, skew.confirmed);
+        reduce_packets(last_skew.first, last_skew.confirmed);
       }
 #endif
     }
     else {
 #ifndef DONOTREDUCE
       // Reduce packets
-      reduce_packets(skew.first, skew.last);
+      reduce_packets(last_skew.first, last_skew.confirmed);
 #endif
 
       add_empty_skew(--packets.end());
@@ -151,6 +149,20 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
     }
   }
 
+  skew s;
+  for (auto it = skew_list.begin(); it != skew_list.end(); ++it) {
+    clock_skew_atom atom = {it->alpha, it->beta,
+      (it->first)->offset.x + get_start_time(),
+      (it->last)->offset.x + get_start_time(),
+      (it->first)->offset.x,
+      (it->last)->offset.x
+    };
+    if (!std::isnan(atom.alpha) && !isnan(atom.beta)) {
+      s.add_atom(atom);
+    }
+  }
+  s.set_end_time(packets.rbegin()->offset.x + get_start_time());
+  skews.update_skew(address, s);
 }
 
 

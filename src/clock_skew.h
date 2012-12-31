@@ -34,6 +34,8 @@ struct clock_skew_atom
   /// Validity
   double start_time;
   double end_time;
+  double relative_start_time;
+  double relative_end_time;
 
   bool operator==(const clock_skew_atom &other) const
   {
