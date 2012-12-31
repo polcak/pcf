@@ -17,30 +17,20 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CLOCK_SKEW_H
-#define _CLOCK_SKEW_H
+#ifndef _COMPUTER_SKEW_H
+#define _COMPUTER_SKEW_H
 
-#include <limits>
-#include <set>
 #include <string>
-#include <utility>
+
+#include "clock_skew.h"
 
 /**
- * Clock skew pair (alpha, beta): y = alpha*x + beta
+ * Structure that is used to transfer computed data about one computer
+ * between classes.
  */
-typedef std::pair<double, double> clock_skew_pair;
-
-
-/**
- * Containter for identitites of a computer.
- *
- * It is usually an IP address or an arbitrary name of a computer.
- */
-typedef std::set<std::string> identity_container;
-
-
-/**
- * Undefined skew
- */
-const double UNDEFINED_SKEW = std::numeric_limits<double>().quiet_NaN();
+struct computer_skew {
+  const std::string& address;
+  identity_container similar_identities;
+  clock_skew_pair clock_skew;
+};
 #endif

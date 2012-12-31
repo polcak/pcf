@@ -21,6 +21,7 @@
 #define _GNUPLOT_GRAPH_H
 
 #include "clock_skew.h"
+#include "computer_skew.h"
 #include "observer.h"
 
 class gnuplot_graph: public observer<const computer_skew>

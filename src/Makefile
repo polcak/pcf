@@ -20,7 +20,7 @@
 program = pcf
 
 OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o gnuplot_graph.o
-HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h observer.h clock_skew.h gnuplot_graph.h
+HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h observer.h clock_skew.h computer_skew.h gnuplot_graph.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
 DEFINE ?= 

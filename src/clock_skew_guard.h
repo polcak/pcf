@@ -24,6 +24,7 @@
 #include <string>
 
 #include "clock_skew.h"
+#include "computer_skew.h"
 #include "observer.h"
 
 /**
