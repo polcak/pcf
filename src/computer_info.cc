@@ -141,7 +141,6 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
 #endif
     }
     else {
-      skew.last = skew.confirmed;
 #ifndef DONOTREDUCE
       // Reduce packets
       reduce_packets(skew.first, skew.last);
