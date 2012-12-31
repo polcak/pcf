@@ -119,7 +119,7 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   skew.beta = new_skew.second;
 
   clock_skew_atom ns = {new_skew.first, new_skew.second,
-    skew.first->offset.x + get_start_time(), packets.rbegin()->offset.x + get_start_time()};
+    packets.begin()->offset.x + get_start_time(), packets.rbegin()->offset.x + get_start_time()};
   skews.update_skew(address, ns);
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
