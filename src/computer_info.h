@@ -22,6 +22,7 @@
 
 #include <list>
 #include <string>
+#include <utility>
 
 #include "clock_skew.h"
 #include "clock_skew_guard.h"
@@ -38,6 +39,8 @@ typedef packet_time_info_list::iterator packet_iterator;
  * All informations known about each computer including time information about all received packets.
  */
 class computer_info {
+
+  // Private types
   private:
     /// Structure describing clock skew
     struct skew_info {
@@ -47,6 +50,9 @@ class computer_info {
       packet_iterator confirmed;
       packet_iterator last;
     };
+
+    /// Clock skew pair (alpha, beta): y = alpha*x + beta
+    typedef std::pair<double, double> clock_skew_pair;
 
   // Attributes
   private:

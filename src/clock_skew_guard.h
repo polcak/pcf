@@ -38,7 +38,7 @@ class clock_skew_guard: public observable<const computer_skew>
      * Dictionary of known skew of tracked computers
      * IP addresses are mapped to clock skew
      */
-    std::map<const std::string, clock_skew_pair> known_skew;
+    std::map<const std::string, clock_skew_atom> known_skew;
 
     /**
      * Number of PPM that controls if more addresses are treated as if they
@@ -62,7 +62,7 @@ class clock_skew_guard: public observable<const computer_skew>
 
   // Private methods
   private:
-    void construct_notify(const std::string &ip, const identity_container &identitites, const clock_skew_pair &skew) const;
+    void construct_notify(const std::string &ip, const identity_container &identitites, const clock_skew_atom &skew) const;
 
   // Public methods
   public:
@@ -71,7 +71,7 @@ class clock_skew_guard: public observable<const computer_skew>
      * @param[in] ip The IP address for which the clock skew is provided
      * @param[in] skew Clock skew of the IP address
      */
-    void update_skew(const std::string &ip, const clock_skew_pair &skew);
+    void update_skew(const std::string &ip, const clock_skew_atom &skew);
 
     /**
      * Returns IP addresses with similar clock skew to the IP address provided

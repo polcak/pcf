@@ -31,6 +31,6 @@
 struct computer_skew {
   const std::string& address;
   identity_container similar_identities;
-  clock_skew_pair clock_skew;
+  clock_skew_atom clock_skew;
 };
 #endif

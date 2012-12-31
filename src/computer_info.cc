@@ -118,7 +118,9 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   skew.alpha = new_skew.first;
   skew.beta = new_skew.second;
 
-  skews.update_skew(address, new_skew);
+  clock_skew_atom ns = {new_skew.first, new_skew.second,
+    skew.first->offset.x + get_start_time(), packets.rbegin()->offset.x + get_start_time()};
+  skews.update_skew(address, ns);
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
     clock_skew_pair last_skew = compute_skew(skew.confirmed, packets.end());
@@ -245,7 +247,7 @@ void computer_info::reduce_packets(packet_iterator start, packet_iterator end)
 
 
 
-clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const packet_iterator &end)
+computer_info::clock_skew_pair computer_info::compute_skew(const packet_iterator &start, const packet_iterator &end)
 {
   // Prepare an array of all points for convex hull computation
   unsigned long pckts_count = get_packets_count();

@@ -23,14 +23,14 @@
 #include "clock_skew_guard.h"
 #include "check_computers.h"
 
-void clock_skew_guard::construct_notify(const std::string &ip, const identity_container &identitites, const clock_skew_pair &skew) const
+void clock_skew_guard::construct_notify(const std::string &ip, const identity_container &identitites, const clock_skew_atom &skew) const
 {
   computer_skew s = {ip, identitites, skew};
   notify(s);
 }
 
 
-void clock_skew_guard::update_skew(const std::string &ip, const clock_skew_pair &skew)
+void clock_skew_guard::update_skew(const std::string &ip, const clock_skew_atom &skew)
 {
   identity_container old_identities = get_similar_identities(ip);
 
@@ -44,8 +44,8 @@ void clock_skew_guard::update_skew(const std::string &ip, const clock_skew_pair 
   }
   else {
     // We are updating the value
-    const clock_skew_pair &old_skew = current->second;
-    if ((old_skew.first != skew.first) || old_skew.second != skew.second) {
+    const clock_skew_atom &old_skew = current->second;
+    if (old_skew != skew) {
       // Updating skew
       known_skew[ip] = skew;
     }
@@ -80,7 +80,7 @@ const identity_container clock_skew_guard::get_similar_identities(const std::str
     return identities;
   }
 
-  double ref_skew = ref_it->second.first;
+  double ref_skew = ref_it->second.alpha;
 
   find_computer_in_saved(ref_skew, identities, THRESHOLD, saved_computers);
 
@@ -90,7 +90,7 @@ const identity_container clock_skew_guard::get_similar_identities(const std::str
       continue;
     }
 
-    if (std::fabs(it->second.first - ref_skew) <= THRESHOLD) {
+    if (std::fabs(it->second.alpha - ref_skew) <= THRESHOLD) {
       identities.insert(it->first);
     }
   }

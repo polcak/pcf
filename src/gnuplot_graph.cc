@@ -44,7 +44,7 @@ void gnuplot_graph::notify(const computer_skew& changed_skew)
 void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
 {
   const std::string& address = changed_skew.address;
-  const clock_skew_pair& skew = changed_skew.clock_skew;
+  const clock_skew_atom& skew = changed_skew.clock_skew;
 
   static const char* filename_template =  "graph/%s.gp";
   FILE *f;
@@ -58,18 +58,13 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
     return;
   }
   
-  if (skew.first == 0.0 || skew.first == UNDEFINED_SKEW)
+  if (skew.alpha == 0.0 || skew.alpha == UNDEFINED_SKEW)
     return;
 
   const unsigned interval_count = 10;
 // Temporarily do not print time
-#if 0
-  unsigned interval_min = packets.begin()->offset.x + get_start_time();
-  unsigned interval_max = packets.rbegin()->offset.x + get_start_time();
-#else
-  unsigned interval_min = 0;
-  unsigned interval_max = 10;
-#endif
+  unsigned interval_min = skew.start_time;
+  unsigned interval_max = skew.end_time;
   unsigned interval_size = (interval_max - interval_min) / interval_count;
 
   fputs("set encoding iso_8859_2\n"
@@ -105,10 +100,10 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
 
   fputs (")\n\nf(x) = ", f);
   /// f(x)
-  sprintf(tmp, "%lf", skew.first);
+  sprintf(tmp, "%lf", skew.alpha);
   fputs(tmp, f);
   fputs("*x + ", f);
-  sprintf(tmp, "%lf", skew.second);
+  sprintf(tmp, "%lf", skew.beta);
   fputs(tmp, f);
   fputs("\n\nset grid xtics x2tics ytics\n"
         "set title \"", f);
@@ -144,10 +139,10 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   
   /// Legend
   fputs(" title 'f(x) = ", f);
-  sprintf(tmp, "%lf", skew.first);
+  sprintf(tmp, "%lf", skew.alpha);
   fputs(tmp, f);
   fputs("*x + ", f);
-  sprintf(tmp, "%lf", skew.second);
+  sprintf(tmp, "%lf", skew.beta);
   fputs(tmp, f);
   fputs("'", f);
   

@@ -23,12 +23,31 @@
 #include <limits>
 #include <set>
 #include <string>
-#include <utility>
 
 /**
- * Clock skew pair (alpha, beta): y = alpha*x + beta
+ * Clock skew y = alpha*x + beta, valid in certain time
  */
-typedef std::pair<double, double> clock_skew_pair;
+struct clock_skew_atom
+{
+  double alpha;
+  double beta;
+  /// Validity
+  double start_time;
+  double end_time;
+
+  bool operator==(const clock_skew_atom &other) const
+  {
+    return alpha == other.alpha &&
+      beta == other.beta &&
+      start_time == other.start_time &&
+      end_time == other.end_time;
+  }
+
+  bool operator!=(const clock_skew_atom &other) const
+  {
+    return !(*this == other);
+  }
+};
 
 
 /**
