@@ -158,6 +158,8 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
 #endif
 
       add_empty_skew(--packets.end());
+      confirmed_skew.first = UNDEFINED_SKEW;
+      confirmed_skew.second = UNDEFINED_SKEW;
       last_confirmed_skew = packet_delivered;
     }
   }
