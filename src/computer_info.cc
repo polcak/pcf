@@ -108,7 +108,7 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
   save_packets(1);
 
   /// Recompute skew for graph
-	skew_info &last_skew = *skew_list.rbegin();
+  skew_info &last_skew = *skew_list.rbegin();
   clock_skew_pair new_skew = compute_skew(last_skew.first, packets.end());
   if (std::isnan(new_skew.first)) {
 #ifdef DEBUG
