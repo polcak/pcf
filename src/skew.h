@@ -36,7 +36,7 @@ class skew
      * they are considered to be similar. The percentage is actually divided
      * by 100 so the number is between 0.0 and 1.0.
      */
-    static const double SIMILAR_SKEW_PERCENTAGE = 0.9;
+    constexpr static double SIMILAR_SKEW_PERCENTAGE = 0.9;
     /**
      * End time of the meassurement
      */
