@@ -34,7 +34,6 @@ void clock_skew_guard::update_skew(const std::string &ip, const skew &s)
 
   // Update database, be it a new address or an update
   known_skew[ip] = s;
-  auto current = known_skew.find(ip);
 
   // Notify observers
   identity_container new_identities = get_similar_identities(ip);
