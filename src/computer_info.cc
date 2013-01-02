@@ -116,12 +116,21 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
 #endif
     return;
   }
+#ifdef DEBUG
+  printf("%s: last skew (%g, %g), new skew (%g, %g), confirmed (%g, %g)\n",
+      address.c_str(), last_skew.alpha, last_skew.beta, new_skew.first,
+      new_skew.second, confirmed_skew.first, confirmed_skew.second);
+#endif
 
   last_skew.alpha = new_skew.first;
   last_skew.beta = new_skew.second;
 
   if ((packet_delivered - last_confirmed_skew) > SKEW_VALID_AFTER) {
     clock_skew_pair last_skew_pair = compute_skew(last_skew.confirmed, packets.end());
+#ifdef DEBUG
+    printf("%s: clock skew in last period (%g, %g)\n",
+        address.c_str(), last_skew_pair.first, last_skew_pair.second);
+#endif
     if ((std::fabs(last_skew_pair.first - confirmed_skew.first) < 10*skews.get_threshold()) ||
         (std::isnan(confirmed_skew.first))) {
       // New skew confirmed
@@ -130,6 +139,10 @@ void computer_info::block_finished(double packet_delivered, clock_skew_guard &sk
       last_skew.confirmed = last_skew.last;
       last_skew.last = --packets.end();
       last_confirmed_skew = packet_delivered;
+#ifdef DEBUG
+      printf("%s: New skew confirmed (%g, %g), time %g\n", address.c_str(),
+          confirmed_skew.first, confirmed_skew.second, last_skew.last->offset.x);
+#endif
 
 #ifndef DONOTREDUCE
       // Reduce packets
