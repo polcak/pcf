@@ -20,6 +20,7 @@
 program = pcf
 
 OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o gnuplot_graph.o skew.o
+LOG_READER_OBJ = log_reader.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o gnuplot_graph.o skew.o
 HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h observer.h clock_skew.h computer_skew.h gnuplot_graph.h skew.h
 OPT = -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
@@ -30,7 +31,7 @@ LD = g++
 
 .PHONY: debug profiling uninstall clean donotreduce
 
-all: $(program)
+all: $(program) log_reader
 
 debug:
 	make clean
@@ -57,7 +58,12 @@ clean:
 $(program): $(OBJ)
 	$(LD) $(OBJ) $(LDFLAGS) -o $(program) $(OPT)
 
+log_reader: $(LOG_READER_OBJ)
+	$(LD) $(LOG_READER_OBJ) $(LDFLAGS) -o $@ $(OPT)
+
 $(OBJ): $(HEAD)
+
+$(LOG_READER_OBJ): $(HEAD)
 
 check_computers.o: check_computers.cc check_computers.h
 	$(CC) $(CXXFLAGS) -c `xml2-config --cflags --libs` check_computers.cc
