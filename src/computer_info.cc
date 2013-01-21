@@ -388,11 +388,6 @@ int computer_info::compute_freq()
 {
   assert(!packets.empty());
 
-  if (get_packets_count() < 10) {
-    // Wait for more packets
-    return 0;
-  }
-
   const packet_time_info &first = *packets.begin();
 
   double tmp = 0.0;
@@ -404,6 +399,11 @@ int computer_info::compute_freq()
       tmp += ((it->timestamp - first.timestamp) / local_diff);
       count++;
     }
+  }
+
+  if (count < 10) {
+    // Wait for more packets
+    return 0;
   }
 
   /// According to the real world, but sometimes can be wrong, it depends...
