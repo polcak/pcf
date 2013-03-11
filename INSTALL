@@ -12,6 +12,10 @@ make 		- compiles pcf
 make install	- installs the program to the bin/ directory
 make clean	- removes binary files from src/ directory
 
+Note: if you experience bugs like "stack smashing detected" in
+https://github.com/polcak/pcf/issues/1, please recompile the program using
+"make donotreduce" and install again.
+
 UNINSTALL
 ---------
 
