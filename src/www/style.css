@@ -17,8 +17,8 @@
 	margin-top: 4px;
 	margin-right: 20px;
 	margin-left: 5px;
-	border-bottom: 1px dashed #bcbaac;
 }
+
 #menu a {
 	display: block;
 	width: 96%;
@@ -43,6 +43,13 @@
 }
 #menu .selected {
 	color: #a7080c;
+}
+
+#menu a.submenu {
+	border-top: none;
+	border-bottom: none;
+	margin-left: -50px;
+	font-size: 80%;
 }
 
 a {

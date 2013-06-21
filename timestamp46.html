@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+<head>
+	<title> pcf </title>
+	<meta http-equiv="content-type" content="text/html; charset=iso-8859-2" />
+</head>
+<body>
+
+<p>
+   PCF web page, refresh every 5 seconds.
+</p>
+
+<script type="text/javascript">
+
+var web_server_url4 = "http://ipv4/index.php?"
+var web_server_url6 = "http://ipv6/index.php?"
+	
+function createXmlHttpRequestObject() {
+	var xmlhttp;
+	try {
+		xmlhttp = new XMLHttpRequest(); //should work on all browsers except IE6 or older
+	} catch (e) { 
+		try {
+			xmlhttp = new ActiveXObject("Microsoft.XMLHttp"); //browser is IE6 or older
+		} catch (e) {
+			// ignore error
+		}
+	}
+	if (!xmlhttp) {
+		alert ("Error creating the XMLHttpRequest object.");
+	} 
+	else {
+		return xmlhttp;
+	}
+}
+
+function uploadData6() {
+  var params = "ts=" + (new Date).getTime();
+	try {
+		var xmlHttp = createXmlHttpRequestObject();
+		xmlHttp.open("GET", web_server_url6+params, true);
+		xmlHttp.onreadystatechange = function(){
+			if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
+			}
+		}
+		xmlHttp.send(null);
+    document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " success";
+    document.getElementById('ipv6status').style.backgroundColor = "lime";
+	} catch (e) {
+    document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " failure";
+    document.getElementById('ipv6status').style.backgroundColor = "red";
+		// alert(e.toString());
+	}
+	return false;
+}
+
+function uploadData4() {
+  var params = "ts=" + (new Date).getTime();
+	try {
+		var xmlHttp = createXmlHttpRequestObject();
+		xmlHttp.open("GET", web_server_url4+params, true);
+		xmlHttp.onreadystatechange = function(){
+			if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
+			}
+		}
+		xmlHttp.send(null);
+    document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " success";
+    document.getElementById('ipv4status').style.backgroundColor = "lime";
+	} catch (e) {
+    document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " failure";
+    document.getElementById('ipv4status').style.backgroundColor = "red";
+		// alert(e.toString());
+	}
+	return false;
+}
+
+
+setInterval(uploadData4, 1000);
+setInterval(uploadData6, 1000);
+</script>
+
+<div id="ipv4status" style="background-color: white;">IPv4: inactive</div>
+<div id="ipv6status" style="background-color: white;">IPv6: inactive</div>
+
+</body>
+</html>
