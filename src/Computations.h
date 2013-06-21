@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -20,9 +21,25 @@
 #ifndef _COMPUTATIONS_H
 #define _COMPUTATIONS_H
 
-#include "computer_info.h"
-#include "packet_time_info.h"
+#include "PacketTimeInfo.h"
 
+class Computations {
+public:
+/**
+ * Swap two points
+ * @param[in] x, @param[in] y Points
+ */
+static void SwapPoints(Point *x, Point *y);
+
+/**
+ * Counter-clockwise test
+ * 
+ * Source: http://en.wikipedia.org/wiki/Graham_scan
+ * 
+ * @param[in] p1, @param[in] p2, @param[in] p3 Points
+ * @return > 0 if counter-clockwise, < 0 if clockwise, = 0 collinear
+ */
+static double CounterClockwiseTest(Point p1, Point p2, Point p3);
 
 /**
  * Compute and set offsets (x, y)
@@ -30,7 +47,7 @@
  * @param[in] head First packet
  * @param[in] freq Frequency
  */
-void set_offset(packet_time_info &packet, const packet_time_info &head, int freq);
+static void SetOffset(PacketTimeInfo &packet, const PacketTimeInfo &head, int freq);
 
 /**
  * Compute upper bound as a upper convex hull. Graham scan algorithm is used.
@@ -40,6 +57,6 @@ void set_offset(packet_time_info &packet, const packet_time_info &head, int freq
  * @param[in,out] number List size
  * @return Pointer to list with convex hull points
  */
-point2d *convex_hull(point2d points[], unsigned long *number);
-
+static Point * ConvexHull(Point points[], unsigned long *number);
+};
 #endif

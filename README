@@ -1,6 +1,7 @@
-pcf - PC fingerprinter
+pcf - PC Fingerprinter
 
-Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+Copyright (C) 2013 Barbora Franková <xfrank08@stud.fit.vutbr.cz>
+                   Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
                    Libor Polčák <ipolcak@fit.vutbr.cz>
 
 This is a README file for pcf -- a tool for remote computer identification. The
@@ -23,6 +24,8 @@ Usage: pcf [Options] [Interface]
   -n		Number of packets to capture (0 -- default means infinity)
   -t		Number of seconds to capture (0 -- default means infinity)
   -p		Port number (1-65535, 0 -- default means all)
+  -i        Disable ICMP
+  -d        Debug mode
 
 Examples:
   pcf
@@ -43,56 +46,24 @@ recognized computers and manage them in your browser.
 Files and directories
 ---------------------
 
-bin/		- binary files (installed version of the program)
-src/		- source files
+bin/		         - binary files (installed version of the program)
+src/		         - source files
 
 src/
-  pcf		- program pcf
-  gen_pics.sh	- converts graphs from postscrip to jpeg
-  config	- configuration file
+  pcf		         - pcf program
+  log_reader         - log reader program
+  
+  bulk_log_reader.sh - bulk log processing script
+  coupler.py         - clock skew comparison script
+  match_finder.sh    - bulk clock skew comparison script
 
-  graph/	- graphs of the recognized computers
-  http_traffic/	- debug python script which is able to generate HTTP traffic (it
-      is not necessary to run this program for correct operation of pcf)
-  log/		- files containing log of drifts of monitored computers. These files
+  config	         - configuration file
+
+  bulk_output/	     - bulk processing output directory
+  graph/	         - graphs of the recognized computers
+  log/		         - files containing log of drifts of monitored computers. These files are
       required for graph construction.
-  www/		- web interface
-
-
-Note
-----
-
-WARNING! When you stop the program, data stored in the file with active
-computers are lost. Information about unsaved computers will be forever lost.
-
-The files with active and saved computers are implicitly stored in
-www/data/active.xml and www/data/database.xml. Please follow install
-instructions for more informations how to setup permissions for those files.
-
-The variable BLOCK in config file set a limit after which the pcf re-computes
-clock skews, generates graphs etc. The program implicitly reduces number of
-stored packets after 5-times BLOCK packets are received and then after each
-block. When more then 100-times BLOCK packets are received the oldest packets
-are deleted from program memory.
-
-Program does not process packets with lower or the same time stamp as was
-already seen for earlier packet. This is positive in most situations but if a
-computer is restarted than pcf is not able to detect this and cope with the
-situation because the timestamps are usually lower.
-
-Computers with clock skew lower than selected in config file are not stored.
-This is useful if you have synchronized clocks on the monitoring computer and
-the detected computers have also synchronized clocks and thus their clock skew
-is very low and it is not possible to differentiate between these computers.
-Therefore, the computers running NTP most probably will not be listed as active.
-If this is not what you want, you are able to lower the THRESHOLD.
-
-A correction is applied to computed frequencies:
-freq >= 970 && freq <= 1030	=>	freq = 1000
-freq >= 230 && freq <= 270	=>	freq = 250
-freq >= 95 && freq <= 105	=>	freq = 100
-In many cases this means that the frequency is fixed but sometimes it may result
-to wrong frequency because some systems may use unusual frequency.
+  www/		     - web interface
 
 
 Project origins

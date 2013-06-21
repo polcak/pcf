@@ -1,6 +1,7 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
  *                    Libor Polčák <ipolcak@fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -23,37 +24,19 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "point2d.h"
-#include "packet_time_info.h"
+#include "Point.h"
+#include "PacketTimeInfo.h"
+#include "Computations.h"
+#include "Configurator.h"
 
-
-/**
- * Swap two points
- * @param[in] x, @param[in] y Points
- */
-void swap(point2d *x, point2d *y);
-
-/**
- * Counter-clockwise test
- * 
- * Source: http://en.wikipedia.org/wiki/Graham_scan
- * 
- * @param[in] p1, @param[in] p2, @param[in] p3 Points
- * @return > 0 if counter-clockwise, < 0 if clockwise, = 0 collinear
- */
-double ccw(point2d p1, point2d p2, point2d p3);
-
-
-void swap(point2d *x, point2d *y)
-{
-   point2d tmp;
+void Computations::SwapPoints(Point *x, Point *y) {
+   Point tmp;
    tmp = *x;
    *x = *y;
    *y = tmp;
 }
 
-double ccw(point2d p1, point2d p2, point2d p3)
-{
+double Computations::CounterClockwiseTest(Point p1, Point p2, Point p3) {
   return((p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x));
 }
 
@@ -61,22 +44,22 @@ double ccw(point2d p1, point2d p2, point2d p3)
 // Graham, R. L.: An efficient algorithm for determining the convex hull of a finite
 // planar set. Information Processing Letters, vol. 1, no. 4, jan 1972: pp. 132–133,
 // ISSN 0020-0190.
-point2d *convex_hull(point2d points[], unsigned long *number)
+Point * Computations::ConvexHull(Point points[], unsigned long *number)
 {
   unsigned long i;
   int m = 1;
   
   for (i = 2; i < *number; i++) {
-    while (ccw(points[m - 1], points[m], points[i]) >= 0) {
+    while (Computations::CounterClockwiseTest(points[m - 1], points[m], points[i]) >= 0) {
       if (m == 1) {
-        swap(&points[m], &points[i]);
+        Computations::SwapPoints(&points[m], &points[i]);
         i++;
       }
       else
         m--;
     }
     m++;
-    swap(&points[m], &points[i]);
+    Computations::SwapPoints(&points[m], &points[i]);
   }
   
   *number = ++m;
@@ -85,19 +68,19 @@ point2d *convex_hull(point2d points[], unsigned long *number)
 }
 
 
-void set_offset(packet_time_info &packet, const packet_time_info &head, int freq)
-{
+void Computations::SetOffset(PacketTimeInfo &packet, const PacketTimeInfo &head, int freq){
   double tmp;
 
-  packet.offset.x = packet.time - head.time;
+  packet.Offset.x = packet.ArrivalTime - head.ArrivalTime;
 
-  tmp = packet.timestamp - head.timestamp;
+  tmp = packet.Timestamp - head.Timestamp;
   tmp /= freq;
-  tmp -= packet.offset.x;
+  tmp -= packet.Offset.x;
 
-  // s -> ms
-  tmp *= 1000;
+  if(!Configurator::instance()->logReader)
+    // s -> ms
+    tmp *= 1000;
 
-  packet.offset.y = tmp;
+  packet.Offset.y = tmp;
 }
 

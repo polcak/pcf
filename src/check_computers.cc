@@ -1,6 +1,7 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
  *                    Libor Polčák <ipolcak@fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -30,28 +31,12 @@
 #include <string.h>
 
 #include "check_computers.h"
-#include "computer_info.h"
-#include "clock_skew.h"
+#include "ComputerInfo.h"
+#include "TimeSegment.h"
+#include "Configurator.h"
 
 
 #define MY_ENCODING "UTF-8"
-
-
-
-/**
- * Make the main structure of the document
- * @param[in] filename Filename
- * @return 0 if ok
- */
-int first_computer(const char *filename);
-
-/**
- * Conversts time to its string representation in human readable format
- * @param[out] buffer Pre-allocated buffer where the output is stored
- * @param[in] buffer_size Size of the buffer
- * @param[in] time Unix time to be converted
- */
-void time_to_str(char *buffer, size_t buffer_size, time_t time);
 
 int first_computer(const char *filename)
 {
@@ -145,20 +130,23 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
   return true;
 }
 
-int save_active(const std::list<computer_info *> &all_computers, const char *active, clock_skew_guard &skews)
+int save_active(const std::list<ComputerInfo *> &all_computers, const char *active, ComputerInfoList &computers)
 {
   xmlDocPtr doc;
   xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
 
+  std::string activeFilename = Configurator::xmlDir + computers.getOutputDirectory();
+  activeFilename.append(active);
+  
   /// File doesn't exist yet
-  if (first_computer(active) != 0) {
-    fprintf(stderr, "Cannot create XML file: %s\n", active);
+  if (first_computer(activeFilename.c_str()) != 0) {
+    fprintf(stderr, "Cannot create XML file: %s\n", activeFilename.c_str());
     return(1);
   }
     
-  doc = xmlParseFile(active);
+  doc = xmlParseFile(activeFilename.c_str());
   if (doc == NULL ) {
-    fprintf(stderr, "XML document not parsed successfully: %s\n", active);
+    fprintf(stderr, "XML document not parsed successfully: %s\n", activeFilename.c_str());
     return(1);
   }
   
@@ -170,7 +158,7 @@ int save_active(const std::list<computer_info *> &all_computers, const char *act
   
   /// Check root (<computers>)
   if (xmlStrcmp(nodeptr->name, (const xmlChar *) "computers")) {
-    fprintf(stderr, "XML document of the wrong type: %s\n", active);
+    fprintf(stderr, "XML document of the wrong type: %s\n", activeFilename.c_str());
     xmlFreeDoc(doc);
     return(1);
   }
@@ -187,12 +175,12 @@ int save_active(const std::list<computer_info *> &all_computers, const char *act
     /// <computer skew>
     node = xmlNewNode(NULL, BAD_CAST "computer");
     char tmp[30];
-    sprintf(tmp, "%lf", (*it)->get_skew().alpha);
+    sprintf(tmp, "%lf", (*it)->get_last_packet_segment().alpha);
     xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
     xmlAddChild(nodeptr , node);
 
     // find computers with similar clock skew
-    identity_container similar_skew = skews.get_similar_identities((*it)->get_address());
+    identity_container similar_skew = computers.get_similar_identities((*it)->get_address());
     for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
       /// <identity>
       node_child = xmlNewNode(NULL, BAD_CAST "identity");
@@ -226,10 +214,10 @@ int save_active(const std::list<computer_info *> &all_computers, const char *act
     xmlAddChild(nodeptr, node);
     
     /// Save
-    xmlSaveFileEnc(active, doc, MY_ENCODING);
+    xmlSaveFileEnc(activeFilename.c_str(), doc, MY_ENCODING);
 
 #ifdef DEBUG
-    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", (*it)->get_address().c_str(), (*it)->get_freq(), (*it)->get_skew().alpha);
+    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", (*it)->get_address().c_str(), (*it)->get_freq(), (*it)->get_last_packet_segment().alpha);
 #endif
   }
   

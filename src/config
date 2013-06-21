@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+#                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
 # 
 # This file is part of pcf - PC fingerprinter.
 #
@@ -51,7 +52,7 @@ syn 0
 ack 0
 
 # Additional options for pcap filter
-#filter host 192.168.1.2
+# filter not src host 192.168.0.1 && not src host 2001::1
 
 
 #########
@@ -59,10 +60,10 @@ ack 0
 #########
 
 # Active computers
-active www/data/active.xml
+active active.xml
 
 # Saved computers
-database www/data/database.xml
+database database.xml
 
 
 ########################################

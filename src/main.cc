@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -25,81 +26,81 @@
 
 #include "capture.h"
 #include "check_computers.h"
-#include "parse_config.h"
-
+#include "Configurator.h"
 
 /**
  * Print banner
  */
-void print_banner()
-{
+void print_banner() {
   printf("pcf  Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>\n\n"
-         "This program comes with ABSOLUTELY NO WARRANTY.\n"
-         "This is free software, and you are welcome to redistribute it\n"
-         "under certain conditions.\n\n");
+          "This program comes with ABSOLUTELY NO WARRANTY.\n"
+          "This is free software, and you are welcome to redistribute it\n"
+          "under certain conditions.\n\n");
 }
 
 /**
  * Print help
  */
-void print_help()
-{
+void print_help() {
   printf("Usage: pcf [Options] [Interface]\n\n"
-         "  -h\t\tPrint this help\n"
-         "  -n\t\tNumber of packets to capture (0 for infinity)\n"
-         "  -t\t\tTime for capturing (in seconds, 0 for infinity)\n"
-         "  -p\t\tPort number (1-65535)\n\n"
-         "Examples:\n"
-         "  pcf\n"
-         "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
+          "  -h\t\tPrint this help\n"
+          "  -n\t\tNumber of packets to capture (0 for infinity)\n"
+          "  -t\t\tTime for capturing (in seconds, 0 for infinity)\n"
+          "  -p\t\tPort number (1-65535)\n\n"
+          "  -i\t\tDisable ICMP\n\n"
+          "  -d\t\tDebug mode\n\n"
+          "Examples:\n"
+          "  pcf\n"
+          "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
 }
 
 /**
  * Main
  */
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   /// Print banner
   print_banner();
-  
+
   /// Checking permissions (must be root)
   if (getuid()) {
     fprintf(stderr, "Must have root permissions to run this program!\n");
-    return(2);
+    return (2);
   }
-  
+
   /// Get config
   char filename[] = "config";
-  pcf_config *config = get_config(filename);
-  if (config == NULL) {
-    fprintf(stderr, "Cannot parse config file: %s", filename);
-    return(2);
-  }
-  
+  Configurator::instance()->GetConfig(filename);
+
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "hn:t:p:")) != -1) {
-    switch(c) {
+  while ((c = getopt(argc, argv, "idhn:t:p:")) != -1) {
+    switch (c) {
+      case('i'):
+        Configurator::instance()->icmpDisable = true;
+        break;
+      case 'd':
+        Configurator::instance()->debug = true;
+        break;
       case 'h':
         print_help();
-        return(0);
+        return (0);
       case 'n':
         if (atoi(optarg))
-          config->number = atoi(optarg);
+          Configurator::instance()->number = atoi(optarg);
         else
           fprintf(stderr, "Wrong number of packets\n");
         break;
       case 't':
         if (atoi(optarg))
-          config->time = atoi(optarg);
+          Configurator::instance()->time = atoi(optarg);
         else
           fprintf(stderr, "Wrong time for capturing\n");
         break;
       case 'p':
         if (atoi(optarg) && (atoi(optarg) < 65535))
-          config->port = atoi(optarg);
+          Configurator::instance()->port = atoi(optarg);
         else
           fprintf(stderr, "Wrong port number\n");
         break;
@@ -108,21 +109,16 @@ int main(int argc, char *argv[])
   c = optind;
   if (c < argc) {
     if (strlen(argv[c]) < 10)
-      strcpy(config->dev, argv[c]);
+      strcpy(Configurator::instance()->dev, argv[c]);
     else {
       fprintf(stderr, "Device name too long (%s)\nSetting to any", argv[c]);
-      strcpy(config->dev, "any");
+      strcpy(Configurator::instance()->dev, "any");
     }
   }
-  
+
   /// Get packets
-  if (capture(config) != 0)
-    return(2);
-  
-  printf("\n\n");
-  
-  /// Free memory
-  free_config(config);
-  
-  return(0);
+  if (StartCapturing() != 0)
+    return (2);
+
+  return (0);
 }

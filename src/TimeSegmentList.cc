@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -18,11 +19,9 @@
  */
 
 #include <algorithm>
+#include "TimeSegmentList.h"
 
-#include "skew.h"
-
-bool skew::is_similar_with(const skew &other, const double THRESHOLD) const
-{
+bool TimeSegmentList::is_similar_with(const TimeSegmentList &other, const double THRESHOLD) const {
   if (is_constant() && other.is_constant()) {
     return similar_alpha(atoms.begin()->alpha, other.atoms.begin()->alpha, THRESHOLD);
   }
@@ -32,32 +31,31 @@ bool skew::is_similar_with(const skew &other, const double THRESHOLD) const
 
 
 
-bool skew::compare_changing(const skew &other, const double THRESHOLD) const
-{
+bool TimeSegmentList::compare_changing(const TimeSegmentList &other, const double THRESHOLD) const {
   double both_active = 0.0;
   double similar_skew = 0.0;
 
-  auto itt = atoms.begin();
-  auto ito = other.atoms.begin();
+  std::list<TimeSegment>::const_iterator itt = atoms.begin();
+  std::list<TimeSegment>::const_iterator ito = other.atoms.begin();
 
   while (itt != atoms.end() && ito != other.atoms.end()) {
-    if (itt->end_time < ito->start_time) {
+    if (itt->endTime < ito->startTime) {
       ++itt;
     }
-    else if (ito->end_time < itt->start_time) {
+    else if (ito->endTime < itt->startTime) {
       ++ito;
     }
     else {
-      double start_time = std::max(itt->start_time, ito->start_time);
+      double start_time = std::max(itt->startTime, ito->startTime);
       double end_time = start_time;
       bool sa = similar_alpha(itt->alpha, ito->alpha, THRESHOLD);
 
-      if (itt->end_time < ito->end_time) {
-        end_time = itt->end_time;
+      if (itt->endTime < ito->endTime) {
+        end_time = itt->endTime;
         ++itt;
       }
       else {
-        end_time = ito->end_time;
+        end_time = ito->endTime;
         ++ito;
       }
 
@@ -69,5 +67,5 @@ bool skew::compare_changing(const skew &other, const double THRESHOLD) const
     }
   }
 
-  return (both_active > 0.0 && (similar_skew > SIMILAR_SKEW_PERCENTAGE * both_active));
+  return (both_active > 0.0 && (similar_skew > skewCorrespondence * both_active));
 }

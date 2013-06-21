@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -17,16 +18,25 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PARSE_CONFIG_H
-#define _PARSE_CONFIG_H
+#ifndef _CONFIGURATOR_H
+#define _CONFIGURATOR_H
 
+#include <string>
 
 /**
  * Structure with all config data
  */
-typedef struct pcf_config pcf_config;
 
-struct pcf_config {
+class Configurator {
+private:
+    static Configurator * innerInstance;
+    
+public:
+  Configurator() {};
+  
+  int icmpDisable;
+  bool debug;
+    
   char dev[10];
   int number;
   unsigned int time;
@@ -39,24 +49,24 @@ struct pcf_config {
   
   char active[1024];
   char database[1024];
+  static const std::string xmlDir;
   
   int block;
-  int time_limit;
+  int timeLimit;
   double threshold;
+  bool logReader;
+  
+  
+  void Init();
+
+  /**
+   * Fill the config structure
+   * @param[in] filename          Config file name
+   */
+  void GetConfig(const char *filename);
+  
+  static Configurator * instance();
 };
-
-/**
- * Fill the config structure
- * @param[in] filename Config file name
- * @return Filled config structure, NULL if error
- */
-pcf_config *get_config(const char *filename);
-
-/**
- * Free the config structure
- * @param[in] config Structure with config data
- */
-void free_config(pcf_config *config);
 
 
 #endif

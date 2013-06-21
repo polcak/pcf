@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ * Copyright (C) 2013 Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -17,22 +17,20 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _COMPUTER_SKEW_H
-#define _COMPUTER_SKEW_H
+#ifndef COMPUTERINFOICMP_H
+#define	COMPUTERINFOICMP_H
 
-#include <string>
-#include <list>
+#include "ComputerInfo.h"
+#include "ComputerInfoList.h"
+#include <pthread.h>
 
-#include "clock_skew.h"
-#include "skew.h"
 
-/**
- * Structure that is used to transfer computed data about one computer
- * between classes.
- */
-struct computer_skew {
-  const std::string& address;
-  identity_container similar_identities;
-  const skew clock_skew;
+class ComputerInfoIcmp : public ComputerInfo {
+private:
+    pthread_t pokingThread;
+public:
+    explicit ComputerInfoIcmp(ComputerInfoList * parent, const char * address) : ComputerInfo(parent, address){};
+    void StartPoking();    
 };
+
 #endif

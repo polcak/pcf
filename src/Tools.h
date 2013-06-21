@@ -1,6 +1,5 @@
 /**
- * Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
- *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
+ * Copyright (C) 2013 Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -18,31 +17,14 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GNUPLOT_GRAPH_H
-#define _GNUPLOT_GRAPH_H
+#ifndef TOOLS_H
+#define	TOOLS_H
 
-#include "TimeSegment.h"
-#include "AnalysisInfo.h"
-#include "Observer.h"
-#include <string>
+#include <iostream>
 
-class gnuplot_graph: public Observer<const AnalysisInfo>
-{
-  private:
-    std::string type;
-    void generate_graph(const AnalysisInfo& changed_skew);
-  
-    public:
-    gnuplot_graph(std::string type){
-        this->type = type;
-    };
-    virtual void Notify(const AnalysisInfo& changed_skew);
-    std::string getOutputDirectory(){
-        if(type == "tcp")
-            return "";
-        return type + "/";
-    }
-    
+class Tools {
+public:
+    static std::string IntToString(int number);
 
 };
 

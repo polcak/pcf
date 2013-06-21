@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -31,56 +32,18 @@
  * has changed via the notify method.
  */
 template <class subject>
-class observer
+class Observer
 {
   // Constructors and destructors
   protected:
-    observer() {}
+    Observer() {}
   public:
-    virtual ~observer() {}
+    virtual ~Observer() {}
 
   // Public methods
   public:
-    virtual void notify(subject& changed_subject) = 0;
+    virtual void Notify(subject& changed_subject) = 0;
 };
 
-/**
- * Abstract base class for an observable.
- *
- * Observers registers to an observable. The observable than notifies them
- * that someting has changed via their notify method.
- */
-template <class subject>
-class observable
-{
-  // Attributes
-  std::list<observer<subject>*> observers;
-
-  // Constructors and destructors
-  protected:
-    observable() {}
-  public:
-    virtual ~observable() {}
-
-  // Public Methods
-  public:
-    /**
-     * Adds a new observer
-     */
-    virtual void add_observer(observer<subject>* obs)
-    {
-      observers.push_back(obs);
-    }
-
-    /**
-     * Notifies all observers
-     */
-    virtual void notify(subject& changed_subject) const
-    {
-      for (auto it = observers.begin(); it != observers.end(); ++it) {
-        (*it)->notify(changed_subject);
-      }
-    }
-};
 
 #endif

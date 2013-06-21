@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009-2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ * Copyright (C) 2013 Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -17,22 +17,12 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PACKET_TIME_INFO_H
-#define _PACKET_TIME_INFO_H
+#include "Tools.h"
+#include <sstream>
 
-#include <list>
-#include <stdint.h>
-
-#include "point2d.h"
-
-/**
- * Time information about each packet
- */
-struct packet_time_info {
-  public:
-    double time;
-    uint32_t timestamp;
-    point2d offset;
+std::string Tools::IntToString(int number){
+    std::stringstream ss;
+    ss << number;
+    return ss.str();
 };
 
-#endif

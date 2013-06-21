@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -17,8 +18,8 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CLOCK_SKEW_H
-#define _CLOCK_SKEW_H
+#ifndef _TIME_SEGMENT_H
+#define _TIME_SEGMENT_H
 
 #include <limits>
 #include <set>
@@ -27,32 +28,33 @@
 /**
  * Clock skew y = alpha*x + beta, valid in certain time
  */
-struct clock_skew_atom
-{
+class TimeSegment {
+public:
   double alpha;
   double beta;
   /// Validity
-  double start_time;
-  double end_time;
-  double relative_start_time;
-  double relative_end_time;
+  double startTime;
+  double endTime;
+  double relativeStartTime;
+  double relativeEndTime;
 
-  bool operator==(const clock_skew_atom &other) const
+  bool operator==(const TimeSegment &other) const
   {
     return alpha == other.alpha &&
       beta == other.beta &&
-      start_time == other.start_time &&
-      end_time == other.end_time;
+      startTime == other.startTime &&
+      endTime == other.endTime;
   }
 
-  bool operator!=(const clock_skew_atom &other) const
+  bool operator!=(const TimeSegment &other) const
   {
     return !(*this == other);
   }
 };
 
 
-/**
+/** TODO: move to global helper
+ * 
  * Containter for identitites of a computer.
  *
  * It is usually an IP address or an arbitrary name of a computer.
@@ -60,7 +62,8 @@ struct clock_skew_atom
 typedef std::set<std::string> identity_container;
 
 
-/**
+/** TODO: move to global helper
+ * 
  * Undefined skew
  */
 const double UNDEFINED_SKEW = std::numeric_limits<double>().quiet_NaN();

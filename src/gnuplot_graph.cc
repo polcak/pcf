@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -20,9 +21,11 @@
 #include <cstring>
 #include <ctime>
 #include <string>
+#include <iostream>
 
-#include "clock_skew.h"
+#include "TimeSegment.h"
 #include "gnuplot_graph.h"
+#include "Configurator.h"
 
 const size_t STRLEN_MAX = 100;
 
@@ -32,21 +35,23 @@ void time_to_str(char *buffer, size_t buffer_size, time_t time)
   strftime(buffer, buffer_size, "%Y-%m-%d %H:%M:%S", &time_data);
 }
 
-void gnuplot_graph::notify(const computer_skew& changed_skew)
+void gnuplot_graph::Notify(const AnalysisInfo& changed_skew)
 {
-#ifdef DEBUG
-  printf("gnuplot_graph::notify %s\n", changed_skew.address.c_str());
-#endif
+  if(Configurator::instance()->debug)
+    printf("gnuplot_graph::notify %s\n", changed_skew.Address.c_str());
   generate_graph(changed_skew);
 }
 
 
-void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
+void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
 {
-  const std::string& address = changed_skew.address;
-  const skew& computer_skew = changed_skew.clock_skew;
+  const std::string& address = changed_skew.Address;
+  const TimeSegmentList& computer_skew = changed_skew.ClockSkewList;
 
-  static const char* filename_template =  "graph/%s.gp";
+  // get output directory according to type
+  std::string extendedFilenameTemplate = "graph/" + getOutputDirectory() + "%s.gp";
+  const char* filename_template = extendedFilenameTemplate.c_str();
+  
   FILE *f;
   int filename_max = strlen(filename_template) + address.length();
   char filename[filename_max + 1];
@@ -69,6 +74,7 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   fputs("set encoding iso_8859_2\n"
         "set terminal svg\n"
         "set output 'www/graph/", f);
+        fputs(getOutputDirectory().c_str(), f);
         fputs(address.c_str(), f);
         fputs(".svg'\n\n"
         "set x2label 'Date and time'\n"
@@ -100,7 +106,7 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   fputs (")\n\n", f);
   unsigned int count = 1;
   for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {
-    if (it->relative_start_time == it->relative_end_time) {
+    if (it->relativeStartTime == it->relativeEndTime) {
       continue;
     }
     // fn(x)
@@ -110,10 +116,10 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
     fputs ("(x) = ", f);
     // Intervals
     fputs ("(", f);
-    sprintf(tmp, "%lf", it->relative_start_time);
+    sprintf(tmp, "%lf", it->relativeStartTime);
     fputs(tmp, f);
     fputs(" < x && x < ", f);
-    sprintf(tmp, "%lf", it->relative_end_time);
+    sprintf(tmp, "%lf", it->relativeEndTime);
     fputs(tmp, f);
     fputs (") ? ", f);
     // alpha *x + beta
@@ -136,9 +142,11 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   fputs(tmp, f);
   fputs("\\n", f);
   fputs(address.c_str(), f);
+  fputs("\\n", f);
+  fputs(type.c_str(), f);
 
   // Search for computers with similar skew
-  identity_container similar_devices = changed_skew.similar_identities;
+  identity_container similar_devices = changed_skew.SimilarIdentities;
   for (auto it = similar_devices.begin(); it != similar_devices.end(); ++it) {
     fputs("\\n", f);
     fputs(it->c_str(), f);
@@ -154,12 +162,13 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   fputs("\n\n"
         "plot '", f);
   fputs("log/", f);
+  fputs(getOutputDirectory().c_str(), f);
   fputs(address.c_str(), f);
   fputs(".log' title ''", f);
 
   count = 1;
   for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {
-    if (it->relative_start_time == it->relative_end_time) {
+    if (it->relativeStartTime == it->relativeEndTime) {
       continue;
     }
     fputs (", f", f);
@@ -183,11 +192,15 @@ void gnuplot_graph::generate_graph(const computer_skew &changed_skew)
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close file: %s\n", filename);
   
-  static const char* gnuplot_template =  "gnuplot graph/%s.gp";
+  std::string extendedGnuplotTemplate = "gnuplot graph/" + getOutputDirectory() + "%s.gp";
+  const char* gnuplot_template =  extendedGnuplotTemplate.c_str();
   int gnuplot_max = strlen(gnuplot_template) + address.length();
   char gnuplot_cmd[gnuplot_max + 1];
   snprintf(gnuplot_cmd, gnuplot_max, gnuplot_template, address.c_str());
-  system(gnuplot_cmd);
+  
+  //
+  if(system(gnuplot_cmd) < 0)
+      fprintf(stderr, "Error while launching gnuplot\n");
   
   return;
 }

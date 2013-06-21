@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -20,15 +21,28 @@
 #ifndef _CAPTURE_H
 #define _CAPTURE_H
 
-#include "parse_config.h"
+#include <arpa/inet.h>
+#include <pcap.h>
+#include <string>
 
 
-/**
- * Capture packets
- * @param[in] config Config data
- * @return 0 if ok
- */
-int capture(pcf_config *config);
+    /**
+     * Capture packets
+     * @param[in] config   Config data
+     * @return 0           if ok
+     */
+     int StartCapturing();
 
+    /**
+     * Signal handler to stop capturing
+     */
+     void StopCapturing(int signum);
 
+    /** 
+     * Callback function for pcap
+     * @param[in] args     User params
+     * @param[in] header   Packet header
+     * @param[in] packet   Packet
+     */
+     void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 #endif

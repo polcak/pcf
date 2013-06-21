@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -20,8 +21,23 @@
 #ifndef _CHECK_COMPUTERS_H
 #define _CHECK_COMPUTERS_H
 
-#include "clock_skew.h"
-#include "computer_info_list.h"
+#include "TimeSegment.h"
+#include "ComputerInfoList.h"
+
+/**
+ * Make the main structure of the document
+ * @param[in] filename Filename
+ * @return 0 if ok
+ */
+int first_computer(const char *filename);
+
+/**
+ * Conversts time to its string representation in human readable format
+ * @param[out] buffer       Pre-allocated buffer where the output is stored
+ * @param[in] buffer_size   Size of the buffer
+ * @param[in] time          Unix time to be converted
+ */
+void time_to_str(char *buffer, size_t buffer_size, time_t time);
 
 /**
  * Search for computers with similar skew in saved computers
@@ -39,6 +55,6 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
  * @param[in] Active Fileneame of the database with active computers
  * @return 0 if ok
  */
-int save_active(const std::list<computer_info *> &all_computers, const char *active, clock_skew_guard &skews);
+int save_active(const std::list<ComputerInfo *> &all_computers, const char *active, ComputerInfoList &computers);
 
 #endif

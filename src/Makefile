@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+#                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
 # 
 # This file is part of pcf - PC fingerprinter.
 #
@@ -19,17 +20,17 @@
 
 program = pcf
 
-OBJ = capture.o main.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o gnuplot_graph.o skew.o
-LOG_READER_OBJ = log_reader.o computer_info_list.o parse_config.o computations.o check_computers.o clock_skew_guard.o computer_info.o gnuplot_graph.o skew.o
-HEAD = capture.h computer_info_list.h parse_config.h computations.h check_computers.h clock_skew_guard.h computer_info.h packet_time_info.h point2d.h observer.h clock_skew.h computer_skew.h gnuplot_graph.h skew.h
-OPT = -lpcap -lm `xml2-config --cflags --libs`
+OBJ = capture.o main.o ComputerInfoList.o Configurator.o Computations.o check_computers.o ComputerInfo.o ComputerInfoIcmp.o gnuplot_graph.o TimeSegmentList.o Tools.o
+LOG_READER_OBJ = log_reader.o ComputerInfoList.o Configurator.o Computations.o check_computers.o ComputerInfo.o ComputerInfoIcmp.o gnuplot_graph.o TimeSegmentList.o
+HEAD = capture.h ComputerInfoList.h ClockSkewPair.h Configurator.h Computations.h check_computers.h ComputerInfo.h ComputerInfoIcmp.h PacketTimeInfo.h Point.h Observer.h Observable.h TimeSegment.h AnalysisInfo.h gnuplot_graph.h TimeSegmentList.h Tools.h
+OPT = -pthread -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
 DEFINE ?= 
 CXXFLAGS ?= -O2 -Wall -std=c++0x $(DEFINE)
 LDFLAGS ?= 
 LD = g++
 
-.PHONY: debug profiling uninstall clean donotreduce
+.PHONY: debug profiling uninstall clean
 
 all: $(program) log_reader
 
@@ -41,19 +42,18 @@ profiling:
 	make clean
 	make CXXFLAGS="-pg -Wall -std=c++0x $(DEFINE)" LDFLAGS="-pg"
 
-donotreduce:
-	make DEFINE="-DDONOTREDUCE"
-
 install: all
-	cp -r pcf config ../bin
-	cp -r http_traffic www ../bin
-	mkdir -p ../bin/graph ../bin/log
+	cp -r pcf config log_reader coupler.py match_finder.sh bulk_log_reader.sh ../bin
+	cp -r www ../bin
+	mkdir -p ../bin/graph ../bin/log 
+	mkdir -p ../bin/graph/icmp ../bin/log/icmp
+	mkdir -p ../bin/graph/javascript ../bin/log/javascript
 
 uninstall:
-	rm -f ../bin/pcf
+	rm -f ../bin/pcf ../bin/log_reader ../bin/*.sh ../bin/*.py
 
 clean:
-	rm -f *.o *~ $(program)
+	rm -f *.o *~ $(program) log_reader
 
 $(program): $(OBJ)
 	$(LD) $(OBJ) $(LDFLAGS) -o $(program) $(OPT)

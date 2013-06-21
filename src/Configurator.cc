@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+ *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -20,33 +21,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parse_config.h"
+#include "Configurator.h"
 
-#define MAXLEN 254
+#define MAXLEN 4096
 
+
+Configurator * Configurator::innerInstance = NULL;
+const std::string Configurator::xmlDir  = "www/data/";
+
+
+Configurator * Configurator::instance() {
+    if(innerInstance == NULL) {
+        innerInstance = new Configurator();
+    }
+    
+    return innerInstance;
+}
 
 /**
  * Fill the config structure with default data
  * @param[in] config Config structure
  */
-void init(pcf_config *config)
+void Configurator::Init()
 {
-  strcpy(config->dev, "");
-  config->number = 0;
-  config->time = 0;
-  config->port = 0;
-  strcpy(config->src, "");
-  strcpy(config->dst, "");
-  config->syn = 0;
-  config->ack = 0;
-  strcpy(config->filter, "");
+  icmpDisable = false;
+  debug = false;
+  number = 0;
+  time = 0;
+  port = 0;
+  strcpy(src, "");
+  strcpy(dst, "");
+  syn = 0;
+  ack = 0;
+  strcpy(filter, "");
   
-  strcpy(config->active, "www/data/active.xml");
-  strcpy(config->database, "www/data/database.xml");
+  strcpy(active, "active.xml");
+  strcpy(database, "database.xml");
   
-  config->block = 100;
-  config->time_limit = 3600;
-  config->threshold = 0.001;
+  block = 100;
+  timeLimit = 3600;
+  threshold = 0.001;
+  logReader = false;
 }
 
 /**
@@ -107,18 +122,17 @@ int parse(const char *buf, char *name, char *value)
   return(0);
 }
 
-pcf_config *get_config(const char *filename)
+void Configurator::GetConfig(const char *filename)
 {
   FILE *f;
   f = fopen(filename, "r");
   if (f == NULL) {
     fprintf(stderr, "Cannot open config file: %s\n", filename);
-    return NULL;
+    exit(2);
   }
   
-  /// Initialisation
-  pcf_config *config = (pcf_config*)malloc(sizeof(pcf_config));
-  init(config);
+  /// Initialization
+  Init();
   
   /// Parse the file
   char buf[MAXLEN];
@@ -135,22 +149,22 @@ pcf_config *get_config(const char *filename)
           fprintf(stderr, "Config: Device name too long (%s)\nSetting to any", value);
           break;
         }
-        strncpy(config->dev, value, strlen(value));
+        strncpy(dev, value, strlen(value));
       }
       // num_packets
       else if (strcmp(name, "num_packets") == 0) {
-        config->number = atoi(value);
+        number = atoi(value);
       }
       // time
       else if (strcmp(name, "time") == 0) {
-        config->time = atoi(value);
+        time = atoi(value);
       }
       // port
       else if (strcmp(name, "port") == 0) {
-        config->port = atoi(value);
-        if (config->port < 0 || config->port > 65535) {
+        port = atoi(value);
+        if (port < 0 || port > 65535) {
           fprintf(stderr, "Config: Wrong port number\n");
-          config->port = 0;
+          port = 0;
         }
       }
       // source_address
@@ -159,7 +173,7 @@ pcf_config *get_config(const char *filename)
           fprintf(stderr, "Config: Source address too long (%s)\n", value);
           break;
         }
-        strncpy(config->src, value, strlen(value));
+        strncpy(src, value, strlen(value));
       }
       // destination address
       else if (strcmp(name, "dst_address") == 0) {
@@ -167,43 +181,43 @@ pcf_config *get_config(const char *filename)
           fprintf(stderr, "Config: Destination address too long (%s)\n", value);
           break;
         }
-        strncpy(config->dst, value, strlen(value));
+        strncpy(dst, value, strlen(value));
       }
       // syn
       else if (strcmp(name, "syn") == 0)
-        config->syn = atoi(value);
+        syn = atoi(value);
       // ack
       else if (strcmp(name, "ack") == 0)
-        config->ack = atoi(value);
+        ack = atoi(value);
       // filter
       else if (strcmp(name, "filter") == 0)
-        strncpy(config->filter, value, strlen(value));
+        strncpy(filter, value, strlen(value));
       
       // active
       else if (strcmp(name, "active") == 0)
-        strncpy(config->active, value, strlen(value));
+        strncpy(active, value, strlen(value));
       
       // database
       else if (strcmp(name, "database") == 0)
-        strncpy(config->database, value, strlen(value));
+        strncpy(database, value, strlen(value));
       
       // BLOCK
       else if (strcmp(name, "BLOCK") == 0) {
-        config->block = atoi(value);
-        if (config->block == 0)
-          config->block = 100;
+        block = atoi(value);
+        if (block == 0)
+          block = 100;
       }
       // TIME_LIMIT
       else if (strcmp(name, "TIME_LIMIT") == 0) {
-        config->time_limit = atoi(value);
-        if (config->time_limit == 0)
-          config->time_limit = 3600;
+        timeLimit = atoi(value);
+        if (timeLimit == 0)
+          timeLimit = 3600;
       }
       // THRESHOLD
       else if (strcmp(name, "THRESHOLD") == 0) {
-        config->threshold = atof(value);
-        /*if (config->threshold == 0.0)
-          config->threshold = 0.001;*/
+        threshold = atof(value);
+        /*if (threshold == 0.0)
+          threshold = 0.001;*/
       }
     }
   }
@@ -211,11 +225,5 @@ pcf_config *get_config(const char *filename)
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close config file: %s\n", filename);
   
-  return config;
-}
-
-void free_config(pcf_config *config)
-{
-  if (config != NULL)
-    free(config);
+  return;
 }

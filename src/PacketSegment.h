@@ -1,5 +1,6 @@
 /**
- * Copyright (C) 2009-2012 Libor Polčák <ipolcak@fit.vutbr.cz>
+ * Copyright (C) 2013 Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
+ *                    Libor Polcak <ipolcak@fit.vutbr.cz>
  * 
  * This file is part of pcf - PC fingerprinter.
  *
@@ -17,18 +18,18 @@
  * along with pcf. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _POINT2D_H
-#define _POINT2D_H
+#ifndef PACKETSEGMENT_H
+#define	PACKETSEGMENT_H
+#include "PacketTimeInfo.h"
 
-/**
- * Point
- */
-struct point2d {
-  public:
-    /// Measured time
-    double x;
-    /// Offset
-    double y;
+class PacketSegment {
+    /// Structure describing clock skew
+public:
+      double alpha;
+      double beta;
+      packet_iterator first;
+      packet_iterator confirmed;
+      packet_iterator last;
 };
 
 
