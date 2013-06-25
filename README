@@ -6,9 +6,11 @@ Copyright (C) 2013 Barbora Franková <xfrank08@stud.fit.vutbr.cz>
 
 This is a README file for pcf -- a tool for remote computer identification. The
 identification is done according to skew of the clocks inside each computer.
-Clock skew of a specific computer is computed from TCP timestamps. The program
-runs in an infinite loop and its output is a XML file containing recognized
-computers. The program was developed and tested in GNU/Linux.
+Clock skew of a specific computer is computed from TCP timestamps, ICMP
+timestamps, and timestamps sent by JavaScript program available in the
+timestamp46.html file. The program runs in an infinite loop and its output is an
+XML file containing recognized computers. The program was developed and tested
+in GNU/Linux.
 
 For install and uninstall instructions see INSTALL file.
 
@@ -20,12 +22,12 @@ on network interfaces.
 
 Usage: pcf [Options] [Interface]
 
-  -h		Help
-  -n		Number of packets to capture (0 -- default means infinity)
-  -t		Number of seconds to capture (0 -- default means infinity)
-  -p		Port number (1-65535, 0 -- default means all)
-  -i        Disable ICMP
-  -d        Debug mode
+  -h    Help
+  -n    Number of packets to capture (0 -- default means infinity)
+  -t    Number of seconds to capture (0 -- default means infinity)
+  -p    Port number (1-65535, 0 -- default means all)
+  -i    Disable ICMP
+  -d    Debug mode
 
 Examples:
   pcf
@@ -46,34 +48,78 @@ recognized computers and manage them in your browser.
 Files and directories
 ---------------------
 
-bin/		         - binary files (installed version of the program)
-src/		         - source files
+bin/             - binary files (installed version of the program)
+src/             - source files
 
 src/
-  pcf		         - pcf program
+  pcf            - pcf program
   log_reader         - log reader program
   
-  bulk_log_reader.sh - bulk log processing script
-  coupler.py         - clock skew comparison script
-  match_finder.sh    - bulk clock skew comparison script
+  config           - configuration file
 
-  config	         - configuration file
-
-  bulk_output/	     - bulk processing output directory
-  graph/	         - graphs of the recognized computers
-  log/		         - files containing log of drifts of monitored computers. These files are
+  graph/           - graphs of the recognized computers
+  log/             - files containing log of drifts of monitored computers. These files are
       required for graph construction.
-  www/		     - web interface
+  www/         - web interface
 
+Program description
+-------------------
 
-Project origins
+The program pcf receives packets from libpcap interface. It searches for TCP
+timestamps (see RFC 1323) and timestamps in TCP packets (e.g. those generated
+by the JavaScript available in the timestamp46.html file in this repository).
+
+Unless disabled by "-i" attribute, for each IP address that is detected to be
+sending TCP timestamps, ICMP timestamp requests are sent and the replies are
+processed by pcf.
+
+The program processes all three kinds of timestamps separately. It is not
+necessary that one IP address supports all kinds of timestamps.
+
+Detected timestamp information are stored in the log/ directory. Program
+log_reader may re-create graphs from these files.
+
+Note
+----
+
+The active and saved computers are implicitly stored in the files active.xml and
+database.xml located in www/data/ (TCP timestamps), www/data/javascript/
+(JavaScript timestamps), and www/data/icmp/ (ICMP timestamps). Please follow
+install instructions for more informations how to setup permissions for those
+files.
+
+The variable BLOCK in config file sets a limit after which the pcf re-computes
+clock skews, generates graphs etc.
+
+The program does not process packets with lower or the same timestamp as was
+already seen for an earlier packet. This reduces the amount of data stored for
+each computer but if a computer is restarted than pcf is not able to detect this
+and cope with the situation because the timestamps are usually lower.
+
+A correction is applied to computed frequencies:
+freq >= 970 && freq <= 1030 => freq = 1000
+freq >= 230 && freq <=  270 => freq = 250
+freq >=  95 && freq <=  105 => freq = 100
+In many cases this means that the frequency is fixed but sometimes it may result
+in selection of wrong frequency because some systems may use unusual frequency.
+
+Project history
 ---------------
 
 The very first revision in the pcf repository (https://github.com/polcak/pcf) is
-the result of diploma thesis of Jakub Jirasek, which was successfuly finished at
-Faculty of Information Technology, Brno University of Technology. You can see
-the report on http://www.fit.vutbr.cz/study/DP/DP.php.en?id=14040&y=2011 (the
-text is in Czech).
+the result of the diploma thesis of Jakub Jirasek, which was successfuly
+finished at Faculty of Information Technology, Brno University of Technology.
+The original version supported only TCP timestamps and IPv4. You can see the
+report on http://www.fit.vutbr.cz/study/DP/DP.php.en?id=14040&y=2011 (the text
+is in Czech).
+
+Later, the program was re-written in C++0x and support for IPv6 was added.
+Moreover, support for simple detection of clockskew was added.
+
+In addition, Barbora Franková extended pcf in her Bachelor Thesis and added
+support for ICMP timestamps and JavaScript generated timestamps. See
+https://github.com/bfrankova/pcf, commits dd287f and 9f1c92, and
+http://www.fit.vutbr.cz/study/DP/BP.php.en?id=14704&y=2012 (in Czech).
 
 The idea of computer identification based on TCP timestamps was first published
 in:

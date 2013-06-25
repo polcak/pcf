@@ -8,13 +8,9 @@ libxml2
 
 It is possible to compile and install the program using these three commands:
 
-make 		- compiles pcf
+make 		- compiles pcf and log_reader (Compiler supporting C++0x is necessary)
 make install	- installs the program to the bin/ directory
 make clean	- removes binary files from src/ directory
-
-Note: if you experience bugs like "stack smashing detected" in
-https://github.com/polcak/pcf/issues/1, please recompile the program using
-"make donotreduce" and install again.
 
 UNINSTALL
 ---------
@@ -38,9 +34,19 @@ Ghostscript
 WEB INTERFACE
 -------------
 
-In order to run web interface you have to configure your web server and PHP
-module is necessary.
+In order to run web interface you have to configure your web server. PHP
+module is necessary to run the web interface.
 
 The root directory is www/, graphs are stored in www/graph. Ensure that
-www/data/database.xml is writeable by WWW server in order to save clock skew of
+www/data/database.xml, www/data/javascript/database.xml, and
+www/data/database.xml are writeable by WWW server in order to save clock skew of
 recognized computers.
+
+DOCUMENTATION
+-------------
+
+Documentation can be automatically created by doxygen:
+
+make doc - creates documentation in doc/ directory
+
+By default HTML and LaTeX documentation is created.
