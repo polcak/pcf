@@ -105,7 +105,7 @@ void * sendIcmpRequests(void * arg){
   icmp->type = ICMP_TSTAMP;
   icmp->code = 0;
   
-  if(Configurator::instance()->debug)
+  if(Configurator::instance()->verbose)
     std::cout << "ICMP timestamp requests started to IP: " << computer->address << std::endl;
   while (1) {
     icmp->checksum = 0;

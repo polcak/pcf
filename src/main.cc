@@ -75,13 +75,13 @@ int main(int argc, char *argv[]) {
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "idhn:t:p:")) != -1) {
+  while ((c = getopt(argc, argv, "ivhn:t:p:")) != -1) {
     switch (c) {
       case('i'):
         Configurator::instance()->icmpDisable = true;
         break;
-      case 'd':
-        Configurator::instance()->debug = true;
+      case 'v':
+        Configurator::instance()->verbose = true;
         break;
       case 'h':
         print_help();

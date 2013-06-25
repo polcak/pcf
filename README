@@ -27,7 +27,7 @@ Usage: pcf [Options] [Interface]
   -t    Number of seconds to capture (0 -- default means infinity)
   -p    Port number (1-65535, 0 -- default means all)
   -i    Disable ICMP
-  -d    Debug mode
+  -v    Verbose mode
 
 Examples:
   pcf

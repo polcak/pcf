@@ -148,18 +148,21 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     // skip TCP headers
     size_tcp = tcp->doff * 4;
     if (size_tcp < 20) {
-      if (Configurator::instance()->debug)
-        std::cerr << "Invalid TCP header length: " << size_tcp << " bytes" << std::endl;
+#ifdef DEBUG
+      std::cerr << "Invalid TCP header length: " << size_tcp << " bytes" << std::endl;
+#endif
       return;
     }
     
     /// Packet arrival timearrival_time
     arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
 
-    // For sure, should filter pcap
+    // Packets with 20 bytes are without TCP options, they are processed because of possible
+    // timestamps in the payload
     if (size_tcp == 20) {
-      if (Configurator::instance()->debug)
-        std::cout << "TCP header without options" << std::endl;
+#ifdef DEBUG
+      std::cerr << "TCP header without options" << std::endl;
+#endif
     }
     /// TCP options
     u_char *tcp_options = (u_char *) (packet + size_ethernet + size_ip + sizeof (struct tcphdr));
@@ -182,6 +185,9 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
         /// Save packet
         n_packets++;
         newIp = !computersTcp->new_packet(address, arrival_time, timestamp);
+        if (Configurator::instance()->verbose) {
+          std::cout << n_packets << ": " << address << " (TCP)" << std::endl;
+        }
         if (newIp) {
           if (pokeOk && !Configurator::instance()->icmpDisable)
             computersIcmp->to_poke_or_not_to_poke(address);
@@ -191,8 +197,9 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
       switch (kind) {
           /// EOL
         case 0:
-          if (Configurator::instance()->debug)
-            std::cout << "TCP header option without timestamp" << std::endl;
+#ifdef DEBUG
+          std::cerr << "TCP header option without timestamp" << std::endl;
+#endif
           options_offset = options_size;
           break;
           /// NOP
@@ -230,6 +237,9 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     longTimestamp = longTimestamp % (3600 * 24 * 1000);
     // save new packet
     computersJavascript->new_packet(address, arrival_time, longTimestamp);
+    if (Configurator::instance()->verbose) {
+      std::cout << n_packets << ": " << address << " (JS)" << std::endl;
+    }
     return; // Packet processed
 
 
@@ -256,6 +266,9 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
     // save packet 
     computersIcmp->new_packet(address, arrival_time, timestamp);
+    if (Configurator::instance()->verbose) {
+      std::cout << n_packets << ": " << address << " (ICMP)" << std::endl;
+    }
     // packet processed
     return;
   }
@@ -289,8 +302,9 @@ int StartCapturing() {
     }
   }
 
-  if (Configurator::instance()->debug)
-    std::cout << "DEV: " << dev << std::endl;
+#ifdef DEBUG
+  std::cout << "DEV: " << dev << std::endl;
+#endif
 
   /// Find address and netmask for the device
   if (pcap_lookupnet(dev, &netp, &maskp, errbuf) == 0) {
@@ -299,8 +313,9 @@ int StartCapturing() {
     if (net == NULL)
       std::cerr << "Can't convert net address" << std::endl;
     else {
-      if (Configurator::instance()->debug)
-        std::cout << "NET: " << net << std::endl;
+#ifdef DEBUG
+      std::cout << "NET: " << net << std::endl;
+#endif
     }
 
     /// Netmask
@@ -309,8 +324,9 @@ int StartCapturing() {
     if (mask == NULL)
       std::cerr << "Can't convert net mask" << std::endl;
     else {
-      if (Configurator::instance()->debug)
-        std::cout << "MASK: " << mask << std::endl;
+#ifdef DEBUG
+      std::cout << "MASK: " << mask << std::endl;
+#endif
     }
   } else
     std::cerr << "(Can't get netmask for device: " << dev << std::endl;
@@ -355,8 +371,9 @@ int StartCapturing() {
 
   filter += ") || (icmp && icmp[icmptype] == icmp-tstampreply)";
 
-  if (Configurator::instance()->debug)
-    std::cout << "Filter: " << filter << std::endl;
+#ifdef DEBUG
+  std::cout << "Filter: " << filter << std::endl;
+#endif
 
   if (pcap_compile(handle, &fp, filter.c_str(), 0, PCAP_NETMASK_UNKNOWN) == -1) {
     std::cerr << "Couldn't parse filter " << filter << ": " << pcap_geterr(handle) << std::endl;

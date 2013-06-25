@@ -35,7 +35,7 @@ public:
   Configurator() {};
   
   int icmpDisable;
-  bool debug;
+  bool verbose;
     
   char dev[10];
   int number;

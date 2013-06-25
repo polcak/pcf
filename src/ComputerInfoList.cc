@@ -46,10 +46,6 @@ void ComputerInfoList::to_poke_or_not_to_poke(std::string address) {
 }
 
 bool ComputerInfoList::new_packet(const char *address, double ttime, uint32_t timestamp) {
-
-  static unsigned long total = 0;
-  std::cout << ++total << ": " << address << " (" << type << ")" << std::endl;
-
   bool found = false;
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
     if ((*it)->get_address() != address) {
@@ -69,22 +65,22 @@ bool ComputerInfoList::new_packet(const char *address, double ttime, uint32_t ti
     /// Too much time since last packet so start from the beginning
     if ((ttime - known_computer.get_last_packet_time()) > Configurator::instance()->timeLimit) {
       known_computer.restart(ttime, timestamp);
-      if (Configurator::instance()->debug)
+      if (Configurator::instance()->verbose)
         fprintf(stderr, "%s timeout: starting a new tracking\n", known_computer.get_address().c_str());
       break;
     }
 
     // Check if packet has the same or lower timestamp
     if (timestamp <= known_computer.get_last_packet_timestamp()) {
-      if (Configurator::instance()->debug)
+      if (Configurator::instance()->verbose)
         if (timestamp < known_computer.get_last_packet_timestamp())
           fprintf(stderr, "%s: Lower timestamp %u %u\n", known_computer.get_address().c_str(), timestamp, known_computer.get_last_packet_timestamp());
       break;
     }
 
-    // Stop supporting lists with stupid frequency
+    // Stop tracking addresses with too high frequency
     if (std::fabs(known_computer.get_freq()) > 10000) {
-      if (Configurator::instance()->debug)
+      if (Configurator::instance()->verbose)
         fprintf(stderr, "%s: too high frequency of %d\n", known_computer.get_address().c_str(), known_computer.get_freq());
       known_computer.restart(ttime, timestamp);
       break;
