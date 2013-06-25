@@ -30,7 +30,7 @@ CXXFLAGS ?= -O2 -Wall -std=c++0x $(DEFINE)
 LDFLAGS ?= 
 LD = g++
 
-.PHONY: debug profiling uninstall clean
+.PHONY: debug profiling uninstall clean doc
 
 all: $(program) log_reader
 
@@ -51,6 +51,9 @@ install: all
 
 uninstall:
 	rm -f ../bin/pcf ../bin/log_reader ../bin/*.sh ../bin/*.py
+
+doc:
+	doxygen Doxyfile
 
 clean:
 	rm -f *.o *~ $(program) log_reader
