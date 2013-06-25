@@ -29,7 +29,7 @@ CXXFLAGS ?= -O2 -Wall -std=c++0x $(DEFINE)
 LDFLAGS ?= 
 LD = g++
 
-.PHONY: debug profiling uninstall clean donotreduce
+.PHONY: debug profiling uninstall clean donotreduce doc
 
 all: $(program) log_reader
 
@@ -51,6 +51,9 @@ install: all
 
 uninstall:
 	rm -f ../bin/pcf
+
+doc:
+	doxygen Doxyfile
 
 clean:
 	rm -f *.o *~ $(program)
