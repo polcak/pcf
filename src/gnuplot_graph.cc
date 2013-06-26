@@ -56,6 +56,10 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
   int filename_max = strlen(filename_template) + address.length();
   char filename[filename_max + 1];
   snprintf(filename, filename_max, filename_template, address.c_str());
+  if (computer_skew.cbegin()->alpha == 0.0 || isnan(computer_skew.cbegin()->alpha)) {
+    return;
+  }
+
   f = fopen(filename, "w");
   
   if (f == NULL) {
@@ -63,9 +67,6 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
     return;
   }
   
-  if (computer_skew.cbegin()->alpha == 0.0 || isnan(computer_skew.cbegin()->alpha))
-    return;
-
   const unsigned interval_count = 10;
   unsigned interval_min = computer_skew.get_start_time();
   unsigned interval_max = computer_skew.get_end_time();
