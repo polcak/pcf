@@ -130,15 +130,6 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
       fprintf(stderr, "Cannot get IP address\n");
       return;
     }
-    // replace colons with dashes (because of Win filenames conventions)
-    std::string replaceColon = "-";
-    std::string findColon = ":";
-    std::string address6 = (std::string) address;
-    for (std::string::size_type i = 0; (i = address6.find(findColon, i)) != std::string::npos;) {
-      address6.replace(i, findColon.length(), replaceColon);
-      i += replaceColon.length() - findColon.length() + 1;
-    }
-    strcpy(address, address6.c_str());
   } else {
     fprintf(stderr, "Unknown Ethernet type\n");
     return;
