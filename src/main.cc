@@ -32,7 +32,9 @@
  * Print banner
  */
 void print_banner() {
-  printf("pcf  Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>\n\n"
+  printf( "pcf  Copyright (C) 2012-2013 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>\n"
+          "                             Libor Polcak <ipolcak@fit.vutbr.cz>\n"
+          "                             Barbora Frankova <xfrank08@stud.fit.vutbr.cz>\n\n"
           "This program comes with ABSOLUTELY NO WARRANTY.\n"
           "This is free software, and you are welcome to redistribute it\n"
           "under certain conditions.\n\n");
@@ -59,9 +61,6 @@ void print_help() {
  */
 
 int main(int argc, char *argv[]) {
-  /// Print banner
-  print_banner();
-
   /// Checking permissions (must be root)
   if (getuid()) {
     fprintf(stderr, "Must have root permissions to run this program!\n");
@@ -117,6 +116,11 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Device name too long (%s)\nSetting to any", argv[c]);
       strcpy(Configurator::instance()->dev, "any");
     }
+  }
+
+  /// Print banner
+  if (Configurator::instance()->verbose) {
+    print_banner();
   }
 
   /// Get packets

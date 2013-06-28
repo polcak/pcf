@@ -40,10 +40,10 @@ const size_t STRLEN_MAX = 100;
 const double SKEW_VALID_AFTER = 5*60;
 
 ComputerInfo::ComputerInfo(void * parentList, const char* its_address):
-  packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(), address(its_address)
+  packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
+  address(its_address), firstPacketReceived(false)
 {
   this->parentList = parentList;
-  firstPacketReceived = false;
 }
 
 void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timestamp){
@@ -347,9 +347,11 @@ int ComputerInfo::compute_freq()
     freq = 100;
   else if (freq >= 230 && freq <= 270)
     freq = 250;
-  
-  printf("Frequency (Hz): %d\n", freq);
-  
+
+  if (Configurator::instance()->verbose) {
+    printf("Frequency of %s (Hz): %d\n", address.c_str(), freq);
+  }
+
   return freq;
 }
 

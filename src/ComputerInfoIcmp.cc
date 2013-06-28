@@ -86,7 +86,7 @@ void * sendIcmpRequests(void * arg){
   // convert IP
   dst.sin_family = AF_INET;
   dst.sin_port = 0;
-  if (inet_pton(AF_INET, computer->address.c_str(), &(dst.sin_addr)) != 1) {
+  if (inet_pton(AF_INET, computer->get_address().c_str(), &(dst.sin_addr)) != 1) {
     perror("could not convert IP");
   }
   // create IP header
@@ -106,7 +106,7 @@ void * sendIcmpRequests(void * arg){
   icmp->code = 0;
   
   if(Configurator::instance()->verbose)
-    std::cout << "ICMP timestamp requests started to IP: " << computer->address << std::endl;
+    std::cout << "ICMP timestamp requests started to IP: " << computer->get_address() << std::endl;
   while (1) {
     icmp->checksum = 0;
     icmp->checksum = in_cksum((unsigned short *) icmp, sizeof (struct icmphdr));
