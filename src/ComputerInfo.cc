@@ -343,9 +343,11 @@ int ComputerInfo::compute_freq()
     freq = 100;
   else if (freq >= 230 && freq <= 270)
     freq = 250;
-  
-  printf("Frequency (Hz): %d\n", freq);
-  
+
+  if (Configurator::instance()->verbose) {
+    printf("Frequency of %s (Hz): %d\n", address.c_str(), freq);
+  }
+
   return freq;
 }
 
