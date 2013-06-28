@@ -36,6 +36,7 @@ public:
   
   int icmpDisable;
   bool verbose;
+  bool exportSkewChanges;
     
   char dev[10];
   int number;

@@ -45,6 +45,7 @@
 #include "Configurator.h"
 #include "Tools.h"
 #include "ComputerInfoIcmp.h"
+#include "SkewChangeExporter.h"
 
 /// Capture all packets on the wire
 #define PROMISC 1
@@ -393,6 +394,11 @@ int StartCapturing() {
   computersTcp->AddObserver(&graph_creator_tcp);
   computersIcmp->AddObserver(&graph_creator_icmp);
   computersJavascript->AddObserver(&graph_creator_javascript);
+  if (Configurator::instance()->exportSkewChanges) {
+    computersTcp->AddObserver(new SkewChangeExporter("tcp"));
+    computersIcmp->AddObserver(new SkewChangeExporter("icmp"));
+    computersJavascript->AddObserver(new SkewChangeExporter("javascript"));
+  }
 
   /// Set interrupt signal (ctrl-c or SIGTERM during capturing means stop capturing)
   struct sigaction sigact;

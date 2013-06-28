@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "ivhn:t:p:")) != -1) {
+  while ((c = getopt(argc, argv, "ivhen:t:p:")) != -1) {
     switch (c) {
       case('i'):
         Configurator::instance()->icmpDisable = true;
@@ -86,6 +86,9 @@ int main(int argc, char *argv[]) {
       case 'h':
         print_help();
         return (0);
+      case 'e':
+        Configurator::instance()->exportSkewChanges = true;
+        break;
       case 'n':
         if (atoi(optarg))
           Configurator::instance()->number = atoi(optarg);

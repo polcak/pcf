@@ -28,6 +28,7 @@ Usage: pcf [Options] [Interface]
   -p    Port number (1-65535, 0 -- default means all)
   -i    Disable ICMP
   -v    Verbose mode
+  -e    Exports detected addresses with similar clock skew to stdout
 
 Examples:
   pcf

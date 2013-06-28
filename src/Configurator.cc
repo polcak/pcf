@@ -50,6 +50,7 @@ void Configurator::Init()
 #else
   verbose = false;
 #endif
+  exportSkewChanges = false;
   number = 0;
   time = 0;
   port = 0;
