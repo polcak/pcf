@@ -62,21 +62,26 @@ class ComputerInfo {
     // pointer to the parent list of computers that includes this one
     void * parentList;
 
+    /// Address of the computer
+    const std::string address;
+
+    // Public attributes
+  public:
+    /// FIXME - comment needed
+    bool firstPacketReceived;
+
   // Constructors
   public:
     ComputerInfo(void * parentList, const char* its_address);
 
     ~ComputerInfo() {}
-    
-    bool firstPacketReceived;
-    
+
+  // Public methods
+  public:
     const std::string& get_address() const
     {
       return address;
     }
-    
-    /// Address of the computer
-    std::string address;
 
     int get_freq() const
     {

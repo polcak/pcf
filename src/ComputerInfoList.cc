@@ -125,7 +125,7 @@ void ComputerInfoList::construct_notify(const std::string &ip, const identity_co
 
 TimeSegmentList * ComputerInfoList::getSkew(std::string ip) {
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
-    if ((*it)->address == ip) {
+    if ((*it)->get_address() == ip) {
       return &((*it)->timeSegmentList);
     }
   }
@@ -176,12 +176,12 @@ const identity_container ComputerInfoList::get_similar_identities(const std::str
   }
 
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
-    if ((*it)->address == ip) {
+    if ((*it)->get_address() == ip) {
       continue;
     }
 
     if (reference_skew->is_similar_with((*it)->timeSegmentList, Configurator::instance()->threshold)) {
-      identities.insert((*it)->address);
+      identities.insert((*it)->get_address());
     }
   }
 
