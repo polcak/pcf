@@ -9,7 +9,9 @@ libxml2
 It is possible to compile and install the program using these three commands:
 
 make 		- compiles pcf and log_reader (Compiler supporting C++0x is necessary)
-make install	- installs the program to the bin/ directory
+make install	- installs the program to the bin/ (../bin) directory. You can
+                change the desired directory by setting the INSTALL_DIR
+								appropriately, e.g. make install INSTALL_DIR=/opt/pcf
 make clean	- removes binary files from src/ directory
 
 UNINSTALL

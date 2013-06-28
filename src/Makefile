@@ -29,6 +29,7 @@ DEFINE ?=
 CXXFLAGS ?= -O2 -Wall -std=c++0x $(DEFINE)
 LDFLAGS ?= 
 LD = g++
+INSTALL_DIR ?= ../bin
 
 .PHONY: debug profiling uninstall clean doc
 
@@ -43,11 +44,11 @@ profiling:
 	make CXXFLAGS="-pg -Wall -std=c++0x $(DEFINE)" LDFLAGS="-pg"
 
 install: all
-	cp -r pcf config log_reader coupler.py match_finder.sh bulk_log_reader.sh ../bin
-	cp -r www ../bin
-	mkdir -p ../bin/graph ../bin/log 
-	mkdir -p ../bin/graph/icmp ../bin/log/icmp
-	mkdir -p ../bin/graph/javascript ../bin/log/javascript
+	cp -r pcf config log_reader $(INSTALL_DIR)
+	cp -r www $(INSTALL_DIR)
+	mkdir -p $(INSTALL_DIR)/graph $(INSTALL_DIR)/log
+	mkdir -p $(INSTALL_DIR)/graph/icmp $(INSTALL_DIR)/log/icmp
+	mkdir -p $(INSTALL_DIR)/graph/javascript $(INSTALL_DIR)/log/javascript
 
 uninstall:
 	rm -f ../bin/pcf ../bin/log_reader ../bin/*.sh ../bin/*.py
