@@ -61,9 +61,6 @@ void print_help() {
  */
 
 int main(int argc, char *argv[]) {
-  /// Print banner
-  print_banner();
-
   /// Checking permissions (must be root)
   if (getuid()) {
     fprintf(stderr, "Must have root permissions to run this program!\n");
@@ -116,6 +113,11 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Device name too long (%s)\nSetting to any", argv[c]);
       strcpy(Configurator::instance()->dev, "any");
     }
+  }
+
+  /// Print banner
+  if (Configurator::instance()->verbose) {
+    print_banner();
   }
 
   /// Get packets
