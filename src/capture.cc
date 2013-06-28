@@ -417,9 +417,11 @@ int StartCapturing() {
   }
 
   /// Print actual time
-  time_t rawtime;
-  time(&rawtime);
-  std::cout << "Capturing started at: " << ctime(&rawtime) << std::endl;
+  if (Configurator::instance()->verbose) {
+    time_t rawtime;
+    time(&rawtime);
+    std::cout << "Capturing started at: " << ctime(&rawtime) << std::endl;
+  }
 
   /// Start capturing TODO
   if (pcap_loop(handle, Configurator::instance()->number, GotPacket, NULL) == -1) {
