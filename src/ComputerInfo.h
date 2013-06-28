@@ -125,8 +125,9 @@ class ComputerInfo {
     /**
      * Recomputes related informations
      * @param[in] packet_delivered      Arrival time of the new packet
+     * @return Returns if a block processing already finished
      */
-    void check_block_finish(double packet_delivered);
+    bool check_block_finish(double packet_delivered);
 
     /**
      * Restart measurement

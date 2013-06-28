@@ -87,8 +87,9 @@ bool ComputerInfoList::new_packet(const char *address, double ttime, uint32_t ti
     }
     // Insert packet
     known_computer.insert_packet(ttime, timestamp);
-    known_computer.check_block_finish(ttime);
-    update_skew(address, known_computer.NewTimeSegmentList);
+    if (known_computer.check_block_finish(ttime)) {
+      update_skew(address, known_computer.NewTimeSegmentList);
+    }
 
 #if 0
     std::cerr << known_computer.get_address() << ": " << known_computer.get_packet_count() << std::endl;

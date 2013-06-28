@@ -76,13 +76,17 @@ void ComputerInfo::insert_packet(double packet_delivered, uint32_t timestamp)
 #endif
 }
 
-void ComputerInfo::check_block_finish(double packet_delivered)
+bool ComputerInfo::check_block_finish(double packet_delivered)
 {
+  bool retval = false;
   //recompute_block(packet_delivered);
   if (((get_packets_count() % Configurator::instance()->block) == 0) ||
       ((packet_delivered - lastConfirmedPacketTime) > SKEW_VALID_AFTER)) {
     recompute_block(packet_delivered);
+    retval = true;
   }
+
+  return retval;
 }
 
 
