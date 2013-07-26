@@ -165,7 +165,7 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
   fputs("log/", f);
   fputs(getOutputDirectory().c_str(), f);
   fputs(address.c_str(), f);
-  fputs(".log' title ''", f);
+  fputs(".log' using 1:2 title ''", f);
 
   count = 1;
   for (auto it = computer_skew.cbegin(); it != computer_skew.cend(); ++it, ++count) {

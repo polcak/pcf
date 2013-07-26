@@ -48,16 +48,14 @@ void process_log_file(std::ifstream &ifs)
   ComputerInfoList * computers = new ComputerInfoList("tcp");
   gnuplot_graph graph_creator("tcp");
   computers->AddObserver(&graph_creator);
-  
-  static const int UINT_TUNNELLING_SHIFT = (int) INT_MAX / 2;
-  
-  double ttime, offset;
+ 
+  double ttime, offset, arrival_time, timestamp;
 
   while (ifs.good()) {
-    ifs >> ttime >> offset;
+    ifs >> ttime >> offset >> arrival_time >> timestamp;
     //offset = offset / 1000;
     if (ifs.good()) {
-      computers->new_packet("log_reader", ttime, ttime + offset + UINT_TUNNELLING_SHIFT);
+      computers->new_packet("log_reader", arrival_time, timestamp);
     }
   }
 }

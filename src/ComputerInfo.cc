@@ -379,7 +379,7 @@ int ComputerInfo::save_packets(short rewrite)
   /// Write to file
   char str[STRLEN_MAX];
   for (auto it = packets.begin(); it != packets.end(); ++it) {
-    snprintf(str, STRLEN_MAX, "%lf\t%lf\n", it->Offset.x, it->Offset.y);
+    snprintf(str, STRLEN_MAX, "%lf\t%lf\t%lf\t%u\n", it->Offset.x, it->Offset.y, it->ArrivalTime, it->Timestamp);
     fputs(str, f);
   }
   
