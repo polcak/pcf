@@ -47,8 +47,9 @@ install: all
 	cp -r pcf config log_reader $(INSTALL_DIR)
 	cp -r www $(INSTALL_DIR)
 	mkdir -p $(INSTALL_DIR)/graph $(INSTALL_DIR)/log
-	mkdir -p $(INSTALL_DIR)/graph/icmp $(INSTALL_DIR)/log/icmp
+	mkdir -p $(INSTALL_DIR)/graph/icmp $(INSTALL_DIR)/log/icmp 
 	mkdir -p $(INSTALL_DIR)/graph/javascript $(INSTALL_DIR)/log/javascript
+	mkdir -p $(INSTALL_DIR)/graph/tcp $(INSTALL_DIR)/log/tcp
 
 uninstall:
 	rm -f ../bin/pcf ../bin/log_reader ../bin/*.sh ../bin/*.py

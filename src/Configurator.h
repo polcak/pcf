@@ -35,13 +35,16 @@ public:
   Configurator() {};
   
   int icmpDisable;
+  bool javacriptDisable;
+  bool portDisable;
   bool verbose;
   bool exportSkewChanges;
     
   char dev[10];
+  std::string datalink;
   int number;
   unsigned int time;
-  int port;
+  u_int16_t port;
   char src[16];
   char dst[16];
   short syn;

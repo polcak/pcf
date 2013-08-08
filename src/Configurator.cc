@@ -45,6 +45,9 @@ Configurator * Configurator::instance() {
 void Configurator::Init()
 {
   icmpDisable = false;
+  javacriptDisable = false;
+  portDisable = false;
+  datalink = "";
 #ifdef DEBUG
   verbose = true;
 #else

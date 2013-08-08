@@ -45,4 +45,12 @@
      * @param[in] packet   Packet
      */
      void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+     
+     typedef struct {
+       u_int16_t pckt_type;
+       u_int16_t arp_type;
+       u_int16_t link_addr_len;
+       u_char link_addr[8];
+       u_int16_t proto_type;
+     } linux_cooked_hdr ;
 #endif

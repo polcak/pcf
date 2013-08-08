@@ -38,8 +38,6 @@ class gnuplot_graph: public Observer<const AnalysisInfo>
     };
     virtual void Notify(const AnalysisInfo& changed_skew);
     std::string getOutputDirectory(){
-        if(type == "tcp")
-            return "";
         return type + "/";
     }
     

@@ -52,8 +52,6 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
     ~ComputerInfoList();
 
     std::string getOutputDirectory(){
-        if(type == "tcp")
-            return "";
         return type + "/";
     }
     
@@ -64,7 +62,7 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      * @param[in] timestamp PCAP timestamp of the packet
      * @return 0 if new IP address, 1 if computer already known
      */
-    bool new_packet(const char *address, double time, uint32_t timestamp);
+    bool new_packet(const char *address, u_int16_t port, double time, uint32_t timestamp);
 
     /**
      * Registers a new observer for clock changes

@@ -62,8 +62,14 @@ class ComputerInfo {
     // pointer to the parent list of computers that includes this one
     void * parentList;
 
-    /// Address of the computer
-    const std::string address;
+    /// Complete address of the computer
+    std::string address;
+    
+    /// IP address of the computer
+    const std::string ipAddress;
+
+    ///
+    const uint16_t port;
 
     // Public attributes
   public:
@@ -72,15 +78,25 @@ class ComputerInfo {
 
   // Constructors
   public:
-    ComputerInfo(void * parentList, const char* its_address);
+    ComputerInfo(void * parentList, const char* its_address, u_int16_t port);
 
     ~ComputerInfo() {}
 
   // Public methods
   public:
-    const std::string& get_address() const
+    const std::string& get_address()
     {
       return address;
+    }
+    
+    const std::string& get_ipAddress() const
+    {
+      return ipAddress;
+    }
+    
+    uint16_t get_port() const
+    {
+      return port;
     }
 
     int get_freq() const

@@ -29,7 +29,7 @@ class ComputerInfoIcmp : public ComputerInfo {
 private:
     pthread_t pokingThread;
 public:
-    explicit ComputerInfoIcmp(ComputerInfoList * parent, const char * address) : ComputerInfo(parent, address){};
+    explicit ComputerInfoIcmp(ComputerInfoList * parent, const char * address, uint16_t port) : ComputerInfo(parent, address, port){};
     void StartPoking();    
 };
 

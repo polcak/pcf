@@ -24,6 +24,7 @@
 #include <cstring>
 #include <list>
 #include <iostream>
+#include <sstream>
 
 #include "ComputerInfoList.h"
 #include "TimeSegment.h"
@@ -39,11 +40,19 @@ const size_t STRLEN_MAX = 100;
 
 const double SKEW_VALID_AFTER = 5*60;
 
-ComputerInfo::ComputerInfo(void * parentList, const char* its_address):
+ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t its_port):
   packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
-  address(its_address), firstPacketReceived(false)
+  ipAddress(its_address), port(its_port), firstPacketReceived(false)
 {
   this->parentList = parentList;
+  if(Configurator::instance()->portDisable){
+    address = ipAddress;
+  }
+  else {
+    std::stringstream buffer;
+    buffer << ipAddress << '_' << port;
+    address = buffer.str();
+  }
 }
 
 void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timestamp){

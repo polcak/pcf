@@ -21,6 +21,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <stdlib.h>
+#include <sstream>
 
 #include "ComputerInfoList.h"
 #include "check_computers.h"
@@ -33,11 +35,11 @@ ComputerInfoList::~ComputerInfoList() {
 void ComputerInfoList::to_poke_or_not_to_poke(std::string address) {
   // try to find computer, return if already present and poking
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
-    if ((*it)->get_address() == address)
+    if ((*it)->get_ipAddress() == address)
       return;
   }
   // computer was not found, add new to the list
-  ComputerInfoIcmp *new_computer = new ComputerInfoIcmp(this, address.c_str());
+  ComputerInfoIcmp *new_computer = new ComputerInfoIcmp(this, address.c_str(), 0);
 
   // decouple new thread to poke the computer under given address
   new_computer->StartPoking();
@@ -45,10 +47,26 @@ void ComputerInfoList::to_poke_or_not_to_poke(std::string address) {
   save_active(computers, Configurator::instance()->active, *this);
 }
 
-bool ComputerInfoList::new_packet(const char *address, double ttime, uint32_t timestamp) {
+bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double ttime, uint32_t timestamp) {
   bool found = false;
+  
+  // create new address
+  std::string combinedAddress;
+  if(Configurator::instance()->portDisable){
+    combinedAddress = address;
+  }
+  else {
+    std::stringstream buffer;
+    buffer << address << '_' << port;
+    combinedAddress = buffer.str();
+  }
+  
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
-    if ((*it)->get_address() != address) {
+    if ((*it)->get_ipAddress() != address) {
+      continue;
+    }
+    
+    if(!Configurator::instance()->portDisable && (*it)->get_port() != port){
       continue;
     }
     found = true;
@@ -88,8 +106,9 @@ bool ComputerInfoList::new_packet(const char *address, double ttime, uint32_t ti
     // Insert packet
     known_computer.insert_packet(ttime, timestamp);
     if (known_computer.check_block_finish(ttime)) {
-      update_skew(address, known_computer.NewTimeSegmentList);
+      update_skew(known_computer.get_address(), known_computer.NewTimeSegmentList);
     }
+    std::cout << "packets in line: " << known_computer.get_packets_count() << std::endl;
 
 #if 0
     std::cerr << known_computer.get_address() << ": " << known_computer.get_packet_count() << std::endl;
@@ -97,7 +116,7 @@ bool ComputerInfoList::new_packet(const char *address, double ttime, uint32_t ti
   }
 
   if (!found) {
-    ComputerInfo *new_computer = new ComputerInfo(this, address);
+    ComputerInfo *new_computer = new ComputerInfo(this, address, port);
     new_computer->firstPacketReceived = false;
     new_computer->insert_first_packet(ttime, timestamp);
     computers.push_back(new_computer);

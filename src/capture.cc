@@ -38,6 +38,7 @@
 #include <netinet/tcp.h>
 #include <netinet/ip_icmp.h>
 #include <pthread.h>
+#include <netinet/in_systm.h>
 
 #include "capture.h"
 #include "ComputerInfoList.h"
@@ -49,6 +50,7 @@
 
 /// Capture all packets on the wire
 #define PROMISC 1
+#define LIN_COOK_SIZE 16
 
 /// Pcap session handle
 pcap_t *handle;
@@ -67,13 +69,12 @@ void StopCapturing(int signum) {
 void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
   // Allocate space for an address
   char address[ADDRESS_SIZE];
-  // Ethernet header
-  const struct ether_header *ether = (struct ether_header*) packet;
+  // port
+  u_int16_t port = 0;
   // TCP header
   const struct tcphdr *tcp = NULL;
   // ICMP header
   const struct icmphdr *icmp = NULL;
-  std::string httpRequest;
   // Packet arrival time (us)
   double arrival_time;
   // Timestamp
@@ -86,27 +87,44 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
   static int n_packets = 0;
 
   // Sizes
-  int size_ethernet;
+  int size_link_proto;
   int size_ip;
   int size_tcp;
   bool newIp = false;
+  u_int16_t type_link_proto;
 
-  /// Ethernet
-  size_ethernet = sizeof (struct ether_header);
-  u_int16_t ether_type = ntohs(ether->ether_type);
+  // check physical layer protocol
+  if(Configurator::instance()->datalink == "EN10MB"){
+    // Ethernet header
+    const struct ether_header * ether = (struct ether_header*) packet;
+    /// Ethernet
+    size_link_proto = sizeof (struct ether_header);
+    type_link_proto = ntohs(ether->ether_type);
+    
+  }
+  else if(Configurator::instance()->datalink == "LINUX_SLL"){
+    // Linux Cooked header
+    linux_cooked_hdr * lin_cook = (linux_cooked_hdr*) packet;
+    size_link_proto = LIN_COOK_SIZE;
+    type_link_proto = ntohs(lin_cook->proto_type);
+  }
+  else {
+    std::cerr<< "Unknown physical layer protocol." << std::endl;
+    return;
+  }
 
   /// IPv4
-  if (ether_type == 0x0800) {
+  if (type_link_proto == 0x0800) {
     // IP header
-    const struct ip *ip = (struct ip*) (packet + size_ethernet);
+    const struct ip *ip = (struct ip*) (packet + size_link_proto);
     size_ip = sizeof (struct ip);
     // Check if the packet is ICMP or TCP
     if (ip->ip_p == IPPROTO_ICMP) {
       type = "icmp";
-      icmp = (struct icmphdr*) (packet + size_ethernet + size_ip);
+      icmp = (struct icmphdr*) (packet + size_link_proto + size_ip);
     } else if (ip->ip_p == IPPROTO_TCP) {
       type = "tcp";
-      tcp = (struct tcphdr*) (packet + size_ethernet + size_ip);
+      tcp = (struct tcphdr*) (packet + size_link_proto + size_ip);
     } else
       return;
 
@@ -116,17 +134,17 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
       return;
     }
   }    /// IPv6
-  else if (ether_type == 0x86dd) {
+  else if (type_link_proto == 0x86dd) {
     // IP header
     pokeOk = false;
-    const struct ip6_hdr *ip = (struct ip6_hdr*) (packet + size_ethernet);
+    const struct ip6_hdr *ip = (struct ip6_hdr*) (packet + size_link_proto);
     size_ip = sizeof (struct ip6_hdr);
     /// Check if the packet is TCP
     if (ip->ip6_ctlun.ip6_un1.ip6_un1_nxt != IPPROTO_TCP)
       return;
     type = "tcp";
     /// TCP
-    tcp = (struct tcphdr*) (packet + size_ethernet + size_ip);
+    tcp = (struct tcphdr*) (packet + size_link_proto + size_ip);
     if (inet_ntop(AF_INET6, &(ip->ip6_src), address, 64) == NULL) {
       fprintf(stderr, "Cannot get IP address\n");
       return;
@@ -137,6 +155,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
   }
 
   if (type == "tcp") {
+    port = ntohs(tcp->source);
     // skip TCP headers
     size_tcp = tcp->doff * 4;
     if (size_tcp < 20) {
@@ -157,7 +176,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
 #endif
     }
     /// TCP options
-    u_char *tcp_options = (u_char *) (packet + size_ethernet + size_ip + sizeof (struct tcphdr));
+    u_char *tcp_options = (u_char *) (packet + size_link_proto + size_ip + sizeof (struct tcphdr));
 
     int options_size = size_tcp - 20;
     int options_offset = 0;
@@ -176,9 +195,12 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
 
         /// Save packet
         n_packets++;
-        newIp = !computersTcp->new_packet(address, arrival_time, timestamp);
+        newIp = !computersTcp->new_packet(address, port, arrival_time, timestamp);
         if (Configurator::instance()->verbose) {
-          std::cout << n_packets << ": " << address << " (TCP)" << std::endl;
+          if(!Configurator::instance()->portDisable)
+            std::cout << n_packets << ": " << address << "_" << port << " (TCP)" << std::endl;
+          else
+            std::cout << n_packets << ": " << address << " (TCP)" << std::endl;
         }
         if (newIp) {
           if (pokeOk && !Configurator::instance()->icmpDisable)
@@ -204,8 +226,13 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
           break;
       }
     }
+    
+    if(Configurator::instance()->javacriptDisable){
+      return;
+    }
+    
     // parse HTTP header
-    int remaining_length = header->len - (size_ethernet + size_ip + size_tcp);
+    int remaining_length = header->len - (size_link_proto + size_ip + size_tcp);
     // TCP without HTTP
     if (remaining_length == 0)
       return;
@@ -228,9 +255,12 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     // convert UNIX timestamp to h:m:s:ms
     longTimestamp = longTimestamp % (3600 * 24 * 1000);
     // save new packet
-    computersJavascript->new_packet(address, arrival_time, longTimestamp);
+    computersJavascript->new_packet(address, port, arrival_time, longTimestamp);
     if (Configurator::instance()->verbose) {
-      std::cout << n_packets << ": " << address << " (JS)" << std::endl;
+      if(!Configurator::instance()->portDisable)
+        std::cout << n_packets << ": " << address << "_" << port << " (JS)" << std::endl;
+      else
+        std::cout << n_packets << ": " << address << " (JS)" << std::endl;
     }
     return; // Packet processed
 
@@ -257,7 +287,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     timestamp = (uint32_t) ntohl(*newTimestamp);
     arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
     // save packet 
-    computersIcmp->new_packet(address, arrival_time, timestamp);
+    computersIcmp->new_packet(address, 0, arrival_time, timestamp);
     if (Configurator::instance()->verbose) {
       std::cout << n_packets << ": " << address << " (ICMP)" << std::endl;
     }
@@ -428,6 +458,8 @@ int StartCapturing() {
     time(&rawtime);
     std::cout << "Capturing started at: " << ctime(&rawtime) << std::endl;
   }
+  
+  Configurator::instance()->datalink = pcap_datalink_val_to_name(pcap_datalink(handle));
 
   /// Start capturing TODO
   if (pcap_loop(handle, Configurator::instance()->number, GotPacket, NULL) == -1) {
