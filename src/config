@@ -28,7 +28,7 @@
 #####################
 
 # Interface (eth0, wlan0, any, ...)
-interface eth0
+interface any
 
 # Number of packets to capture (0 for infinity)
 num_packets 0

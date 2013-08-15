@@ -2,3 +2,5 @@
 *.pyc
 src/pcf
 doc/
+/src/nbproject/private/
+/src/nbproject
