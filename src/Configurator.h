@@ -36,7 +36,7 @@ public:
   
   int icmpDisable;
   bool javacriptDisable;
-  bool portDisable;
+  bool portEnable;
   bool verbose;
   bool exportSkewChanges;
     

@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   char filename[] = "config";
   Configurator::instance()->GetConfig(filename);
   Configurator::instance()->logReader = true;
-  Configurator::instance()->portDisable = true;
+  Configurator::instance()->portEnable = false;
   // Open log file
   std::ifstream ifs (argv[1], std::ifstream::in);
   if (ifs.fail()) {

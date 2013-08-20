@@ -45,7 +45,7 @@ ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t 
   ipAddress(its_address), port(its_port), firstPacketReceived(false)
 {
   this->parentList = parentList;
-  if(Configurator::instance()->portDisable){
+  if(!Configurator::instance()->portEnable){
     address = ipAddress;
   }
   else {

@@ -197,7 +197,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
         n_packets++;
         newIp = !computersTcp->new_packet(address, port, arrival_time, timestamp);
         if (Configurator::instance()->verbose) {
-          if(!Configurator::instance()->portDisable)
+          if(Configurator::instance()->portEnable)
             std::cout << n_packets << ": " << address << "_" << port << " (TCP)" << std::endl;
           else
             std::cout << n_packets << ": " << address << " (TCP)" << std::endl;
@@ -257,7 +257,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     // save new packet
     computersJavascript->new_packet(address, port, arrival_time, longTimestamp);
     if (Configurator::instance()->verbose) {
-      if(!Configurator::instance()->portDisable)
+      if(Configurator::instance()->portEnable)
         std::cout << n_packets << ": " << address << "_" << port << " (JS)" << std::endl;
       else
         std::cout << n_packets << ": " << address << " (JS)" << std::endl;

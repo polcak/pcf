@@ -52,7 +52,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
   
   // create new address
   std::string combinedAddress;
-  if(Configurator::instance()->portDisable){
+  if(!Configurator::instance()->portEnable){
     combinedAddress = address;
   }
   else {
@@ -66,7 +66,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
       continue;
     }
     
-    if(!Configurator::instance()->portDisable && (*it)->get_port() != port){
+    if(Configurator::instance()->portEnable && (*it)->get_port() != port){
       continue;
     }
     found = true;

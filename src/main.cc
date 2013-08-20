@@ -48,11 +48,11 @@ void print_help() {
           "  -h\t\tPrint this help\n"
           "  -n\t\tNumber of packets to capture (0 for infinity)\n"
           "  -t\t\tTime for capturing (in seconds, 0 for infinity)\n"
-          "  -p\t\tPort number (1-65535)\n\n"
-          "  -i\t\tDisable ICMP\n\n"
-          "  -j\t\tDisable Javascript\n\n"
-          "  -d\t\tDisable port numbers\n\n"
-          "  -v\t\tVerbose mode\n\n"
+          "  -p\t\tPort number (1-65535)\n"
+          "  -i\t\tDisable ICMP\n"
+          "  -j\t\tDisable Javascript\n"
+          "  -d\t\tDisable port numbers\n"
+          "  -v\t\tVerbose mode\n"
           "Examples:\n"
           "  pcf\n"
           "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
         Configurator::instance()->javacriptDisable = true;
         break;
       case('d'):
-        Configurator::instance()->portDisable = true;
+        Configurator::instance()->portEnable = true;
         break;
       case 'v':
         Configurator::instance()->verbose = true;
