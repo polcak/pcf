@@ -47,7 +47,7 @@ if ($_POST["name"]) {
 }
 
 if (file_exists("data/database.xml")) {
-	$computersTcp = simplexml_load_file("data/database.xml");
+	$computersTcp = simplexml_load_file("data/tcp/database.xml");
 }
 if (file_exists("data/javascript/database.xml")){
 	$computersJavascript = simplexml_load_file("data/javascript/database.xml");
@@ -70,8 +70,6 @@ foreach ($computersJavascript->computer as $computer){
 foreach ($computersIcmp->computer as $computer){
 	addComputer($computer, "icmp");
 }
-
-
 
 echo "<span style='position: absolute; top: 120px; right: 10px'><a href='javascript:fold(200)'>[+/-]</a></span>";
 

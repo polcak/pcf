@@ -3,7 +3,7 @@
 function getDatabaseName($type)
 {
 	$directories = array(
-		"tcp" => "",
+		"tcp" => "tcp/",
 		"javascript" => "javascript/",
 		"icmp" => "icmp/",
 	);

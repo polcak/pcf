@@ -1,9 +1,6 @@
 <!doctype html public "-//W3C//DTD HTML 4.0 //EN">
 <?php 
 $type = $_GET["type"];
-if($type == ""){
-  $type = "tcp";
-}
 ?>
 
 <html>
@@ -25,14 +22,9 @@ include "header.php";
 
 <center>
 <?php
-	if($type == "tcp"){
-		$inputDirectory = "";
-	}
-	else{
-		$inputDirectory = $type . "/";
-	}
+	$inputDirectory = $type . "/";
 	$directory = "graph/" . $inputDirectory;
-	$files = array_diff(scandir($directory), array('..', '.','.gitignore', 'javascript', 'icmp'));
+	$files = array_diff(scandir($directory), array('..', '.','.gitignore', 'tcp' , 'javascript', 'icmp'));
 	foreach ($files as $file) {
 		echo "<img src='graph/" . $inputDirectory . $file . "' alt='$graph'></img>";
 	}

@@ -58,8 +58,8 @@ if (isset($_POST["name"])) {
 	saveComputer("icmp");
 }
 
-if (file_exists("data/active.xml")) {
-	$computersTcp = simplexml_load_file("data/active.xml");
+if (file_exists("data/tcp/active.xml")) {
+	$computersTcp = simplexml_load_file("data/tcp/active.xml");
 }
 if (file_exists("data/javascript/active.xml")){
 	$computersJavascript = simplexml_load_file("data/javascript/active.xml");
