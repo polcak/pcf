@@ -39,6 +39,7 @@ public:
   bool portEnable;
   bool verbose;
   bool exportSkewChanges;
+  std::string datafile;
     
   char dev[10];
   std::string datalink;

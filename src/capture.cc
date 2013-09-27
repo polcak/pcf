@@ -354,10 +354,20 @@ int StartCapturing() {
     std::cerr << "(Can't get netmask for device: " << dev << std::endl;
 
   /// Open the device for sniffing
-  handle = pcap_open_live(dev, BUFSIZ, PROMISC, 1000, errbuf);
-  if (handle == NULL) {
-    std::cerr << "Couldn't open device" << dev << ": " << errbuf << std::endl;
-    return (2);
+  if(Configurator::instance()->datafile.empty()){
+    handle = pcap_open_live(dev, BUFSIZ, PROMISC, 1000, errbuf);
+    if (handle == NULL) {
+      std::cerr << "Couldn't open device" << dev << ": " << errbuf << std::endl;
+      return (2);
+    }
+  }
+  // Open offline pcap file
+  else {
+    handle = pcap_open_offline(Configurator::instance()->datafile.c_str(), errbuf);
+    if (handle == NULL) {
+      std::cerr << "Couldn't open file" << Configurator::instance()->datafile << ": " << errbuf << std::endl;
+      return (2);
+    }  
   }
 
   // TCP

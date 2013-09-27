@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <string.h>
+#include <iostream>
 
 #include "capture.h"
 #include "check_computers.h"
@@ -51,7 +52,8 @@ void print_help() {
           "  -p\t\tPort number (1-65535)\n"
           "  -i\t\tDisable ICMP\n"
           "  -j\t\tDisable Javascript\n"
-          "  -d\t\tDisable port numbers\n"
+          "  -d\t\tEnable port numbers\n"
+          "  -o filename\tRead from pcap file\n"
           "  -v\t\tVerbose mode\n"
           "Examples:\n"
           "  pcf\n"
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]) {
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "ivhen:t:p:jd")) != -1) {
+  while ((c = getopt(argc, argv, "ivhen:t:p:jdo:")) != -1) {
     switch (c) {
       case('i'):
         Configurator::instance()->icmpDisable = true;
@@ -113,6 +115,9 @@ int main(int argc, char *argv[]) {
           Configurator::instance()->port = atoi(optarg);
         else
           fprintf(stderr, "Wrong port number\n");
+        break;
+      case 'o':
+          Configurator::instance()->datafile = optarg;
         break;
     }
   }

@@ -48,6 +48,7 @@ void Configurator::Init()
   javacriptDisable = false;
   portEnable = false;
   datalink = "";
+  datafile = "";
 #ifdef DEBUG
   verbose = true;
 #else
