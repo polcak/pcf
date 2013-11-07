@@ -108,7 +108,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     if (known_computer.check_block_finish(ttime)) {
       update_skew(known_computer.get_address(), known_computer.NewTimeSegmentList);
     }
-    std::cout << "packets in line: " << known_computer.get_packets_count() << std::endl;
+    //std::cout << (*it)->get_ipAddress() << " packets in line: " << known_computer.get_packets_count() << std::endl;
 
 #if 0
     std::cerr << known_computer.get_address() << ": " << known_computer.get_packet_count() << std::endl;
@@ -127,6 +127,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     /// Save active computers
     for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
       if (ttime - (*it)->get_last_packet_time() > Configurator::instance()->timeLimit) {
+        construct_notify((*it)->get_ipAddress());
         delete(*it);
         it = computers.erase(it);
       }
@@ -140,7 +141,12 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
 
 void ComputerInfoList::construct_notify(const std::string &ip, const identity_container &identitites, const TimeSegmentList &s) const {
   AnalysisInfo cs = {ip, identitites, s};
-  Notify(cs);
+  Notify("active", cs);
+}
+
+void ComputerInfoList::construct_notify(const std::string &ip) const {
+  AnalysisInfo cs = {ip};
+  Notify("inactive", cs);
 }
 
 TimeSegmentList * ComputerInfoList::getSkew(std::string ip) {

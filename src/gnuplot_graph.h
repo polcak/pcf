@@ -36,7 +36,7 @@ class gnuplot_graph: public Observer<const AnalysisInfo>
     gnuplot_graph(std::string type){
         this->type = type;
     };
-    virtual void Notify(const AnalysisInfo& changed_skew);
+    virtual void Notify(std::string none, const AnalysisInfo& changed_skew);
     std::string getOutputDirectory(){
         return type + "/";
     }

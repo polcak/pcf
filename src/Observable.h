@@ -53,10 +53,10 @@ class Observable
     /**
      * Notifies all observers
      */
-    virtual void Notify(subject& changed_subject) const
+    virtual void Notify(std::string none, subject& changed_subject) const
     {
       for (auto it = observers.begin(); it != observers.end(); ++it) {
-        (*it)->Notify(changed_subject);
+        (*it)->Notify(none, changed_subject);
       }
     }
 };

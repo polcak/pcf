@@ -41,6 +41,7 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
     std::string type;
     
     void construct_notify(const std::string &ip, const identity_container &identitites, const TimeSegmentList &s) const;
+    void construct_notify(const std::string &ip) const;
     
     TimeSegmentList * getSkew(std::string ip);
 

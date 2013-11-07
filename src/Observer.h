@@ -42,7 +42,7 @@ class Observer
 
   // Public methods
   public:
-    virtual void Notify(subject& changed_subject) = 0;
+    virtual void Notify(std::string activity, subject& changed_subject) = 0;
 };
 
 

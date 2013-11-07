@@ -35,7 +35,7 @@ class SkewChangeExporter: public Observer<const AnalysisInfo>
   public:
     SkewChangeExporter(const std::string& type): source_type(type) {}
 
-    virtual void Notify(const AnalysisInfo& changed_skew);
+    virtual void Notify(std::string activity,const AnalysisInfo& changed_skew);
 
 };
 

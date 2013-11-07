@@ -22,12 +22,12 @@
 
 #include <iostream>
 
-void SkewChangeExporter::Notify(const AnalysisInfo& changed_skew)
+void SkewChangeExporter::Notify(std::string activity, const AnalysisInfo& changed_skew)
 {
 #ifdef DEBUG
   printf("SkewChangeExporter::notify %s\n", changed_skew.Address.c_str());
 #endif
-  std::cout << source_type << '\t' << changed_skew.Address << '\t';
+  std::cout << activity << '\t' << source_type << '\t' << changed_skew.Address << '\t';
   for (auto it = changed_skew.SimilarIdentities.begin(); it != changed_skew.SimilarIdentities.end(); ++it) {
     std::cout << *it << '\t';
   }
