@@ -53,7 +53,7 @@ void process_log_file(std::ifstream &ifs)
 
   while (ifs.good()) {
     ifs >> ttime >> offset >> arrival_time >> timestamp;
-    //offset = offset / 1000;
+    
     if (ifs.good()) {
       computers->new_packet("log_reader", 0, arrival_time, timestamp);
     }

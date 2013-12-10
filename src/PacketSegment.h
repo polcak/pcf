@@ -27,6 +27,8 @@ class PacketSegment {
 public:
       double alpha;
       double beta;
+      double confirmedAlpha;
+      double confirmedBeta;
       packet_iterator first;
       packet_iterator confirmed;
       packet_iterator last;

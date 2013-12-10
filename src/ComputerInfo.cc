@@ -153,6 +153,8 @@ void ComputerInfo::recompute_block(double packet_delivered)
       // New skew confirmed
       confirmedSkew.Alpha = new_skew.Alpha;
       confirmedSkew.Beta = new_skew.Beta;
+      last_skew.confirmedAlpha = new_skew.Alpha;
+      last_skew.confirmedBeta = new_skew.Beta;
       last_skew.confirmed = last_skew.last;
       last_skew.last = --packets.end();
       lastConfirmedPacketTime = packet_delivered;
@@ -172,7 +174,7 @@ void ComputerInfo::recompute_block(double packet_delivered)
   TimeSegmentList s;
   for (std::list<PacketSegment>::iterator it = packetSegmentList.begin(); it != packetSegmentList.end(); ++it) {
     TimeSegment atom = {
-       it->alpha, it->beta,
+       it->confirmedAlpha, it->confirmedBeta,
       (it->first)->Offset.x + get_start_time(),
       (it->last)->Offset.x + get_start_time(),
       (it->first)->Offset.x,
@@ -206,6 +208,8 @@ void ComputerInfo::add_empty_packet_segment(packetTimeInfoList::iterator start)
   PacketSegment skew;
   skew.alpha = UNDEFINED_SKEW;
   skew.beta = UNDEFINED_SKEW;
+  skew.confirmedAlpha = UNDEFINED_SKEW;
+  skew.confirmedBeta = UNDEFINED_SKEW;
   skew.first = start;
   skew.confirmed = start;
   skew.last = --packets.end();

@@ -76,10 +76,8 @@ void Computations::SetOffset(PacketTimeInfo &packet, const PacketTimeInfo &head,
   tmp = packet.Timestamp - head.Timestamp;
   tmp /= freq;
   tmp -= packet.Offset.x;
-
-  if(!Configurator::instance()->logReader)
-    // s -> ms
-    tmp *= 1000;
+  
+  tmp *= 1000;
 
   packet.Offset.y = tmp;
 }
