@@ -2,6 +2,7 @@
 
 <html>
 <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<title>pcf</title>
 	<script type="text/javascript" src="js.js"></script>
 	<style type="text/css">
