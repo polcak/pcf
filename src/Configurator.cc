@@ -70,7 +70,7 @@ void Configurator::Init()
   block = 100;
   timeLimit = 3600;
   threshold = 0.001;
-  logReader = false;
+  reduce = false;
 }
 
 /**

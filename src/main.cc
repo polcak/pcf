@@ -55,6 +55,8 @@ void print_help() {
           "  -d\t\tEnable port numbers\n"
           "  -o filename\tRead from pcap file\n"
           "  -v\t\tVerbose mode\n"
+          "  -r\t\tReduce packets\n"
+          "  -e\t\tIRI-IIF outputs\n"
           "Examples:\n"
           "  pcf\n"
           "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
@@ -78,7 +80,7 @@ int main(int argc, char *argv[]) {
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "ivhen:t:p:jdo:")) != -1) {
+  while ((c = getopt(argc, argv, "ivhen:t:p:jdo:r")) != -1) {
     switch (c) {
       case('i'):
         Configurator::instance()->icmpDisable = true;
@@ -118,6 +120,9 @@ int main(int argc, char *argv[]) {
         break;
       case 'o':
           Configurator::instance()->datafile = optarg;
+        break;
+      case 'r':
+          Configurator::instance()->reduce = true;
         break;
     }
   }

@@ -162,12 +162,17 @@ void ComputerInfo::recompute_block(double packet_delivered)
       printf("%s: New skew confirmed (%g, %g), time %g\n", address.c_str(),
           confirmedSkew.Alpha, confirmedSkew.Beta, last_skew.last->Offset.x);
 #endif
+     if(Configurator::instance()->reduce)
+      if(packets.size() > (unsigned int)(Configurator::instance()->block * 5))
+        reduce_packets(last_skew.first, last_skew.confirmed);
     }
-    else {
+    else {      
       add_empty_packet_segment(--packets.end());
       confirmedSkew.Alpha = UNDEFINED_SKEW;
       confirmedSkew.Beta = UNDEFINED_SKEW;
       lastConfirmedPacketTime = packet_delivered;
+      if(Configurator::instance()->reduce)
+        reduce_packets(last_skew.first, last_skew.last);
     }
   }
 
@@ -177,6 +182,7 @@ void ComputerInfo::recompute_block(double packet_delivered)
        it->confirmedAlpha, it->confirmedBeta,
       (it->first)->Offset.x + get_start_time(),
       (it->last)->Offset.x + get_start_time(),
+       // relative start and end time
       (it->first)->Offset.x,
       (it->last)->Offset.x
     };
@@ -188,7 +194,61 @@ void ComputerInfo::recompute_block(double packet_delivered)
   NewTimeSegmentList = s;
 }
 
-
+void ComputerInfo::reduce_packets(packet_iterator start, packet_iterator end){
+  packet_iterator current = start;
+  current++;
+  // no packets to reduce
+  if(current == packets.end() || current == end){
+    return;
+  }
+  
+  bool reduceMe = false;
+  
+  // there are some packets between start and end
+  while(current != packets.end() && current != end){
+    packet_iterator prev = current;
+    prev--;
+    packet_iterator next = current;
+    next++;
+    if(next == end || next == packets.end()){
+      // last packet can't be reduced
+      break;
+    }
+    
+    // current packet doesn't affect direction of skew
+    if((prev->Offset.y > current->Offset.y) && (current->Offset.y < next->Offset.y))
+      reduceMe = true;
+    
+    // 
+    else if((prev->Offset.y <= current->Offset.y) && (current->Offset.y < next->Offset.y)){
+      double tan_curr = (current->Offset.y - prev->Offset.y) / (current->Offset.x - prev->Offset.x);
+      double tan_next = (next->Offset.y - prev->Offset.y) / (next->Offset.x - prev->Offset.x);
+      if(tan_curr <= tan_next){
+        reduceMe = true;
+      }
+    }
+    // check here
+    else if((prev->Offset.y > current->Offset.y) && (current->Offset.y >= next->Offset.y)){
+      double tan_curr = (current->Offset.y - next->Offset.y) / (current->Offset.x - next->Offset.x);
+      double tan_next = (prev->Offset.y - next->Offset.y) / (next->Offset.x - prev->Offset.x);
+      if(tan_curr <= tan_next){
+        reduceMe = true;
+      }
+    }
+    
+    if(reduceMe){
+      current = packets.erase(current);
+      // check previous packet again
+      current--;
+      if(current == start){
+        current++;
+      }
+    }
+    else {
+      current++;
+    }   
+  }
+}
 
 void ComputerInfo::restart(double packet_delivered, uint32_t timestamp)
 {

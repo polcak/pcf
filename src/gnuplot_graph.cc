@@ -147,7 +147,7 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
   fputs(type.c_str(), f);
 
   // Search for computers with similar skew
-  identity_container similar_devices = changed_skew.SimilarIdentities;
+  /*identity_container similar_devices = changed_skew.SimilarIdentities;
   for (auto it = similar_devices.begin(); it != similar_devices.end(); ++it) {
     fputs("\\n", f);
     fputs(it->c_str(), f);
@@ -157,8 +157,15 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
     }
   else {
     fputs("\" textcolor lt 2", f);
+  }*/
+  
+  identity_container similar_devices = changed_skew.SimilarIdentities;
+  if (similar_devices.empty()) {
+    fputs("\" textcolor lt 1", f);
+    }
+  else {
+    fputs("\" textcolor lt 2", f);
   }
-
   /// Plot
   fputs("\n\n"
         "plot '", f);
@@ -176,16 +183,23 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
     sprintf(tmp, "%u", count);
     fputs (tmp, f);
     fputs ("(x)", f);
-    /// Legend
-    fputs(" title 'f", f);
-    fputs (tmp, f);
-    fputs("(x) = ", f);
-    sprintf(tmp, "%lf", it->alpha);
-    fputs(tmp, f);
-    fputs("*x + ", f);
-    sprintf(tmp, "%lf", it->beta);
-    fputs(tmp, f);
-    fputs("'", f);
+    
+    /// Legend (only last 5)
+    unsigned int dist = distance(computer_skew.cbegin(),computer_skew.cend());
+    if( dist < 5 || count >= (dist - 5)){
+      fputs(" title 'f", f);
+      fputs (tmp, f);
+      fputs("(x) = ", f);
+      sprintf(tmp, "%lf", it->alpha);
+      fputs(tmp, f);
+      fputs("*x + ", f);
+      sprintf(tmp, "%lf", it->beta);
+      fputs(tmp, f);
+      fputs("'", f);
+    }
+    else{
+      fputs(" notitle", f);
+    }
   }
 
   fputs("\n", f);

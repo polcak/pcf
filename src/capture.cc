@@ -112,6 +112,12 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     std::cerr<< "Unknown physical layer protocol." << std::endl;
     return;
   }
+  
+  // VLAN
+  if(type_link_proto == 0x8100){
+    type_link_proto = ntohs(*((uint16_t *)(packet + size_link_proto) + 1));
+    size_link_proto += 4;
+  }
 
   /// IPv4
   if (type_link_proto == 0x0800) {
@@ -401,7 +407,7 @@ int StartCapturing() {
     filter += ")";
   }
 
-  filter += ") || (icmp && icmp[icmptype] == icmp-tstampreply)";
+  filter += ") || (icmp && icmp[icmptype] == icmp-tstampreply) || (vlan)";
 
 #ifdef DEBUG
   std::cout << "Filter: " << filter << std::endl;

@@ -22,6 +22,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 
 #include "Configurator.h"
 #include "ComputerInfoList.h"
@@ -66,18 +67,28 @@ void process_log_file(std::ifstream &ifs)
 
 int main(int argc, char *argv[])
 {
-  if ((argc < 2) || (std::strcmp(argv[1], "-h") == 0)) {
-    print_help();
-    return 1;
-  }
-
   // Get config
   char filename[] = "config";
   Configurator::instance()->GetConfig(filename);
-  Configurator::instance()->logReader = true;
-  Configurator::instance()->portEnable = false;
+  
+  int c;
+  opterr = 0;
+  while ((c = getopt(argc, argv, "hrd")) != -1) {
+    switch (c) {
+      case('r'):
+        Configurator::instance()->reduce = true;
+        break;
+      case('h'):
+        print_help();
+        return 0;
+      case('d'):
+        Configurator::instance()->portEnable = true;
+        break;
+    }
+  }
+  
   // Open log file
-  std::ifstream ifs (argv[1], std::ifstream::in);
+  std::ifstream ifs (argv[argc-1], std::ifstream::in);
   if (ifs.fail()) {
     std::cerr << "Failed to open file " << argv[1] << std::endl;
     return 2;

@@ -40,6 +40,7 @@ public:
   bool verbose;
   bool exportSkewChanges;
   std::string datafile;
+  bool reduce;
     
   char dev[10];
   std::string datalink;
@@ -59,8 +60,6 @@ public:
   int block;
   int timeLimit;
   double threshold;
-  bool logReader;
-  
   
   void Init();
 
