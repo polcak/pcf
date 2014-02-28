@@ -46,6 +46,7 @@ void gnuplot_graph::Notify(std::string none, const AnalysisInfo& changed_skew)
 void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
 {
   const std::string& address = changed_skew.Address;
+  //std::cout << "generating graph for ip " << address << " " << type << std::endl;
   const TimeSegmentList& computer_skew = changed_skew.ClockSkewList;
 
   // get output directory according to type
@@ -186,7 +187,7 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
     
     /// Legend (only last 5)
     unsigned int dist = distance(computer_skew.cbegin(),computer_skew.cend());
-    if( dist < 5 || count >= (dist - 5)){
+    if( dist < 5 || count > (dist - 5)){
       fputs(" title 'f", f);
       fputs (tmp, f);
       fputs("(x) = ", f);

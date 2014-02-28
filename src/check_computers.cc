@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <iostream>
 #include <math.h>
 #include <time.h>
 #include <libxml/parser.h>
@@ -77,7 +78,7 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
   if (access(database, F_OK) != 0) {
     return false;
   }
-
+  //std::cout << "-------find comp in saved--------" << std::endl;
   xmlDoc *xml_doc = xmlReadFile(database, NULL, 0);
 
   if (xml_doc == NULL) {
@@ -130,20 +131,20 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
   return true;
 }
 
-int save_active(const std::list<ComputerInfo *> &all_computers, const char *active, ComputerInfoList &computers)
+int save_active(const std::list<ComputerInfo *> &all_computers, const char *file, ComputerInfoList &computers)
 {
   xmlDocPtr doc;
-  xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL;
+  xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL, node_child2 = NULL;
 
   std::string activeFilename = Configurator::xmlDir + computers.getOutputDirectory();
-  activeFilename.append(active);
+  activeFilename.append(file);
   
   /// File doesn't exist yet
   if (first_computer(activeFilename.c_str()) != 0) {
     fprintf(stderr, "Cannot create XML file: %s\n", activeFilename.c_str());
     return(1);
   }
-    
+  
   doc = xmlParseFile(activeFilename.c_str());
   if (doc == NULL ) {
     fprintf(stderr, "XML document not parsed successfully: %s\n", activeFilename.c_str());
@@ -165,33 +166,27 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *acti
   
   for (auto it = all_computers.begin(); it != all_computers.end(); ++it) {
     
+    // Skip computers when frequency is 0
     if ((*it)->get_freq() == 0) {
 #ifdef DEBUG
       fprintf(stderr, "XML: skipping %s - frequency is 0\n", (*it)->get_address().c_str());
 #endif
       continue;
     }
-  
-    /// <computer skew>
-    node = xmlNewNode(NULL, BAD_CAST "computer");
-    char tmp[30];
-    sprintf(tmp, "%lf", (*it)->get_last_packet_segment().alpha);
-    xmlNewProp(node, BAD_CAST "skew", BAD_CAST tmp);
-    xmlAddChild(nodeptr , node);
-
-    // find computers with similar clock skew
-    identity_container similar_skew = computers.get_similar_identities((*it)->get_address());
-    for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
-      /// <identity>
-      node_child = xmlNewNode(NULL, BAD_CAST "identity");
-      /// <name>
-      xmlNewChild(node_child, NULL, BAD_CAST "name", BAD_CAST skew_it->c_str());
-      // Add to tree
-      xmlAddChild(node, node_child);
+    
+    // Skip computers with clock synchronization (ntp deamon)
+    if (fabs((*it)->get_last_packet_segment().alpha) < 0.001){
+      continue;
     }
-
-    /// <address>
-    node_child = xmlNewChild(node, NULL, BAD_CAST "address", BAD_CAST (*it)->get_address().c_str());
+  
+    char tmp[30];
+    
+    /// <computer>
+    node = xmlNewNode(NULL, BAD_CAST "computer");
+    xmlAddChild(nodeptr, node);
+    
+    /// <ip>
+    node_child = xmlNewChild(node, NULL, BAD_CAST "ip", BAD_CAST (*it)->get_address().c_str());
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
@@ -213,8 +208,41 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *acti
     xmlAddChild(node, node_child);
     xmlAddChild(nodeptr, node);
     
+    /// <skews>
+    node_child = xmlNewChild(node, NULL, BAD_CAST "skews", NULL);
+    xmlAddChild(node, node_child);
+    xmlAddChild(nodeptr, node);
+    
+    /// <skew>
+    // resp. <skew val=x from=y to=z>
+    for (auto iter = ((*it)->timeSegmentList).cbegin(); iter != ((*it)->timeSegmentList).cend(); ++iter){
+      node_child2 = xmlNewChild(node_child, NULL, BAD_CAST "skew", NULL);
+      sprintf(tmp, "%lf", iter->alpha);
+      xmlNewProp(node_child2, BAD_CAST "value", BAD_CAST tmp);
+      sprintf(tmp, "%f", iter->relativeStartTime);
+      xmlNewProp(node_child2, BAD_CAST "from", BAD_CAST tmp);
+      sprintf(tmp, "%f", iter->relativeEndTime);
+      xmlNewProp(node_child2, BAD_CAST "to", BAD_CAST tmp);
+      
+      xmlAddChild(node_child, node_child2);
+      xmlAddChild(node, node_child);
+      xmlAddChild(nodeptr, node);
+    }
+    
+    // find computers with similar clock skew
+    identity_container similar_skew = computers.get_similar_identities((*it)->get_address());
+    
+    for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
+      /// <identity>
+      node_child = xmlNewNode(NULL, BAD_CAST "identity");
+      /// <name>
+      xmlNewChild(node_child, NULL, BAD_CAST "name", BAD_CAST skew_it->c_str());
+      // Add to tree
+      xmlAddChild(node, node_child);
+    }
+    
     /// Save
-    xmlSaveFileEnc(activeFilename.c_str(), doc, MY_ENCODING);
+    xmlSaveFormatFileEnc(activeFilename.c_str(), doc, MY_ENCODING, 1);
 
 #ifdef DEBUG
     fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", (*it)->get_address().c_str(), (*it)->get_freq(), (*it)->get_last_packet_segment().alpha);
@@ -222,6 +250,6 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *acti
   }
   
   xmlFreeDoc(doc);
-  
+  //std::cout << "-------active saved----" << activeFilename << "----" << std::endl;
   return(0);
 }

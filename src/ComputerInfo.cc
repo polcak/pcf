@@ -127,6 +127,7 @@ void ComputerInfo::recompute_block(double packet_delivered)
 
   /// Save Offsets into file
   save_packets(1);
+  //std::cout << "packets saved " << address << std::endl;
 
   /// Recompute skew for graph
   PacketSegment &last_skew = *packetSegmentList.rbegin();
@@ -163,7 +164,7 @@ void ComputerInfo::recompute_block(double packet_delivered)
           confirmedSkew.Alpha, confirmedSkew.Beta, last_skew.last->Offset.x);
 #endif
      if(Configurator::instance()->reduce)
-      if(packets.size() > (unsigned int)(Configurator::instance()->block * 5))
+      if(packets.size() > (unsigned int)(Configurator::instance()->block * 15))
         reduce_packets(last_skew.first, last_skew.confirmed);
     }
     else {      

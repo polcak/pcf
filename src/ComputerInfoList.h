@@ -25,6 +25,7 @@
 #include "Observer.h"
 #include "Observable.h"
 #include "ComputerInfo.h"
+#include "gnuplot_graph.h"
 
 /**
  * All informations known about a set of computers.
@@ -47,6 +48,8 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
 
   // Constructors
   public:
+    // create graph instead of using observers
+    gnuplot_graph * graph_creator;
     ComputerInfoList(std::string type): last_inactive(time(NULL)), type(type)
     {}
     

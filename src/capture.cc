@@ -407,7 +407,8 @@ int StartCapturing() {
     filter += ")";
   }
 
-  filter += ") || (icmp && icmp[icmptype] == icmp-tstampreply) || (vlan)";
+  filter += ") || (icmp && icmp[icmptype] == icmp-tstampreply)";
+  filter += " || (vlan)";
 
 #ifdef DEBUG
   std::cout << "Filter: " << filter << std::endl;
@@ -434,12 +435,18 @@ int StartCapturing() {
   computersJavascript = new ComputerInfoList("javascript");
   computersIcmp = new ComputerInfoList("icmp");
   // ComputerInfoList computers(Configurator::instance()->active, Configurator::instance()->database, Configurator::instance()->block, Configurator::instance()->timeLimit, Configurator::instance()->threshold);
+  
   gnuplot_graph graph_creator_tcp("tcp");
   gnuplot_graph graph_creator_javascript("javascript");
   gnuplot_graph graph_creator_icmp("icmp");
-  computersTcp->AddObserver(&graph_creator_tcp);
+  
+  /*computersTcp->AddObserver(&graph_creator_tcp);
   computersIcmp->AddObserver(&graph_creator_icmp);
-  computersJavascript->AddObserver(&graph_creator_javascript);
+  computersJavascript->AddObserver(&graph_creator_javascript);*/
+  computersTcp->graph_creator = &graph_creator_tcp;
+  computersJavascript->graph_creator = &graph_creator_javascript;
+  computersIcmp->graph_creator = &graph_creator_icmp;
+  
   if (Configurator::instance()->exportSkewChanges) {
     computersTcp->AddObserver(new SkewChangeExporter("tcp"));
     computersIcmp->AddObserver(new SkewChangeExporter("icmp"));

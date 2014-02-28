@@ -28,6 +28,7 @@
 #include "check_computers.h"
 #include "Configurator.h"
 #include "ComputerInfoIcmp.h"
+#include "gnuplot_graph.h"
 
 ComputerInfoList::~ComputerInfoList() {
 }
@@ -120,11 +121,15 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     new_computer->firstPacketReceived = false;
     new_computer->insert_first_packet(ttime, timestamp);
     computers.push_back(new_computer);
+    //std::cout << "**saving active not found**" << std::endl;
     save_active(computers, Configurator::instance()->active, *this);
   }
-
-  if (ttime > (last_inactive + Configurator::instance()->timeLimit / 4)) {
-    /// Save active computers
+  
+  // timeLimit = 3600 s (default)
+  // removed "if (ttime > (last_inactive + Configurator::instance()->timeLimit / 4))"
+  // xml refresh every 9 minutes
+  if (ttime > (last_inactive + 540)) {
+    /// Save active computers & erase inactive
     for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
       if (ttime - (*it)->get_last_packet_time() > Configurator::instance()->timeLimit) {
         construct_notify((*it)->get_ipAddress());
@@ -132,7 +137,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
         it = computers.erase(it);
       }
     }
-
+    std::cout << "*****saving active computers*****" << std::endl;
     save_active(computers, Configurator::instance()->active, *this);
     last_inactive = ttime;
   }
@@ -171,9 +176,10 @@ void ComputerInfoList::update_skew(const std::string &ip, const TimeSegmentList 
   //
   *(getSkew(ip)) = s;
 
-  // Notify observers
+  // Notify observers (skew_change_exporter only)
   identity_container new_identities = get_similar_identities(ip);
   construct_notify(ip, new_identities, s);
+  
 
   for (identity_container::iterator it = old_identities.begin(); it != old_identities.end(); ++it) {
     if (new_identities.find(*it) == new_identities.end()) {
@@ -186,6 +192,10 @@ void ComputerInfoList::update_skew(const std::string &ip, const TimeSegmentList 
       construct_notify(*it, get_similar_identities(*it), *(getSkew(ip)));
     }
   }
+  
+  // update current graph (originaly notified by observer)
+  AnalysisInfo cs = {ip, new_identities, s};
+  graph_creator->Notify("", cs);
 }
 
 const identity_container ComputerInfoList::get_similar_identities(const std::string &ip) {
@@ -197,9 +207,10 @@ const identity_container ComputerInfoList::get_similar_identities(const std::str
     return identities;
   }
 
-  if (reference_skew->is_constant()) {
+  // find IP in xml database
+  /*if (reference_skew->is_constant()) {
     find_computer_in_saved(reference_skew->get_last_alpha(), identities, Configurator::instance()->threshold, Configurator::instance()->database);
-  }
+  }*/
 
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
     if ((*it)->get_address() == ip) {
