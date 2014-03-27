@@ -1,28 +1,29 @@
 /**
- * Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
- *                    Libor Polčák <ipolcak@fit.vutbr.cz>
- *                    Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
- * 
- * This file is part of pcf - PC fingerprinter.
- *
- * Pcf is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Pcf is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with pcf. If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2012 Jakub Jirasek <xjiras02@stud.fit.vutbr.cz>
+* Libor Polčák <ipolcak@fit.vutbr.cz>
+* Barbora Frankova <xfrank08@stud.fit.vutbr.cz>
+*
+* This file is part of pcf - PC fingerprinter.
+*
+* Pcf is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* Pcf is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with pcf. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <time.h>
 #include <libxml/parser.h>
@@ -113,7 +114,7 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
           }
 
           if (strcmp((char *) computer_child_node->name, "name") == 0) {
-            xmlChar *computer_name  = xmlNodeGetContent(computer_child_node);
+            xmlChar *computer_name = xmlNodeGetContent(computer_child_node);
             if (computer_name != NULL) {
               identities.insert((char *) computer_name);
               name_reached = true;
@@ -136,30 +137,31 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
   xmlDocPtr doc;
   xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL, node_child2 = NULL;
 
+  std::string tempFilename = Configurator::xmlDir + computers.getOutputDirectory() + "temp.xml";
   std::string activeFilename = Configurator::xmlDir + computers.getOutputDirectory();
   activeFilename.append(file);
   
   /// File doesn't exist yet
-  if (first_computer(activeFilename.c_str()) != 0) {
-    fprintf(stderr, "Cannot create XML file: %s\n", activeFilename.c_str());
+  if (first_computer(tempFilename.c_str()) != 0) {
+    fprintf(stderr, "Cannot create XML file: %s\n", tempFilename.c_str());
     return(1);
   }
   
-  doc = xmlParseFile(activeFilename.c_str());
+  doc = xmlParseFile(tempFilename.c_str());
   if (doc == NULL ) {
-    fprintf(stderr, "XML document not parsed successfully: %s\n", activeFilename.c_str());
+    fprintf(stderr, "XML document not parsed successfully: %s\n", tempFilename.c_str());
     return(1);
   }
   
   nodeptr = xmlDocGetRootElement(doc);
   if (nodeptr == NULL) {
-    xmlFreeDoc(doc); 
+    xmlFreeDoc(doc);
     return(1);
   }
   
   /// Check root (<computers>)
   if (xmlStrcmp(nodeptr->name, (const xmlChar *) "computers")) {
-    fprintf(stderr, "XML document of the wrong type: %s\n", activeFilename.c_str());
+    fprintf(stderr, "XML document of the wrong type: %s\n", tempFilename.c_str());
     xmlFreeDoc(doc);
     return(1);
   }
@@ -242,14 +244,27 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     }
     
     /// Save
-    xmlSaveFormatFileEnc(activeFilename.c_str(), doc, MY_ENCODING, 1);
+    xmlSaveFormatFileEnc(tempFilename.c_str(), doc, MY_ENCODING, 1);
 
 #ifdef DEBUG
     fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", (*it)->get_address().c_str(), (*it)->get_freq(), (*it)->get_last_packet_segment().alpha);
 #endif
   }
-  
+
   xmlFreeDoc(doc);
-  //std::cout << "-------active saved----" << activeFilename << "----" << std::endl;
-  return(0);
+  std::ifstream activeFileStream(activeFilename.c_str());
+  // active.xml exists and has to be removed
+  if (activeFileStream.good()) {
+    if (remove(activeFilename.c_str())) {
+      fprintf(stderr, "XML document could not be removed: %s\n", tempFilename.c_str());
+      return (1);
+    }
+  }
+  // rename temp.xml to active.xml
+  if (rename(tempFilename.c_str(), activeFilename.c_str())) {
+    fprintf(stderr, "XML document could not be replaced by temporary file: %s\n", tempFilename.c_str());
+    return (1);
+  }
+
+  return (0);
 }
