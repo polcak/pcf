@@ -260,6 +260,11 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
       return (1);
     }
   }
+  
+  std::ifstream tempFileStream(activeFilename.c_str());
+  while(1){
+    if(tempFileStream.good()) break;
+  }
   // rename temp.xml to active.xml
   if (rename(tempFilename.c_str(), activeFilename.c_str())) {
     fprintf(stderr, "XML document could not be replaced by temporary file: %s\n", tempFilename.c_str());
