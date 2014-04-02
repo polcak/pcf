@@ -261,7 +261,7 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     }
   }
   
-  std::ifstream tempFileStream(activeFilename.c_str());
+  std::ifstream tempFileStream(tempFilename.c_str());
   while(1){
     if(tempFileStream.good()) break;
   }
