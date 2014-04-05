@@ -25,13 +25,6 @@
 #include "ComputerInfoList.h"
 
 /**
- * Make the main structure of the document
- * @param[in] filename Filename
- * @return 0 if ok
- */
-int first_computer(const char *filename);
-
-/**
  * Conversts time to its string representation in human readable format
  * @param[out] buffer       Pre-allocated buffer where the output is stored
  * @param[in] buffer_size   Size of the buffer

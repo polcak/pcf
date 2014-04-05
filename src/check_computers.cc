@@ -40,39 +40,6 @@
 
 #define MY_ENCODING "UTF-8"
 
-int first_computer(const char *filename)
-{
-  int rc;
-  xmlTextWriterPtr writer;
-  xmlDocPtr doc;
-  
-  writer = xmlNewTextWriterDoc(&doc, 0);
-  if (writer == NULL)
-    return(1);
-
-  /// Default header
-  rc = xmlTextWriterStartDocument(writer, NULL, MY_ENCODING, NULL);
-  if (rc < 0)
-    return(1);
-
-  /// Root node <computers>
-  rc = xmlTextWriterStartElement(writer, BAD_CAST "computers");
-  if (rc < 0)
-    return(1);
-  
-  /// </computers>
-  rc = xmlTextWriterEndDocument(writer);
-  if (rc < 0)
-    return(1);
-
-  /// Save
-  xmlFreeTextWriter(writer);
-  xmlSaveFileEnc(filename, doc, MY_ENCODING);
-  xmlFreeDoc(doc);
-  
-  return(0);
-}
-
 bool find_computer_in_saved(double referenced_skew, identity_container &identities, const double THRESHOLD, const char *database)
 {
   /// No computers
@@ -134,45 +101,25 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
 
 int save_active(const std::list<ComputerInfo *> &all_computers, const char *file, ComputerInfoList &computers)
 {
-  xmlDocPtr doc;
-  xmlNodePtr nodeptr = NULL, node = NULL, node_child = NULL, node_child2 = NULL;
-
   std::string tempFilename = Configurator::xmlDir + computers.getOutputDirectory() + "temp.xml";
   std::string activeFilename = Configurator::xmlDir + computers.getOutputDirectory();
   activeFilename.append(file);
   
-  /// File doesn't exist yet
-  if (first_computer(tempFilename.c_str()) != 0) {
-    fprintf(stderr, "Cannot create XML file: %s\n", tempFilename.c_str());
+  std::fstream tempFileStream;
+  tempFileStream.open(tempFilename.c_str(), std::ios::out | std::ios::trunc);
+  
+  if(!tempFileStream){
+    fprintf(stderr, "Temporary XML document could not be opened: %s\n", tempFilename.c_str());
     return(1);
   }
   
-  doc = xmlParseFile(tempFilename.c_str());
-  if (doc == NULL ) {
-    fprintf(stderr, "XML document not parsed successfully: %s\n", tempFilename.c_str());
-    return(1);
-  }
-  
-  nodeptr = xmlDocGetRootElement(doc);
-  if (nodeptr == NULL) {
-    xmlFreeDoc(doc);
-    return(1);
-  }
-  
-  /// Check root (<computers>)
-  if (xmlStrcmp(nodeptr->name, (const xmlChar *) "computers")) {
-    fprintf(stderr, "XML document of the wrong type: %s\n", tempFilename.c_str());
-    xmlFreeDoc(doc);
-    return(1);
-  }
+  tempFileStream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+  tempFileStream << "<computers>\n";
   
   for (auto it = all_computers.begin(); it != all_computers.end(); ++it) {
     
     // Skip computers when frequency is 0
     if ((*it)->get_freq() == 0) {
-#ifdef DEBUG
-      fprintf(stderr, "XML: skipping %s - frequency is 0\n", (*it)->get_address().c_str());
-#endif
       continue;
     }
     
@@ -184,74 +131,53 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     char tmp[30];
     
     /// <computer>
-    node = xmlNewNode(NULL, BAD_CAST "computer");
-    xmlAddChild(nodeptr, node);
+    tempFileStream << "\t<computer>\n";
     
     /// <ip>
-    node_child = xmlNewChild(node, NULL, BAD_CAST "ip", BAD_CAST (*it)->get_address().c_str());
-    xmlAddChild(node, node_child);
-    xmlAddChild(nodeptr, node);
+    tempFileStream << "\t\t<ip>" << (*it)->get_address() << "</ip>\n";
     
     /// <freq>
     sprintf(tmp, "%d", (*it)->get_freq());
-    node_child = xmlNewChild(node, NULL, BAD_CAST "frequency", BAD_CAST tmp);
-    xmlAddChild(node, node_child);
-    xmlAddChild(nodeptr, node);
+    tempFileStream << "\t\t<frequency>" << tmp << "</frequency>\n";
     
     /// <packets>
     sprintf(tmp, "%ld", (*it)->get_packets_count());
-    node_child = xmlNewChild(node, NULL, BAD_CAST "packets", BAD_CAST tmp);
-    xmlAddChild(node, node_child);
-    xmlAddChild(nodeptr, node);
+    tempFileStream << "\t\t<packets>" << tmp << "</packets>\n";
     
     /// <date>
     const time_t last = (*it)->get_last_packet_time();
-    node_child = xmlNewChild(node, NULL, BAD_CAST "date", BAD_CAST ctime(&last));
-    xmlAddChild(node, node_child);
-    xmlAddChild(nodeptr, node);
+    tempFileStream << "\t\t<date>" << ctime(&last) << "</date>\n";
     
     /// <skews>
-    node_child = xmlNewChild(node, NULL, BAD_CAST "skews", NULL);
-    xmlAddChild(node, node_child);
-    xmlAddChild(nodeptr, node);
+    tempFileStream << "\t\t<skews>\n";
     
     /// <skew>
     // resp. <skew val=x from=y to=z>
     for (auto iter = ((*it)->timeSegmentList).cbegin(); iter != ((*it)->timeSegmentList).cend(); ++iter){
-      node_child2 = xmlNewChild(node_child, NULL, BAD_CAST "skew", NULL);
       sprintf(tmp, "%lf", iter->alpha);
-      xmlNewProp(node_child2, BAD_CAST "value", BAD_CAST tmp);
+      tempFileStream << "\t\t\t<skew value=\"" << tmp << "\" ";
       sprintf(tmp, "%f", iter->relativeStartTime);
-      xmlNewProp(node_child2, BAD_CAST "from", BAD_CAST tmp);
+      tempFileStream << "from=\"" << tmp << "\" ";
       sprintf(tmp, "%f", iter->relativeEndTime);
-      xmlNewProp(node_child2, BAD_CAST "to", BAD_CAST tmp);
-      
-      xmlAddChild(node_child, node_child2);
-      xmlAddChild(node, node_child);
-      xmlAddChild(nodeptr, node);
+      tempFileStream << "to=\"" << tmp << "\"/>\n";
     }
+    tempFileStream << "\t\t</skews>\n";
     
     // find computers with similar clock skew
     identity_container similar_skew = computers.get_similar_identities((*it)->get_address());
     
     for (auto skew_it = similar_skew.begin(); skew_it != similar_skew.end(); ++skew_it) {
       /// <identity>
-      node_child = xmlNewNode(NULL, BAD_CAST "identity");
+      tempFileStream << "\t\t<identity>\n";
       /// <name>
-      xmlNewChild(node_child, NULL, BAD_CAST "name", BAD_CAST skew_it->c_str());
-      // Add to tree
-      xmlAddChild(node, node_child);
+      tempFileStream << "\t\t\t<name>"  << *skew_it << "</name>\n";
+	  tempFileStream << "\t\t</identity>\n";
     }
-    
-    /// Save
-    xmlSaveFormatFileEnc(tempFilename.c_str(), doc, MY_ENCODING, 1);
-
-#ifdef DEBUG
-    fprintf(stderr, "XML: saved %s: frequency %d, skew %lf\n", (*it)->get_address().c_str(), (*it)->get_freq(), (*it)->get_last_packet_segment().alpha);
-#endif
+    tempFileStream << "\t</computer>\n";
   }
-
-  xmlFreeDoc(doc);
+  tempFileStream << "</computers>\n";
+  tempFileStream.close();
+  
   std::ifstream activeFileStream(activeFilename.c_str());
   // active.xml exists and has to be removed
   if (activeFileStream.good()) {
@@ -261,15 +187,10 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     }
   }
   
-  std::ifstream tempFileStream(tempFilename.c_str());
-  while(1){
-    if(tempFileStream.good()) break;
-  }
   // rename temp.xml to active.xml
   if (rename(tempFilename.c_str(), activeFilename.c_str())) {
     fprintf(stderr, "XML document could not be replaced by temporary file: %s\n", tempFilename.c_str());
     return (1);
   }
-
   return (0);
 }
