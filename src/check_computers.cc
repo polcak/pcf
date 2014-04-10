@@ -31,6 +31,7 @@
 #include <libxml/xmlwriter.h>
 #include <stdbool.h>
 #include <string.h>
+#include <iomanip>
 
 #include "check_computers.h"
 #include "ComputerInfo.h"
@@ -117,18 +118,16 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
   tempFileStream << "<computers>\n";
   
   for (auto it = all_computers.begin(); it != all_computers.end(); ++it) {
-    
+    std::cout << "computer "<< (*it)->get_address() << std::endl;
     // Skip computers when frequency is 0
     if ((*it)->get_freq() == 0) {
       continue;
     }
-    
+
     // Skip computers with clock synchronization (ntp deamon)
     if (fabs((*it)->get_last_packet_segment().alpha) < 0.001){
       continue;
     }
-  
-    char tmp[30];
     
     /// <computer>
     tempFileStream << "\t<computer>\n";
@@ -137,12 +136,10 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     tempFileStream << "\t\t<ip>" << (*it)->get_address() << "</ip>\n";
     
     /// <freq>
-    sprintf(tmp, "%d", (*it)->get_freq());
-    tempFileStream << "\t\t<frequency>" << tmp << "</frequency>\n";
+    tempFileStream << "\t\t<frequency>" << (*it)->get_freq() << "</frequency>\n";
     
     /// <packets>
-    sprintf(tmp, "%ld", (*it)->get_packets_count());
-    tempFileStream << "\t\t<packets>" << tmp << "</packets>\n";
+    tempFileStream << "\t\t<packets>" << (*it)->get_packets_count() << "</packets>\n";
     
     /// <date>
     const time_t last = (*it)->get_last_packet_time();
@@ -151,16 +148,16 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     /// <skews>
     tempFileStream << "\t\t<skews>\n";
     
+    tempFileStream.setf(std::ios::fixed);
+    tempFileStream.precision(6);
     /// <skew>
     // resp. <skew val=x from=y to=z>
     for (auto iter = ((*it)->timeSegmentList).cbegin(); iter != ((*it)->timeSegmentList).cend(); ++iter){
-      sprintf(tmp, "%lf", iter->alpha);
-      tempFileStream << "\t\t\t<skew value=\"" << tmp << "\" ";
-      sprintf(tmp, "%f", iter->relativeStartTime);
-      tempFileStream << "from=\"" << tmp << "\" ";
-      sprintf(tmp, "%f", iter->relativeEndTime);
-      tempFileStream << "to=\"" << tmp << "\"/>\n";
+      tempFileStream << "\t\t\t<skew value=\""  << iter->alpha << "\" ";
+      tempFileStream << "from=\"" << iter->relativeStartTime << "\" ";
+      tempFileStream << "to=\"" << iter->relativeEndTime << "\"/>\n";    
     }
+    tempFileStream.unsetf(std::ios::fixed);
     tempFileStream << "\t\t</skews>\n";
     
     // find computers with similar clock skew
@@ -177,7 +174,7 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
   }
   tempFileStream << "</computers>\n";
   tempFileStream.close();
-  
+
   std::ifstream activeFileStream(activeFilename.c_str());
   // active.xml exists and has to be removed
   if (activeFileStream.good()) {
