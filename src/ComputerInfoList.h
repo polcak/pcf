@@ -50,7 +50,7 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
   public:
     // create graph instead of using observers
     gnuplot_graph * graph_creator;
-    ComputerInfoList(std::string type): last_inactive(time(NULL)), type(type)
+    ComputerInfoList(std::string type): last_inactive(time(NULL)), type(type), lastXMLupdate(0)
     {}
     
     ~ComputerInfoList();
@@ -92,6 +92,7 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
     const identity_container get_similar_identities(const std::string &ip);
 
     void to_poke_or_not_to_poke(std::string address);
+    time_t lastXMLupdate;
 };
 
 #endif

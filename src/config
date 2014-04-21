@@ -77,5 +77,8 @@ THRESHOLD 0.001
 # Number of packets to do block operations
 BLOCK 50
 
-# Time limit for removing old lists (seconds)
+# Time limit for removing old lists (seconds) and active.xml update
 TIME_LIMIT 3600
+
+# Minimum time limit for active.xml refresh
+REFRESH_TIME_LIMIT 60

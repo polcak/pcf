@@ -102,6 +102,13 @@ bool find_computer_in_saved(double referenced_skew, identity_container &identiti
 
 int save_active(const std::list<ComputerInfo *> &all_computers, const char *file, ComputerInfoList &computers)
 {
+  // check if time limit passed
+  time_t currentTime;
+  time(&currentTime);
+  if((double)(currentTime - computers.lastXMLupdate) < Configurator::instance()->xmlRefreshLimit){
+    return(0);
+  }
+  
   std::string tempFilename = Configurator::xmlDir + computers.getOutputDirectory() + "temp.xml";
   std::string activeFilename = Configurator::xmlDir + computers.getOutputDirectory();
   activeFilename.append(file);
@@ -118,7 +125,6 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
   tempFileStream << "<computers>\n";
   
   for (auto it = all_computers.begin(); it != all_computers.end(); ++it) {
-    std::cout << "computer "<< (*it)->get_address() << std::endl;
     // Skip computers when frequency is 0
     if ((*it)->get_freq() == 0) {
       continue;
@@ -189,5 +195,7 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     fprintf(stderr, "XML document could not be replaced by temporary file: %s\n", tempFilename.c_str());
     return (1);
   }
+  // update time of last xml refresh
+  time(&(computers.lastXMLupdate));
   return (0);
 }

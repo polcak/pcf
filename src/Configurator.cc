@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 #include <string.h>
 #include "Configurator.h"
 
@@ -71,6 +72,7 @@ void Configurator::Init()
   timeLimit = 3600;
   threshold = 0.001;
   reduce = false;
+  xmlRefreshLimit = 60;
 }
 
 /**
@@ -227,6 +229,12 @@ void Configurator::GetConfig(const char *filename)
         threshold = atof(value);
         /*if (threshold == 0.0)
           threshold = 0.001;*/
+      }
+      // REFRESH_TIME_LIMIT
+      else if (strcmp(name, "REFRESH_TIME_LIMIT") == 0) {
+        xmlRefreshLimit = atof(value);
+        if (xmlRefreshLimit == 0)
+          xmlRefreshLimit = 60;
       }
     }
   }

@@ -60,6 +60,7 @@ public:
   int block;
   int timeLimit;
   double threshold;
+  double xmlRefreshLimit;
   
   void Init();
 

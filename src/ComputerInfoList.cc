@@ -128,7 +128,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
   // timeLimit = 3600 s (default)
   // removed "if (ttime > (last_inactive + Configurator::instance()->timeLimit / 4))"
   // xml refresh every 9 minutes
-  if (ttime > (last_inactive + 540)) {
+  if (ttime > (last_inactive + 30)) {
     /// Save active computers & erase inactive
     for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
       if (ttime - (*it)->get_last_packet_time() > Configurator::instance()->timeLimit) {
@@ -137,7 +137,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
         it = computers.erase(it);
       }
     }
-    std::cout << "*****saving active computers*****" << std::endl;
+    //std::cout << "**saving active found**" << std::endl;
     save_active(computers, Configurator::instance()->active, *this);
     last_inactive = ttime;
   }
