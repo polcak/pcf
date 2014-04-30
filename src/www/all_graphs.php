@@ -5,6 +5,7 @@ $type = $_GET["type"];
 
 <html>
 <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<title>pcf</title>
 	<style type="text/css">
 		@import "style.css";
