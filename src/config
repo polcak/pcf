@@ -53,6 +53,7 @@ ack 0
 
 # Additional options for pcap filter
 # filter not src host 192.168.0.1 && not src host 2001::1
+filter ((tcp[12] >= 120) || (ip6[52] >= 120))
 
 
 #########
