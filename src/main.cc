@@ -52,7 +52,7 @@ void print_help() {
           "  -p\t\tPort number (1-65535)\n"
           "  -i\t\tDisable ICMP\n"
           "  -j\t\tDisable Javascript\n"
-          "  -d\t\tEnable port numbers\n"
+          "  -d\t\tPair devices using port numbers, e.g. to detect devices behind NAT\n"
           "  -o filename\tRead from pcap file\n"
           "  -v\t\tVerbose mode\n"
           "  -r\t\tReduce packets\n"
