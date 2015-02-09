@@ -3,3 +3,4 @@ config
 *.tar
 *.out
 *.swp
+*.pcap
