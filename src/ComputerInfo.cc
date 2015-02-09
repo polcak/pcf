@@ -42,7 +42,8 @@ const double SKEW_VALID_AFTER = 5*60;
 
 ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t its_port):
   packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
-  ipAddress(its_address), port(its_port), firstPacketReceived(false)
+  ipAddress(its_address), port(its_port), variance(0), avg(0), numOfPackets(0), sum1(0), sum2(0),
+  firstPacketReceived(false)
 {
   this->parentList = parentList;
   if(!Configurator::instance()->portEnable){
@@ -60,6 +61,7 @@ void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timesta
     lastPacketTime = packet_delivered;
     lastConfirmedPacketTime = packet_delivered;
     startTime = packet_delivered;
+    previousPacketTime = startTime;
     
     insert_packet(packet_delivered, timestamp);
     add_empty_packet_segment(packets.begin());
@@ -103,13 +105,6 @@ bool ComputerInfo::check_block_finish(double packet_delivered)
 
 void ComputerInfo::recompute_block(double packet_delivered)
 {
-  static double disp = 0;
-  static double avg = 0;
-  static double dev = 0;
-  static double numOfPackets = 0;
-  static double sum1 = 0;
-  static double sum2 = 0;
-  
   if(freq == 0 && Configurator::instance()->setFreq != 0){
       freq = Configurator::instance()->setFreq;
   }
@@ -170,19 +165,18 @@ void ComputerInfo::recompute_block(double packet_delivered)
       std::cout << "number of packets: " << numOfPackets << std::endl;
       std::cout << "time: " << packet_delivered - startTime << std::endl;
       std::cout << "average: " << avg << std::endl;
-      disp = (numOfPackets * sum2 - pow(sum1, 2)) / (numOfPackets * (numOfPackets - 1));
-      dev = sqrt(disp);
-      std::cout << "dispersion: " << disp << std::endl;
-      std::cout << "standard deviation: " << dev << std::endl;
+      variance = (sum2 - (sum1 * sum1) / numOfPackets) / (numOfPackets);
+      std::cout << "variance: " << variance << std::endl;
+      std::cout << "standard deviation: " << sqrt(variance) << std::endl;
       exit(EXIT_SUCCESS);
     }
     else {
       numOfPackets++;
       avg = (avg + (packet_delivered - startTime)) / numOfPackets;
-      sum1 += packet_delivered - startTime;
-      sum2 += pow(packet_delivered - startTime, 2);
+      sum1 += packet_delivered - previousPacketTime;
+      sum2 += pow(packet_delivered - previousPacketTime, 2);
+      previousPacketTime = packet_delivered;
     }
-    //
   }
   
   last_skew.alpha = new_skew.Alpha;

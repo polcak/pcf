@@ -70,6 +70,14 @@ class ComputerInfo {
 
     ///
     const uint16_t port;
+    
+    double variance;
+    double avg;
+    double dev;
+    double numOfPackets;
+    double sum1;
+    double sum2;
+    double previousPacketTime;
 
     // Public attributes
   public:
