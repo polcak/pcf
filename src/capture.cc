@@ -440,12 +440,9 @@ int StartCapturing() {
   gnuplot_graph graph_creator_javascript("javascript");
   gnuplot_graph graph_creator_icmp("icmp");
   
-  /*computersTcp->AddObserver(&graph_creator_tcp);
+  computersTcp->AddObserver(&graph_creator_tcp);
   computersIcmp->AddObserver(&graph_creator_icmp);
-  computersJavascript->AddObserver(&graph_creator_javascript);*/
-  computersTcp->graph_creator = &graph_creator_tcp;
-  computersJavascript->graph_creator = &graph_creator_javascript;
-  computersIcmp->graph_creator = &graph_creator_icmp;
+  computersJavascript->AddObserver(&graph_creator_javascript);
   
   if (Configurator::instance()->exportSkewChanges) {
     computersTcp->AddObserver(new SkewChangeExporter("tcp"));
