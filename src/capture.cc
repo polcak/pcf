@@ -193,6 +193,9 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     // +--------+--------+---------+--------+
 
     while (options_offset < options_size) {
+      if(Configurator::instance()->tcpDisable){
+        break;
+      }
       int kind = (int) tcp_options[options_offset];
       int option_len = 0;
 

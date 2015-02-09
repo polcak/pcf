@@ -36,6 +36,7 @@ public:
   
   int icmpDisable;
   bool javacriptDisable;
+  bool tcpDisable;
   bool portEnable;
   bool verbose;
   bool exportSkewChanges;
@@ -61,6 +62,10 @@ public:
   int timeLimit;
   double threshold;
   double xmlRefreshLimit;
+  
+  double setFreq;
+  bool bashOutput;
+  double setSkew;
   
   void Init();
 

@@ -89,7 +89,8 @@ bool ComputerInfo::check_block_finish(double packet_delivered)
 {
   bool retval = false;
   //recompute_block(packet_delivered);
-  if (((get_packets_count() % Configurator::instance()->block) == 0) ||
+  if ((Configurator::instance()->setFreq != 0) ||
+      ((get_packets_count() % Configurator::instance()->block) == 0) ||
       ((packet_delivered - lastConfirmedPacketTime) > SKEW_VALID_AFTER)) {
     recompute_block(packet_delivered);
     retval = true;
@@ -102,6 +103,16 @@ bool ComputerInfo::check_block_finish(double packet_delivered)
 
 void ComputerInfo::recompute_block(double packet_delivered)
 {
+  static double disp = 0;
+  static double avg = 0;
+  static double dev = 0;
+  static double numOfPackets = 0;
+  static double sum1 = 0;
+  static double sum2 = 0;
+  
+  if(freq == 0 && Configurator::instance()->setFreq != 0){
+      freq = Configurator::instance()->setFreq;
+  }
   // Set frequency
   if (freq == 0) {
     if ((packet_delivered - startTime) < 60) {
@@ -143,7 +154,37 @@ void ComputerInfo::recompute_block(double packet_delivered)
       address.c_str(), last_skew.alpha, last_skew.beta, new_skew.Alpha,
       new_skew.Beta, confirmedSkew.Alpha, confirmedSkew.Beta);
 #endif
-
+  //std::cout << packet_delivered - startTime << "\t" << last_skew.alpha << std::endl;
+  if(Configurator::instance()->bashOutput){
+    std::cout << std::fixed;
+    std::cout << last_skew.alpha << std::endl;
+  }
+  std::cout << packet_delivered - startTime << " " << last_skew.alpha << std::endl;
+  
+  // update 
+  if(Configurator::instance()->setFreq != 0 && 
+      Configurator::instance()->setSkew != std::numeric_limits<double>::infinity()){
+    if(fabs(last_skew.alpha - Configurator::instance()->setSkew) <= 0.001){
+      std::cout << "-------------------------------" << std::endl;
+      std::cout << "last skew: " << last_skew.alpha << std::endl;
+      std::cout << "number of packets: " << numOfPackets << std::endl;
+      std::cout << "time: " << packet_delivered - startTime << std::endl;
+      std::cout << "average: " << avg << std::endl;
+      disp = (numOfPackets * sum2 - pow(sum1, 2)) / (numOfPackets * (numOfPackets - 1));
+      dev = sqrt(disp);
+      std::cout << "dispersion: " << disp << std::endl;
+      std::cout << "standard deviation: " << dev << std::endl;
+      exit(EXIT_SUCCESS);
+    }
+    else {
+      numOfPackets++;
+      avg = (avg + (packet_delivered - startTime)) / numOfPackets;
+      sum1 += packet_delivered - startTime;
+      sum2 += pow(packet_delivered - startTime, 2);
+    }
+    //
+  }
+  
   last_skew.alpha = new_skew.Alpha;
   last_skew.beta = new_skew.Beta;
 
@@ -425,7 +466,9 @@ int ComputerInfo::compute_freq()
   if (Configurator::instance()->verbose) {
     printf("Frequency of %s (Hz): %d\n", address.c_str(), freq);
   }
-
+  if(Configurator::instance()->bashOutput){
+    std::cout << " " << freq << std::endl;
+  }
   return freq;
 }
 

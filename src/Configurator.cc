@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string.h>
+#include <limits>
 #include "Configurator.h"
 
 #define MAXLEN 4096
@@ -47,6 +48,7 @@ void Configurator::Init()
 {
   icmpDisable = false;
   javacriptDisable = false;
+  tcpDisable = false;
   portEnable = false;
   datalink = "";
   datafile = "";
@@ -73,6 +75,10 @@ void Configurator::Init()
   threshold = 0.001;
   reduce = false;
   xmlRefreshLimit = 60;
+  
+  setFreq = 0;
+  bashOutput = false;
+  setSkew = std::numeric_limits<double>::infinity();
 }
 
 /**

@@ -24,6 +24,7 @@
 #include <math.h>
 #include <string.h>
 #include <iostream>
+#include <fstream>
 
 #include "capture.h"
 #include "check_computers.h"
@@ -52,11 +53,13 @@ void print_help() {
           "  -p\t\tPort number (1-65535)\n"
           "  -i\t\tDisable ICMP\n"
           "  -j\t\tDisable Javascript\n"
+          "  -x\t\tDisable TCP\n"
           "  -d\t\tPair devices using port numbers, e.g. to detect devices behind NAT\n"
           "  -o filename\tRead from pcap file\n"
           "  -v\t\tVerbose mode\n"
           "  -r\t\tReduce packets\n"
           "  -e\t\tIRI-IIF outputs\n"
+          "  -f\t\tSet frequency and recompute skew after every packet (use ONLY with ONE IP at a time)\n"
           "Examples:\n"
           "  pcf\n"
           "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
@@ -80,13 +83,31 @@ int main(int argc, char *argv[]) {
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "ivhen:t:p:jdo:r")) != -1) {
+  while ((c = getopt(argc, argv, "ivhbxes:f:n:t:p:jdo:r")) != -1) {
     switch (c) {
       case('i'):
         Configurator::instance()->icmpDisable = true;
         break;
       case('j'):
         Configurator::instance()->javacriptDisable = true;
+        break;
+      case('x'):
+        Configurator::instance()->tcpDisable = true;
+        break;
+      case('f'):
+        if (atof(optarg))
+          Configurator::instance()->setFreq = atof(optarg);
+        else
+          fprintf(stderr, "Wrong frequency\n");
+        break;
+      case('s'):
+        if (atof(optarg))
+          Configurator::instance()->setSkew = atof(optarg);
+        else
+          fprintf(stderr, "Wrong skew\n");
+        break;
+      case('b'):
+        Configurator::instance()->bashOutput = true;
         break;
       case('d'):
         Configurator::instance()->portEnable = true;
