@@ -50,6 +50,7 @@ void Configurator::Init()
   portEnable = false;
   datalink = "";
   datafile = "";
+  dev[0] = 0;
 #ifdef DEBUG
   verbose = true;
 #else
