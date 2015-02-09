@@ -67,12 +67,6 @@ void print_help() {
  */
 
 int main(int argc, char *argv[]) {
-  /// Checking permissions (must be root)
-  if (getuid()) {
-    fprintf(stderr, "Must have root permissions to run this program!\n");
-    return (2);
-  }
-
   /// Get config
   char filename[] = "config";
   Configurator::instance()->GetConfig(filename);
