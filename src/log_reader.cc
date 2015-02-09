@@ -46,6 +46,7 @@ void print_help()
  */
 void process_log_file(std::ifstream &ifs)
 {
+  
   ComputerInfoList * computers = new ComputerInfoList("tcp");
   gnuplot_graph graph_creator("tcp");
   computers->AddObserver(&graph_creator);
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
   
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "hrd")) != -1) {
+  while ((c = getopt(argc, argv, "hrdv")) != -1) {
     switch (c) {
       case('r'):
         Configurator::instance()->reduce = true;
@@ -83,6 +84,9 @@ int main(int argc, char *argv[])
         return 0;
       case('d'):
         Configurator::instance()->portEnable = true;
+        break;
+      case('v'):
+        Configurator::instance()->verbose = true;
         break;
     }
   }
