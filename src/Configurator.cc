@@ -79,6 +79,7 @@ void Configurator::Init()
   setFreq = 0;
   bashOutput = false;
   setSkew = std::numeric_limits<double>::infinity();
+  outFile = "";
 }
 
 /**

@@ -25,6 +25,7 @@
 #include <list>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include "ComputerInfoList.h"
 #include "TimeSegment.h"
@@ -38,37 +39,34 @@
 
 const size_t STRLEN_MAX = 100;
 
-const double SKEW_VALID_AFTER = 5*60;
+const double SKEW_VALID_AFTER = 5 * 60;
 
-ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t its_port):
-  packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
-  ipAddress(its_address), port(its_port), variance(0), avg(0), numOfPackets(0), sum1(0), sum2(0),
-  firstPacketReceived(false)
-{
+ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t its_port) :
+packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
+ipAddress(its_address), port(its_port), variance(0), avg(0), numOfPackets(0), sum1(0), sum2(0),
+oneMoreHour(0), firstPacketReceived(false) {
   this->parentList = parentList;
-  if(!Configurator::instance()->portEnable){
+  if (!Configurator::instance()->portEnable) {
     address = ipAddress;
-  }
-  else {
+  } else {
     std::stringstream buffer;
     buffer << ipAddress << '_' << port;
     address = buffer.str();
   }
 }
 
-void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timestamp){
-    firstPacketReceived = true;
-    lastPacketTime = packet_delivered;
-    lastConfirmedPacketTime = packet_delivered;
-    startTime = packet_delivered;
-    previousPacketTime = startTime;
-    
-    insert_packet(packet_delivered, timestamp);
-    add_empty_packet_segment(packets.begin());
+void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timestamp) {
+  firstPacketReceived = true;
+  lastPacketTime = packet_delivered;
+  lastConfirmedPacketTime = packet_delivered;
+  startTime = packet_delivered;
+  previousPacketTime = startTime;
+
+  insert_packet(packet_delivered, timestamp);
+  add_empty_packet_segment(packets.begin());
 }
 
-void ComputerInfo::insert_packet(double packet_delivered, uint32_t timestamp)
-{ // This method shouldn't suppose that skew_list contain valid information
+void ComputerInfo::insert_packet(double packet_delivered, uint32_t timestamp) { // This method shouldn't suppose that skew_list contain valid information
   PacketTimeInfo new_packet;
 
   new_packet.ArrivalTime = packet_delivered;
@@ -87,8 +85,7 @@ void ComputerInfo::insert_packet(double packet_delivered, uint32_t timestamp)
 #endif
 }
 
-bool ComputerInfo::check_block_finish(double packet_delivered)
-{
+bool ComputerInfo::check_block_finish(double packet_delivered) {
   bool retval = false;
   //recompute_block(packet_delivered);
   if ((Configurator::instance()->setFreq != 0) ||
@@ -101,19 +98,15 @@ bool ComputerInfo::check_block_finish(double packet_delivered)
   return retval;
 }
 
-
-
-void ComputerInfo::recompute_block(double packet_delivered)
-{
-  if(freq == 0 && Configurator::instance()->setFreq != 0){
-      freq = Configurator::instance()->setFreq;
+void ComputerInfo::recompute_block(double packet_delivered) {
+  if (freq == 0 && Configurator::instance()->setFreq != 0) {
+    freq = Configurator::instance()->setFreq;
   }
   // Set frequency
   if (freq == 0) {
     if ((packet_delivered - startTime) < 60) {
       return;
-    }
-    else {
+    } else {
       freq = compute_freq();
 #if 0
       fprintf(stderr, "Found %s with frequency %d", address.c_str(), freq);
@@ -124,8 +117,7 @@ void ComputerInfo::recompute_block(double packet_delivered)
         for (packetTimeInfoList::iterator it = packets.begin(); it != packets.end(); ++it) {
           Computations::SetOffset(*it, first, freq);
         }
-      }
-      else {
+      } else {
         return;
       }
     }
@@ -150,25 +142,51 @@ void ComputerInfo::recompute_block(double packet_delivered)
       new_skew.Beta, confirmedSkew.Alpha, confirmedSkew.Beta);
 #endif
   //std::cout << packet_delivered - startTime << "\t" << last_skew.alpha << std::endl;
-  if(Configurator::instance()->bashOutput){
+  if (Configurator::instance()->bashOutput) {
     std::cout << std::fixed;
     std::cout << last_skew.alpha << std::endl;
   }
-  std::cout << packet_delivered - startTime << " " << last_skew.alpha << std::endl;
-  
+  if(Configurator::instance()->setFreq != 0){
+    std::ofstream outfile;
+    std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
+    type.pop_back();
+    outfile.open(address + "-" + type + ".dat", std::ofstream::app);
+    outfile << packet_delivered - startTime << "\t" << last_skew.alpha << std::endl;
+  }
+  //std::cout << packet_delivered - startTime << "\t" << last_skew.alpha << std::endl;
+
   // update 
-  if(Configurator::instance()->setFreq != 0 && 
-      Configurator::instance()->setSkew != std::numeric_limits<double>::infinity()){
-    if(fabs(last_skew.alpha - Configurator::instance()->setSkew) <= 0.001){
-      std::cout << "-------------------------------" << std::endl;
-      std::cout << "last skew: " << last_skew.alpha << std::endl;
-      std::cout << "number of packets: " << numOfPackets << std::endl;
-      std::cout << "time: " << packet_delivered - startTime << std::endl;
-      std::cout << "average: " << avg << std::endl;
-      variance = (sum2 - (sum1 * sum1) / numOfPackets) / (numOfPackets);
-      std::cout << "variance: " << variance << std::endl;
-      std::cout << "standard deviation: " << sqrt(variance) << std::endl;
-      exit(EXIT_SUCCESS);
+  if (Configurator::instance()->setFreq != 0 &&
+      Configurator::instance()->setSkew != std::numeric_limits<double>::infinity()) {
+    if (fabs(last_skew.alpha - Configurator::instance()->setSkew) <= 0.001) {
+      if (oneMoreHour == 0) {
+        oneMoreHour = packet_delivered;
+        computedSkew = last_skew.alpha;
+      } else {
+        if ((packet_delivered - oneMoreHour) > 3600) {
+          variance = (sum2 - (sum1 * sum1) / numOfPackets) / (numOfPackets);
+          if(Configurator::instance()->outFile != "") {
+            std::ofstream resultFile;
+            resultFile.open(Configurator::instance()->outFile, std::ofstream::app);
+            std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
+            type.pop_back();
+            resultFile << address << "\t" << type << "\t" << freq << "\t" << Configurator::instance()->setSkew << "\t" <<
+                computedSkew << "\t" << last_skew.alpha << "\t" << numOfPackets << "\t" <<
+                oneMoreHour - startTime << "\t" << avg << "\t" << variance << "\t" << sqrt(variance) << std::endl;
+          }
+          else {
+            std::cout << "target skew:\t\t" << Configurator::instance()->setSkew << std::endl;
+            std::cout << "computed skew (+-1ppm):\t" << computedSkew << std::endl;
+            std::cout << "last skew:\t\t" << last_skew.alpha << std::endl;
+            std::cout << "num of packets:\t\t" << numOfPackets << std::endl;
+            std::cout << "time:\t\t\t" << oneMoreHour - startTime << std::endl;
+            std::cout << "average:\t\t" << avg << std::endl;
+            std::cout << "variance:\t\t" << variance << std::endl;
+            std::cout << "std deviation:\t\t" << sqrt(variance) << std::endl;
+          }
+          exit(EXIT_SUCCESS);
+        }
+      }
     }
     else {
       numOfPackets++;
@@ -178,13 +196,13 @@ void ComputerInfo::recompute_block(double packet_delivered)
       previousPacketTime = packet_delivered;
     }
   }
-  
+
   last_skew.alpha = new_skew.Alpha;
   last_skew.beta = new_skew.Beta;
 
   if ((packet_delivered - lastConfirmedPacketTime) > SKEW_VALID_AFTER) {
     ClockSkewPair last_skew_pair = compute_skew(last_skew.confirmed, packets.end());
-    if ((std::fabs(last_skew_pair.Alpha - confirmedSkew.Alpha) < 10*Configurator::instance()->threshold) ||
+    if ((std::fabs(last_skew_pair.Alpha - confirmedSkew.Alpha) < 10 * Configurator::instance()->threshold) ||
         (std::isnan(confirmedSkew.Alpha))) {
       // New skew confirmed
       confirmedSkew.Alpha = new_skew.Alpha;
@@ -198,16 +216,15 @@ void ComputerInfo::recompute_block(double packet_delivered)
       printf("%s: New skew confirmed (%g, %g), time %g\n", address.c_str(),
           confirmedSkew.Alpha, confirmedSkew.Beta, last_skew.last->Offset.x);
 #endif
-     if(Configurator::instance()->reduce)
-      if(packets.size() > (unsigned int)(Configurator::instance()->block * 15))
-        reduce_packets(last_skew.first, last_skew.confirmed);
-    }
-    else {      
+      if (Configurator::instance()->reduce)
+        if (packets.size() > (unsigned int) (Configurator::instance()->block * 15))
+          reduce_packets(last_skew.first, last_skew.confirmed);
+    } else {
       add_empty_packet_segment(--packets.end());
       confirmedSkew.Alpha = UNDEFINED_SKEW;
       confirmedSkew.Beta = UNDEFINED_SKEW;
       lastConfirmedPacketTime = packet_delivered;
-      if(Configurator::instance()->reduce)
+      if (Configurator::instance()->reduce)
         reduce_packets(last_skew.first, last_skew.last);
     }
   }
@@ -215,10 +232,10 @@ void ComputerInfo::recompute_block(double packet_delivered)
   TimeSegmentList s;
   for (std::list<PacketSegment>::iterator it = packetSegmentList.begin(); it != packetSegmentList.end(); ++it) {
     TimeSegment atom = {
-       it->confirmedAlpha, it->confirmedBeta,
+      it->confirmedAlpha, it->confirmedBeta,
       (it->first)->Offset.x + get_start_time(),
       (it->last)->Offset.x + get_start_time(),
-       // relative start and end time
+      // relative start and end time
       (it->first)->Offset.x,
       (it->last)->Offset.x
     };
@@ -230,64 +247,61 @@ void ComputerInfo::recompute_block(double packet_delivered)
   NewTimeSegmentList = s;
 }
 
-void ComputerInfo::reduce_packets(packet_iterator start, packet_iterator end){
+void ComputerInfo::reduce_packets(packet_iterator start, packet_iterator end) {
   packet_iterator current = start;
   current++;
   // no packets to reduce
-  if(current == packets.end() || current == end){
+  if (current == packets.end() || current == end) {
     return;
   }
-  
+
   bool reduceMe = false;
-  
+
   // there are some packets between start and end
-  while(current != packets.end() && current != end){
+  while (current != packets.end() && current != end) {
     packet_iterator prev = current;
     prev--;
     packet_iterator next = current;
     next++;
-    if(next == end || next == packets.end()){
+    if (next == end || next == packets.end()) {
       // last packet can't be reduced
       break;
     }
-    
+
     // current packet doesn't affect direction of skew
-    if((prev->Offset.y > current->Offset.y) && (current->Offset.y < next->Offset.y))
+    if ((prev->Offset.y > current->Offset.y) && (current->Offset.y < next->Offset.y))
       reduceMe = true;
-    
-    // 
-    else if((prev->Offset.y <= current->Offset.y) && (current->Offset.y < next->Offset.y)){
+
+      // 
+    else if ((prev->Offset.y <= current->Offset.y) && (current->Offset.y < next->Offset.y)) {
       double tan_curr = (current->Offset.y - prev->Offset.y) / (current->Offset.x - prev->Offset.x);
       double tan_next = (next->Offset.y - prev->Offset.y) / (next->Offset.x - prev->Offset.x);
-      if(tan_curr <= tan_next){
+      if (tan_curr <= tan_next) {
         reduceMe = true;
       }
-    }
-    // check here
-    else if((prev->Offset.y > current->Offset.y) && (current->Offset.y >= next->Offset.y)){
+    }      // check here
+    else if ((prev->Offset.y > current->Offset.y) && (current->Offset.y >= next->Offset.y)) {
       double tan_curr = (current->Offset.y - next->Offset.y) / (current->Offset.x - next->Offset.x);
       double tan_next = (prev->Offset.y - next->Offset.y) / (next->Offset.x - prev->Offset.x);
-      if(tan_curr <= tan_next){
+      if (tan_curr <= tan_next) {
         reduceMe = true;
       }
     }
-    
-    if(reduceMe){
+
+    if (reduceMe) {
       current = packets.erase(current);
       // check previous packet again
       current--;
-      if(current == start){
+      if (current == start) {
         current++;
       }
-    }
-    else {
+    } else {
       current++;
-    }   
+    }
   }
 }
 
-void ComputerInfo::restart(double packet_delivered, uint32_t timestamp)
-{
+void ComputerInfo::restart(double packet_delivered, uint32_t timestamp) {
   packets.clear();
   freq = 0;
   lastPacketTime = packet_delivered;
@@ -297,10 +311,7 @@ void ComputerInfo::restart(double packet_delivered, uint32_t timestamp)
   add_empty_packet_segment(packets.begin());
 }
 
-
-
-void ComputerInfo::add_empty_packet_segment(packetTimeInfoList::iterator start)
-{
+void ComputerInfo::add_empty_packet_segment(packetTimeInfoList::iterator start) {
   PacketSegment skew;
   skew.alpha = UNDEFINED_SKEW;
   skew.beta = UNDEFINED_SKEW;
@@ -315,8 +326,7 @@ void ComputerInfo::add_empty_packet_segment(packetTimeInfoList::iterator start)
 #endif
 }
 
-ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const packet_iterator &end)
-{
+ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const packet_iterator &end) {
   // Prepare an array of all points for convex hull computation
   unsigned long pckts_count = get_packets_count();
   Point points[pckts_count];
@@ -326,13 +336,12 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
   /// First point
   points[0].x = first.Offset.x;
   points[0].y = first.Offset.y;
-  
+
   unsigned long i = 1;
   auto it = start;
   if (it == packets.end()) {
     return result;
-  }
-  else {
+  } else {
     ++it;
     if (it == packets.end()) {
       return result;
@@ -343,8 +352,8 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
     points[i].y = it->Offset.y;
     i++;
   }
-  pckts_count = i-1;
-  
+  pckts_count = i - 1;
+
   // Compute upper convex hull, note that points are destroyed inside the function
   // and pckts_count will refer to the number of points in the convex hull when
   // the function finish
@@ -378,7 +387,7 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
   // of the line with minimal distance
   result.Alpha = alpha;
   result.Beta = beta;
-  
+
 #ifdef DEBUG
   printf("\n");
   printf("[%lf,%lf],[%lf,%lf], f(x) = %lf*x + %lf, sum = %lf\n", hull[j - 1].x, hull[j - 1].y, hull[j].x, hull[j].y, alpha, beta, min);
@@ -388,15 +397,15 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
   for (i = 1; i < pckts_count; i++) {
     if (i == j) // We already computed j-th sector
       continue;
-    
+
     alpha = ((hull[i].y - hull[i - 1].y) / (hull[i].x - hull[i - 1].x));
-    
+
     /// Too steep
     if (alpha > 3 || alpha < -3)
       continue;
-    
+
     beta = hull[i - 1].y - (alpha * hull[i - 1].x);
-    
+
     /// SUM
     sum = 0.0;
     for (auto it = start; (it != end) && (it != packets.end()); ++it) {
@@ -404,11 +413,11 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
       if (sum >= min) // The sum is already higher than the sum of all points of other sectors
         break;
     }
-    
+
 #ifdef DEBUG
     printf("[%lf,%lf],[%lf,%lf], f(x) = %lf*x + %lf, sum = %lf\n", hull[i - 1].x, hull[i - 1].y, hull[i].x, hull[i].y, alpha, beta, sum);
 #endif
-    
+
     // A new min was fuound, update alpha, beta, and min
     if (sum < min) {
       result.Alpha = alpha;
@@ -416,18 +425,15 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
       min = sum;
     }
   }
-  
+
 #ifdef DEBUG
   printf("f(x) = %lfx + %lf, min = %lf\n", result.Alpha, result.Beta, min);
 #endif
-  
+
   return result;
 }
 
-
-
-int ComputerInfo::compute_freq()
-{
+int ComputerInfo::compute_freq() {
   assert(!packets.empty());
 
   const PacketTimeInfo &first = *packets.begin();
@@ -449,7 +455,7 @@ int ComputerInfo::compute_freq()
   }
 
   /// According to the real world, but sometimes can be wrong, it depends...
-  int freq = (int)round(tmp / count);
+  int freq = (int) round(tmp / count);
   if (freq >= 970 && freq <= 1030)
     freq = 1000;
   else if (freq >= 95 && freq <= 105)
@@ -460,31 +466,28 @@ int ComputerInfo::compute_freq()
   if (Configurator::instance()->verbose) {
     printf("Frequency of %s (Hz): %d\n", address.c_str(), freq);
   }
-  if(Configurator::instance()->bashOutput){
+  if (Configurator::instance()->bashOutput) {
     std::cout << " " << freq << std::endl;
   }
   return freq;
 }
 
-
-
-int ComputerInfo::save_packets(short rewrite)
-{
+int ComputerInfo::save_packets(short rewrite) {
   FILE *f;
   char filename[80] = "log/";
-  std::strcat(filename, static_cast<ComputerInfoList *>(parentList)->getOutputDirectory().c_str());
+  std::strcat(filename, static_cast<ComputerInfoList *> (parentList)->getOutputDirectory().c_str());
   std::strcat(filename, get_address().c_str());
   std::strcat(filename, ".log");
-  
+
   /// Open file
   if (rewrite == 1)
     f = fopen(filename, "w");
   else
     f = fopen(filename, "a");
-  
+
   if (f == NULL) {
     fprintf(stderr, "Cannot save packets into the file: %s\n", filename);
-    return(2);
+    return (2);
   }
 
   /// Write to file
@@ -493,9 +496,9 @@ int ComputerInfo::save_packets(short rewrite)
     snprintf(str, STRLEN_MAX, "%lf\t%lf\t%lf\t%u\n", it->Offset.x, it->Offset.y, it->ArrivalTime, it->Timestamp);
     fputs(str, f);
   }
-  
+
   /// Close file
   if (fclose(f) != 0)
     fprintf(stderr, "Cannot close file: %s\n", filename);
-  return(0);
+  return (0);
 }

@@ -66,6 +66,7 @@ public:
   double setFreq;
   bool bashOutput;
   double setSkew;
+  std::string outFile;
   
   void Init();
 

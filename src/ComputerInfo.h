@@ -78,6 +78,8 @@ class ComputerInfo {
     double sum1;
     double sum2;
     double previousPacketTime;
+    double oneMoreHour;
+    double computedSkew;
 
     // Public attributes
   public:

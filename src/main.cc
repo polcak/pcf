@@ -59,7 +59,9 @@ void print_help() {
           "  -v\t\tVerbose mode\n"
           "  -r\t\tReduce packets\n"
           "  -e\t\tIRI-IIF outputs\n"
-          "  -f\t\tSet frequency and recompute skew after every packet (use ONLY with ONE IP at a time)\n"
+          "  -f\t\tSet frequency and recompute skew after every packet\n"
+          "  -s\t\tSet skew and recompute skew after every packet\n"
+          "  -q\t\tOutput file for aggregated results of recomputing after every packet\n"
           "Examples:\n"
           "  pcf\n"
           "  pcf -n 100 -t 600 -p 80 wlan0\n\n");
@@ -83,7 +85,7 @@ int main(int argc, char *argv[]) {
   /// Get params
   int c;
   opterr = 0;
-  while ((c = getopt(argc, argv, "ivhbxes:f:n:t:p:jdo:r")) != -1) {
+  while ((c = getopt(argc, argv, "ivhbxes:f:q:n:t:p:jdo:r")) != -1) {
     switch (c) {
       case('i'):
         Configurator::instance()->icmpDisable = true;
@@ -141,6 +143,9 @@ int main(int argc, char *argv[]) {
         break;
       case 'o':
           Configurator::instance()->datafile = optarg;
+        break;
+      case 'q':
+          Configurator::instance()->outFile = optarg;
         break;
       case 'r':
           Configurator::instance()->reduce = true;
