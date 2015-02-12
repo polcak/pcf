@@ -149,7 +149,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
   if(Configurator::instance()->setFreq != 0){
     std::ofstream outfile;
     std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
-    type.pop_back();
+    type.resize(type.size() - 1);
     outfile.open(address + "-" + type + ".dat", std::ofstream::app);
     outfile << packet_delivered - startTime << "\t" << last_skew.alpha << std::endl;
   }
