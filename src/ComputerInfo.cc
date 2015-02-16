@@ -42,7 +42,7 @@ const size_t STRLEN_MAX = 100;
 const double SKEW_VALID_AFTER = 5 * 60;
 
 ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t its_port) :
-packets(), freq(0), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
+packets(), freq(Configurator::instance()->setFreq), confirmedSkew(UNDEFINED_SKEW, UNDEFINED_SKEW), packetSegmentList(),
 ipAddress(its_address), port(its_port), variance(0), avg(0), numOfPackets(0), sum1(0), sum2(0),
 oneMoreHour(0), firstPacketReceived(false) {
   this->parentList = parentList;
@@ -72,11 +72,12 @@ void ComputerInfo::insert_packet(double packet_delivered, uint32_t timestamp) { 
   new_packet.ArrivalTime = packet_delivered;
   new_packet.Timestamp = timestamp;
 
+  packets.push_back(new_packet);
+  
   if (freq != 0) {
-    Computations::SetOffset(new_packet, *(packets.begin()), freq);
+    Computations::SetOffset(*(packets.rbegin()), *(packets.begin()), freq);
   }
 
-  packets.push_back(new_packet);
   lastPacketTime = packet_delivered;
 
 #ifdef PACKETS
@@ -99,9 +100,6 @@ bool ComputerInfo::check_block_finish(double packet_delivered) {
 }
 
 void ComputerInfo::recompute_block(double packet_delivered) {
-  if (freq == 0 && Configurator::instance()->setFreq != 0) {
-    freq = Configurator::instance()->setFreq;
-  }
   // Set frequency
   if (freq == 0) {
     if ((packet_delivered - startTime) < 60) {
