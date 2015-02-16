@@ -181,7 +181,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
             std::ofstream resultFile;
             resultFile.open(Configurator::instance()->outFile, std::ofstream::app);
             std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
-            type.pop_back();
+            type.resize(type.size() - 1);
             resultFile << address << "\t" << type << "\t" << freq << "\t" << Configurator::instance()->setSkew << "\t" <<
                 computedSkew << "\t" << last_skew.alpha << "\t" << preliminaryNumOfPackets << "\t" <<
                 oneMoreHour - startTime << "\t" << preliminaryAverage << "\t" << variance << "\t" << sqrt(variance) << std::endl;
