@@ -90,7 +90,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     }
 
     // Check if packet has the same or lower timestamp
-    if (timestamp <= known_computer.get_last_packet_timestamp()) {
+    if (timestamp <= known_computer.get_last_packet_timestamp() && Configurator::instance()->setFreq == 0) {
       if (Configurator::instance()->verbose)
         if (timestamp < known_computer.get_last_packet_timestamp())
           fprintf(stderr, "%s: Lower timestamp %u %u\n", known_computer.get_address().c_str(), timestamp, known_computer.get_last_packet_timestamp());
