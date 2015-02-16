@@ -158,29 +158,41 @@ void ComputerInfo::recompute_block(double packet_delivered) {
   // update 
   if (Configurator::instance()->setFreq != 0 &&
       Configurator::instance()->setSkew != std::numeric_limits<double>::infinity()) {
+    
+    numOfPackets++;
+    avg = avg + (packet_delivered - previousPacketTime);
+    sum1 += packet_delivered - previousPacketTime;
+    sum2 += pow(packet_delivered - previousPacketTime, 2);
+    previousPacketTime = packet_delivered;
+    
+    
     if (fabs(last_skew.alpha - Configurator::instance()->setSkew) <= 0.001) {
       if (oneMoreHour == 0) {
         oneMoreHour = packet_delivered;
         computedSkew = last_skew.alpha;
+        preliminaryAverage = avg / numOfPackets;
+        preliminarySum1 = sum1;
+        preliminarySum2 = sum2;
+        preliminaryNumOfPackets = numOfPackets;
       } else {
         if ((packet_delivered - oneMoreHour) > 3600) {
-          variance = (sum2 - (sum1 * sum1) / numOfPackets) / (numOfPackets);
+          variance = (preliminarySum2 - (preliminarySum1 * preliminarySum1) / preliminaryNumOfPackets) / (preliminaryNumOfPackets);
           if(Configurator::instance()->outFile != "") {
             std::ofstream resultFile;
             resultFile.open(Configurator::instance()->outFile, std::ofstream::app);
             std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
             type.pop_back();
             resultFile << address << "\t" << type << "\t" << freq << "\t" << Configurator::instance()->setSkew << "\t" <<
-                computedSkew << "\t" << last_skew.alpha << "\t" << numOfPackets << "\t" <<
-                oneMoreHour - startTime << "\t" << avg << "\t" << variance << "\t" << sqrt(variance) << std::endl;
+                computedSkew << "\t" << last_skew.alpha << "\t" << preliminaryNumOfPackets << "\t" <<
+                oneMoreHour - startTime << "\t" << preliminaryAverage << "\t" << variance << "\t" << sqrt(variance) << std::endl;
           }
           else {
             std::cout << "target skew:\t\t" << Configurator::instance()->setSkew << std::endl;
             std::cout << "computed skew (+-1ppm):\t" << computedSkew << std::endl;
             std::cout << "last skew:\t\t" << last_skew.alpha << std::endl;
-            std::cout << "num of packets:\t\t" << numOfPackets << std::endl;
+            std::cout << "num of packets:\t\t" << preliminaryNumOfPackets << std::endl;
             std::cout << "time:\t\t\t" << oneMoreHour - startTime << std::endl;
-            std::cout << "average:\t\t" << avg << std::endl;
+            std::cout << "average:\t\t" << preliminaryAverage << std::endl;
             std::cout << "variance:\t\t" << variance << std::endl;
             std::cout << "std deviation:\t\t" << sqrt(variance) << std::endl;
           }
@@ -189,11 +201,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
       }
     }
     else {
-      numOfPackets++;
-      avg = (avg + (packet_delivered - startTime)) / numOfPackets;
-      sum1 += packet_delivered - previousPacketTime;
-      sum2 += pow(packet_delivered - previousPacketTime, 2);
-      previousPacketTime = packet_delivered;
+      oneMoreHour = 0;
     }
   }
 
@@ -327,6 +335,7 @@ void ComputerInfo::add_empty_packet_segment(packetTimeInfoList::iterator start) 
 }
 
 ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const packet_iterator &end) {
+  std::cout << "";
   // Prepare an array of all points for convex hull computation
   unsigned long pckts_count = get_packets_count();
   Point points[pckts_count];
@@ -469,6 +478,7 @@ int ComputerInfo::compute_freq() {
   if (Configurator::instance()->bashOutput) {
     std::cout << " " << freq << std::endl;
   }
+  std::cout << address << " " << freq << std::endl;
   return freq;
 }
 

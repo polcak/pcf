@@ -74,12 +74,17 @@ class ComputerInfo {
     double variance;
     double avg;
     double dev;
-    double numOfPackets;
+    unsigned long long int numOfPackets;
     double sum1;
     double sum2;
     double previousPacketTime;
     double oneMoreHour;
     double computedSkew;
+    
+    unsigned long long int preliminaryNumOfPackets;
+    double preliminarySum1;
+    double preliminarySum2;
+    double preliminaryAverage;
 
     // Public attributes
   public:
