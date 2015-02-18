@@ -28,7 +28,6 @@
 #include "check_computers.h"
 #include "Configurator.h"
 #include "ComputerInfoIcmp.h"
-#include "gnuplot_graph.h"
 
 ComputerInfoList::~ComputerInfoList() {
 }
@@ -192,10 +191,6 @@ void ComputerInfoList::update_skew(const std::string &ip, const TimeSegmentList 
       construct_notify(*it, get_similar_identities(*it), *(getSkew(ip)));
     }
   }
-  
-  // update current graph (originaly notified by observer)
-  AnalysisInfo cs = {ip, new_identities, s};
-  graph_creator->Notify("", cs);
 }
 
 const identity_container ComputerInfoList::get_similar_identities(const std::string &ip) {

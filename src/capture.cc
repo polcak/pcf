@@ -305,17 +305,18 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
   }
 }
 
-int StartCapturing() {
+int liveCapturing(){
+  /// Checking permissions (must be root)
+  if (getuid()) {
+    fprintf(stderr, "Must have root permissions to run this program!\n");
+    return (2);
+  }
   // Dot notation network address
   char *net;
   // Dot notation network mask
   char *mask;
   // Error string
   char errbuf[PCAP_ERRBUF_SIZE];
-  // Compiled filter expr.
-  struct bpf_program fp;
-  // Filter expr.
-  std::string filter;
   // Netmask of sniffing device
   bpf_u_int32 maskp;
   // IP or sniffing device
@@ -362,21 +363,41 @@ int StartCapturing() {
   } else
     std::cerr << "(Can't get netmask for device: " << dev << std::endl;
 
-  /// Open the device for sniffing
-  if(Configurator::instance()->datafile.empty()){
-    handle = pcap_open_live(dev, BUFSIZ, PROMISC, 1000, errbuf);
+  handle = pcap_open_live(dev, BUFSIZ, PROMISC, 1000, errbuf);
     if (handle == NULL) {
       std::cerr << "Couldn't open device" << dev << ": " << errbuf << std::endl;
       return (2);
+ }
+  return 0;
+}
+
+int offlineCapturing(){
+  // Error string
+  char errbuf[PCAP_ERRBUF_SIZE];
+  handle = pcap_open_offline(Configurator::instance()->datafile.c_str(), errbuf);
+    if (handle == NULL) {
+      std::cerr << "Couldn't open file" << Configurator::instance()->datafile << ": " << errbuf << std::endl;
+      return (2);
+    } 
+  return 0;
+}
+
+int StartCapturing() {
+  // Filter expr.
+  std::string filter;
+  // Compiled filter expr.
+  struct bpf_program fp;
+  /// Open the device for sniffing
+  if(Configurator::instance()->datafile.empty()){
+    if(liveCapturing()){
+      return(2);
     }
   }
   // Open offline pcap file
   else {
-    handle = pcap_open_offline(Configurator::instance()->datafile.c_str(), errbuf);
-    if (handle == NULL) {
-      std::cerr << "Couldn't open file" << Configurator::instance()->datafile << ": " << errbuf << std::endl;
-      return (2);
-    }  
+    if(offlineCapturing()){
+      return(2);
+    }
   }
 
   // TCP
@@ -443,12 +464,9 @@ int StartCapturing() {
   gnuplot_graph graph_creator_javascript("javascript");
   gnuplot_graph graph_creator_icmp("icmp");
   
-  /*computersTcp->AddObserver(&graph_creator_tcp);
+  computersTcp->AddObserver(&graph_creator_tcp);
   computersIcmp->AddObserver(&graph_creator_icmp);
-  computersJavascript->AddObserver(&graph_creator_javascript);*/
-  computersTcp->graph_creator = &graph_creator_tcp;
-  computersJavascript->graph_creator = &graph_creator_javascript;
-  computersIcmp->graph_creator = &graph_creator_icmp;
+  computersJavascript->AddObserver(&graph_creator_javascript);
   
   if (Configurator::instance()->exportSkewChanges) {
     computersTcp->AddObserver(new SkewChangeExporter("tcp"));
