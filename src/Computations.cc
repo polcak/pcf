@@ -50,7 +50,7 @@ Point * Computations::ConvexHull(Point points[], unsigned long *number)
   int m = 1;
   
   for (i = 2; i < *number; i++) {
-    while (Computations::CounterClockwiseTest(points[m - 1], points[m], points[i]) >= 0) {
+    while (i <= *number && Computations::CounterClockwiseTest(points[m - 1], points[m], points[i]) >= 0) {
       if (m == 1) {
         Computations::SwapPoints(&points[m], &points[i]);
         i++;
