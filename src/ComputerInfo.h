@@ -95,7 +95,7 @@ class ComputerInfo {
   public:
     ComputerInfo(void * parentList, const char* its_address, u_int16_t port);
 
-    ~ComputerInfo() {}
+    ~ComputerInfo();
 
   // Public methods
   public:
@@ -191,6 +191,8 @@ class ComputerInfo {
      * */
     int save_packets(short int rewrite);
 
+		/// Outputs summary results of clock skew computed per packet
+		void output_skewbypacket_results(double skew);
 };
 
 #endif
