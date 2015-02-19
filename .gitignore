@@ -1,6 +1,7 @@
 *.o
 *.pyc
 src/pcf
+src/log_reader
 doc/
 /src/nbproject/private/
 /src/nbproject

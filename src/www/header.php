@@ -26,7 +26,7 @@ class MergedComputerInfo{
 function addComputer($computer, $type){
 	global $mergedComputers;
 	
-	$addressString = (string) $computer->address;
+	$addressString = (string) $computer->ip;
 	if(!array_key_exists($addressString, $mergedComputers)){
 		$mergedComputers[$addressString] = new MergedComputerInfo($addressString);
 		$mergedComputers[$addressString]->address = $addressString;

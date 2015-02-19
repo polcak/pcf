@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-rm -f graph/* log/* www/graph/*
+rm -f graph/{javascript,tcp,icmp}/* log/{javascript,tcp,icmp}/* www/graph/{javascript,tcp,icmp}/*
 
 while [ 1 ]
 do
