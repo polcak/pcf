@@ -130,11 +130,6 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
       continue;
     }
 
-    // Skip computers with clock synchronization (ntp deamon)
-    if (fabs((*it)->get_last_packet_segment().alpha) < 0.001){
-      continue;
-    }
-    
     /// <computer>
     tempFileStream << "\t<computer>\n";
     
