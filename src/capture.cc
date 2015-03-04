@@ -508,9 +508,15 @@ int StartCapturing() {
     return (2);
   }
 
-  computersTcp->save_active_computers();
-  computersJavascript->save_active_computers();
-  computersIcmp->save_active_computers();
+  if (!Configurator::instance()->tcpDisable) {
+    computersTcp->save_active_computers();
+  }
+  if (!Configurator::instance()->javacriptDisable) {
+    computersJavascript->save_active_computers();
+  }
+  if (!Configurator::instance()->icmpDisable) {
+    computersIcmp->save_active_computers();
+  }
 
   /// Close the session
   pcap_close(handle);
