@@ -44,7 +44,7 @@ void ComputerInfoList::to_poke_or_not_to_poke(std::string address) {
   // decouple new thread to poke the computer under given address
   new_computer->StartPoking();
   computers.push_back(new_computer);
-  save_active(computers, Configurator::instance()->active, *this);
+  save_active_computers();
 }
 
 bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double ttime, uint32_t timestamp) {
@@ -85,6 +85,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
       known_computer.restart(ttime, timestamp);
       if (Configurator::instance()->verbose)
         fprintf(stderr, "%s timeout: starting a new tracking\n", known_computer.get_address().c_str());
+      save_active_computers();
       break;
     }
 
@@ -107,6 +108,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     known_computer.insert_packet(ttime, timestamp);
     if (known_computer.check_block_finish(ttime)) {
       update_skew(known_computer.get_address(), known_computer.NewTimeSegmentList);
+      save_active_computers();
     }
     //std::cout << (*it)->get_ipAddress() << " packets in line: " << known_computer.get_packets_count() << std::endl;
 
@@ -121,7 +123,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     new_computer->insert_first_packet(ttime, timestamp);
     computers.push_back(new_computer);
     //std::cout << "**saving active not found**" << std::endl;
-    save_active(computers, Configurator::instance()->active, *this);
+    save_active_computers();
   }
   
   // timeLimit = 3600 s (default)
@@ -137,7 +139,7 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
       }
     }
     //std::cout << "**saving active found**" << std::endl;
-    save_active(computers, Configurator::instance()->active, *this);
+    save_active_computers();
     last_inactive = ttime;
   }
   return found;
@@ -219,3 +221,9 @@ const identity_container ComputerInfoList::get_similar_identities(const std::str
 
   return identities;
 }
+
+void ComputerInfoList::save_active_computers()
+{
+  save_active(computers, Configurator::instance()->active, *this);
+}
+
