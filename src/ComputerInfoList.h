@@ -88,6 +88,11 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      */
     const identity_container get_similar_identities(const std::string &ip);
 
+    /**
+     * Saves active computers to disk.
+     */
+    void save_active_computers();
+
     void to_poke_or_not_to_poke(std::string address);
     time_t lastXMLupdate;
 };
