@@ -234,8 +234,6 @@ void Configurator::GetConfig(const char *filename)
       // REFRESH_TIME_LIMIT
       else if (strcmp(name, "REFRESH_TIME_LIMIT") == 0) {
         xmlRefreshLimit = atof(value);
-        if (xmlRefreshLimit == 0)
-          xmlRefreshLimit = 60;
       }
     }
   }
