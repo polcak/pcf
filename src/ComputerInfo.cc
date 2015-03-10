@@ -57,7 +57,7 @@ oneMoreHour(0), firstPacketReceived(false) {
 
 void ComputerInfo::output_skewbypacket_results(double skew) {
   variance = (preliminarySum2 - (preliminarySum1 * preliminarySum1) / preliminaryNumOfPackets) / (preliminaryNumOfPackets);
-  if(Configurator::instance()->outFile != "") {
+  if(Configurator::instance()->outFile != "" && (oneMoreHour != 0)) {
     std::ofstream resultFile;
     resultFile.open(Configurator::instance()->outFile, std::ofstream::app);
     std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
