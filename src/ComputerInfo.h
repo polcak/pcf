@@ -99,7 +99,7 @@ class ComputerInfo {
 
   // Public methods
   public:
-    const std::string& get_address()
+    const std::string& get_address() const
     {
       return address;
     }
