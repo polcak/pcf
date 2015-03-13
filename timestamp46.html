@@ -41,15 +41,15 @@ function uploadData6() {
 		var xmlHttp = createXmlHttpRequestObject();
 		xmlHttp.open("GET", web_server_url6+params, true);
 		xmlHttp.onreadystatechange = function(){
-			if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
+		if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
 			}
 		}
 		xmlHttp.send(null);
-    document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " success";
-    document.getElementById('ipv6status').style.backgroundColor = "lime";
+		document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " success";
+		document.getElementById('ipv6status').style.backgroundColor = "lime";
 	} catch (e) {
-    document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " failure";
-    document.getElementById('ipv6status').style.backgroundColor = "red";
+		document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " failure";
+		document.getElementById('ipv6status').style.backgroundColor = "red";
 		// alert(e.toString());
 	}
 	return false;
@@ -61,15 +61,15 @@ function uploadData4() {
 		var xmlHttp = createXmlHttpRequestObject();
 		xmlHttp.open("GET", web_server_url4+params, true);
 		xmlHttp.onreadystatechange = function(){
-			if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
+		if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
 			}
 		}
 		xmlHttp.send(null);
-    document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " success";
-    document.getElementById('ipv4status').style.backgroundColor = "lime";
+		document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " success";
+		document.getElementById('ipv4status').style.backgroundColor = "lime";
 	} catch (e) {
-    document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " failure";
-    document.getElementById('ipv4status').style.backgroundColor = "red";
+		document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " failure";
+		document.getElementById('ipv4status').style.backgroundColor = "red";
 		// alert(e.toString());
 	}
 	return false;
