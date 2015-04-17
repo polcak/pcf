@@ -47,7 +47,7 @@ void ComputerInfoList::to_poke_or_not_to_poke(std::string address) {
   save_active_computers();
 }
 
-bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double ttime, uint32_t timestamp) {
+bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double ttime, uint64_t timestamp) {
   bool found = false;
   
   // create new address
@@ -93,12 +93,12 @@ bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double tt
     if (timestamp <= known_computer.get_last_packet_timestamp() && Configurator::instance()->setFreq == 0) {
       if (Configurator::instance()->verbose)
         if (timestamp < known_computer.get_last_packet_timestamp())
-          fprintf(stderr, "%s: Lower timestamp %u %u\n", known_computer.get_address().c_str(), timestamp, known_computer.get_last_packet_timestamp());
+          fprintf(stderr, "%s: Lower timestamp %lu %lu\n", known_computer.get_address().c_str(), timestamp, known_computer.get_last_packet_timestamp());
       break;
     }
 
     // Stop tracking addresses with too high frequency
-    if (std::fabs(known_computer.get_freq()) > 10000) {
+    if (std::fabs(known_computer.get_freq()) > 100000000) {
       if (Configurator::instance()->verbose)
         fprintf(stderr, "%s: too high frequency of %d\n", known_computer.get_address().c_str(), known_computer.get_freq());
       known_computer.restart(ttime, timestamp);

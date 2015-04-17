@@ -134,7 +134,7 @@ class ComputerInfo {
       return startTime;
     }
 
-    uint32_t get_last_packet_timestamp() const
+    uint64_t get_last_packet_timestamp() const
     {
       return packets.rbegin()->Timestamp;
     }
@@ -154,9 +154,9 @@ class ComputerInfo {
      * @param[in] packet_delivered       Arrival time of the new packet
      * @param[in] timestamp              TCP timestamp of the new packet
      */
-    void insert_packet(double packet_delivered, uint32_t timestamp);
+    void insert_packet(double packet_delivered, uint64_t timestamp);
     
-    void insert_first_packet(double packet_delivered, uint32_t timestamp);
+    void insert_first_packet(double packet_delivered, uint64_t timestamp);
 
     /**
      * Recomputes related informations
@@ -170,7 +170,7 @@ class ComputerInfo {
      * @param[in] packet_delivered      Arrival time of the first packet
      * @param[in] timestamp             TCP timestamp of the first packet
      */
-    void restart(double packet_delivered, uint32_t timestamp);
+    void restart(double packet_delivered, uint64_t timestamp);
     
     /// Reduces unnecessary information about packets
     void reduce_packets(packet_iterator start, packet_iterator end);

@@ -33,7 +33,7 @@
 class PacketTimeInfo {
   public:
     double ArrivalTime;
-    uint32_t Timestamp;
+    uint64_t Timestamp;
     Point Offset;
 };
 

@@ -41,6 +41,7 @@
 #include <netinet/in_systm.h>
 
 #include "capture.h"
+#include "Computations.h"
 #include "ComputerInfoList.h"
 #include "gnuplot_graph.h"
 #include "Configurator.h"
@@ -78,7 +79,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
   // Packet arrival time (us)
   double arrival_time;
   // Timestamp
-  uint32_t timestamp;
+  uint64_t timestamp;
   int pokeOk = true;
   //
   std::string type = "";
@@ -200,7 +201,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
       int option_len = 0;
 
       if (kind == 8) {
-        timestamp = ntohl(*((uint32_t*) (&tcp_options[options_offset + 2])));
+        timestamp = ntohl(*((uint64_t*) (&tcp_options[options_offset + 2])));
 
         /// Save packet
         n_packets++;
@@ -251,18 +252,26 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
     httpRequest.append(hl, remaining_length);
 
     // find timestamp
-    std::string ts = "";
-    int found = httpRequest.find("ts=");
+    size_t found = httpRequest.find("ts=");
     if (found < 0)
       return;
+    found = found + 3;
     // check if enough data to read
-    if (found + 16 > (int) httpRequest.length())
+    if (found > httpRequest.length())
       return;
-    ts = httpRequest.substr(found + 3, 13);
-    // convert timestamp
-    long long longTimestamp = atoll(ts.c_str());
-    // convert UNIX timestamp to h:m:s:ms
-    longTimestamp = longTimestamp % (3600 * 24 * 1000);
+
+    size_t parse_pos = found;
+    uint64_t longTimestamp = Computations::ParseInteger(httpRequest, parse_pos);
+    if ((parse_pos < httpRequest.length()) && (httpRequest[parse_pos] == '.')) {
+      int dot_pos = parse_pos;
+      ++parse_pos;
+      long long decimal = Computations::ParseInteger(httpRequest, parse_pos);
+      decimal = decimal * std::pow(10, 8 - (parse_pos - dot_pos));
+      longTimestamp = longTimestamp * 10000000 + decimal;
+    }
+    if (longTimestamp == 0) {
+      return;
+    }
     // save new packet
     computersJavascript->new_packet(address, port, arrival_time, longTimestamp);
     if (Configurator::instance()->verbose) {
@@ -293,7 +302,7 @@ void GotPacket(u_char *args, const struct pcap_pkthdr *header, const u_char *pac
       return;
     // retrieve appropriate timestamp
     unsigned int * newTimestamp = (unsigned int *) icmp + 3;
-    timestamp = (uint32_t) ntohl(*newTimestamp);
+    timestamp = (uint64_t) ntohl(*newTimestamp);
     arrival_time = header->ts.tv_sec + (header->ts.tv_usec / 1000000.0);
     // save packet 
     computersIcmp->new_packet(address, 0, arrival_time, timestamp);

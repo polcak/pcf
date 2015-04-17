@@ -84,7 +84,7 @@ ComputerInfo::~ComputerInfo() {
 	}
 }
 
-void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timestamp) {
+void ComputerInfo::insert_first_packet(double packet_delivered, uint64_t timestamp) {
   firstPacketReceived = true;
   lastPacketTime = packet_delivered;
   lastConfirmedPacketTime = packet_delivered;
@@ -95,7 +95,7 @@ void ComputerInfo::insert_first_packet(double packet_delivered, uint32_t timesta
   add_empty_packet_segment(packets.begin());
 }
 
-void ComputerInfo::insert_packet(double packet_delivered, uint32_t timestamp) { // This method shouldn't suppose that skew_list contain valid information
+void ComputerInfo::insert_packet(double packet_delivered, uint64_t timestamp) { // This method shouldn't suppose that skew_list contain valid information
   PacketTimeInfo new_packet;
 
   new_packet.ArrivalTime = packet_delivered;
@@ -323,7 +323,7 @@ void ComputerInfo::reduce_packets(packet_iterator start, packet_iterator end) {
   }
 }
 
-void ComputerInfo::restart(double packet_delivered, uint32_t timestamp) {
+void ComputerInfo::restart(double packet_delivered, uint64_t timestamp) {
   packets.clear();
   freq = 0;
   lastPacketTime = packet_delivered;
@@ -485,6 +485,8 @@ int ComputerInfo::compute_freq() {
     freq = 100;
   else if (freq >= 230 && freq <= 270)
     freq = 250;
+  else if (freq >= 9990000 && freq <= 10010000)
+    freq = 10000000;
 
   if (Configurator::instance()->verbose) {
     printf("Frequency of %s (Hz): %d\n", address.c_str(), freq);
@@ -517,7 +519,7 @@ int ComputerInfo::save_packets(short rewrite) {
   /// Write to file
   char str[STRLEN_MAX];
   for (auto it = packets.begin(); it != packets.end(); ++it) {
-    snprintf(str, STRLEN_MAX, "%lf\t%lf\t%lf\t%u\n", it->Offset.x, it->Offset.y, it->ArrivalTime, it->Timestamp);
+    snprintf(str, STRLEN_MAX, "%lf\t%lf\t%lf\t%lu\n", it->Offset.x, it->Offset.y, it->ArrivalTime, it->Timestamp);
     fputs(str, f);
   }
 
