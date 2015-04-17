@@ -496,7 +496,7 @@ int ComputerInfo::compute_freq() {
   return freq;
 }
 
-int ComputerInfo::save_packets(short rewrite) {
+int ComputerInfo::save_packets(short rewrite) const {
   FILE *f;
   char filename[80] = "log/";
   std::strcat(filename, static_cast<ComputerInfoList *> (parentList)->getOutputDirectory().c_str());

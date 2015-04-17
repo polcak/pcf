@@ -92,9 +92,11 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      * Saves active computers to disk.
      */
     void save_active_computers();
+    void save_log();
 
     void to_poke_or_not_to_poke(std::string address);
     time_t lastXMLupdate;
+
 };
 
 #endif

@@ -99,7 +99,7 @@ class ComputerInfo {
 
   // Public methods
   public:
-    const std::string& get_address()
+    const std::string& get_address() const
     {
       return address;
     }
@@ -175,6 +175,13 @@ class ComputerInfo {
     /// Reduces unnecessary information about packets
     void reduce_packets(packet_iterator start, packet_iterator end);
 
+    /** 
+     * Save packets into file (called 'IP address.log')
+     * @param[in] rewrite   Boolean that conrols if the file is overwritten or the packets are appended
+     * @return 0            if ok
+     * */
+    int save_packets(short int rewrite) const;
+
   private:
     /// Performs actions after a block of packets is captured
     void recompute_block(double packet_delivered);
@@ -184,12 +191,6 @@ class ComputerInfo {
     ClockSkewPair compute_skew(const packet_iterator &start, const packet_iterator &end);
     /// Computes a new frequency
     int compute_freq();
-    /** 
-     * Save packets into file (called 'IP address.log')
-     * @param[in] rewrite   Boolean that conrols if the file is overwritten or the packets are appended
-     * @return 0            if ok
-     * */
-    int save_packets(short int rewrite);
 
 		/// Outputs summary results of clock skew computed per packet
 		void output_skewbypacket_results(double skew);

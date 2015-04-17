@@ -227,3 +227,10 @@ void ComputerInfoList::save_active_computers()
   save_active(computers, Configurator::instance()->active, *this);
 }
 
+void ComputerInfoList::save_log()
+{
+  for (auto it = computers.begin(); it != computers.end(); ++it) {
+    (*it)->save_packets(1);
+  }
+}
+

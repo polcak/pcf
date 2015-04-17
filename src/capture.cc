@@ -522,9 +522,11 @@ int StartCapturing() {
 
   if (!Configurator::instance()->tcpDisable) {
     computersTcp->save_active_computers();
+    computersTcp->save_log();
   }
   if (!Configurator::instance()->javacriptDisable) {
     computersJavascript->save_active_computers();
+    computersJavascript->save_log();
   }
   if (!Configurator::instance()->icmpDisable) {
     computersIcmp->save_active_computers();
