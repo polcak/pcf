@@ -492,9 +492,6 @@ int ComputerInfo::compute_freq() {
   if (Configurator::instance()->verbose) {
     printf("Frequency of %s (Hz): %d\n", address.c_str(), freq);
   }
-  if (Configurator::instance()->bashOutput) {
-    std::cout << " " << freq << std::endl;
-  }
   std::cout << address << " " << freq << std::endl;
   return freq;
 }
