@@ -222,7 +222,8 @@ void ComputerInfo::recompute_block(double packet_delivered) {
   last_skew.alpha = new_skew.Alpha;
   last_skew.beta = new_skew.Beta;
 
-  if ((packet_delivered - lastConfirmedPacketTime) > SKEW_VALID_AFTER) {
+  if (((packet_delivered - lastConfirmedPacketTime) > SKEW_VALID_AFTER) &&
+        (Configurator::instance()->setFreq == 0)) {
     ClockSkewPair last_skew_pair = compute_skew(last_skew.confirmed, packets.end());
     if ((std::fabs(last_skew_pair.Alpha - confirmedSkew.Alpha) < 10 * Configurator::instance()->threshold) ||
         (std::isnan(confirmedSkew.Alpha))) {
