@@ -23,6 +23,8 @@
 
 #include "PacketTimeInfo.h"
 
+#include <string>
+
 class Computations {
 public:
 /**
@@ -58,5 +60,14 @@ static void SetOffset(PacketTimeInfo &packet, const PacketTimeInfo &head, int fr
  * @return Pointer to list with convex hull points
  */
 static Point * ConvexHull(Point points[], unsigned long *number);
+
+/**
+ * Conversts a part of a string to long long
+ * @param[in] instr The input string with the number
+ * @param[in,out] pos Starting position of the integer, returns position just
+ *                    after the parsed number
+ * @return Long long value of the integer
+ */
+static uint64_t ParseInteger(const std::string& instr, size_t &pos);
 };
 #endif

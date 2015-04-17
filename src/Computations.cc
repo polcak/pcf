@@ -81,3 +81,15 @@ void Computations::SetOffset(PacketTimeInfo &packet, const PacketTimeInfo &head,
   packet.Offset.y = tmp;
 }
 
+uint64_t Computations::ParseInteger(const std::string& instr, size_t &pos) {
+  uint64_t res=0;
+  while (pos < instr.length()) {
+    char digit = instr[pos];
+    if ((digit < '0') || (digit > '9')) {
+      return res;
+    }
+    res = res*10 + static_cast<long long>(digit - '0');
+    ++pos;
+  }
+  return res;
+}
