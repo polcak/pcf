@@ -160,7 +160,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
     std::ofstream outfile;
     std::string type = static_cast<ComputerInfoList *> (parentList)->getOutputDirectory();
     type.resize(type.size() - 1);
-    outfile.open(address + "-" + type + ".dat", std::ofstream::app);
+    outfile.open("log/" + address + "-" + type + ".dat", std::ofstream::app);
     outfile << packet_delivered - startTime << "\t" << new_skew.Alpha << std::endl;
   }
 
