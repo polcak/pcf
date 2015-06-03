@@ -1,15 +1,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
-<html>
-<head>
+<html><head>
 	<title> pcf </title>
-	<meta http-equiv="content-type" content="text/html; charset=iso-8859-2" />
+	<meta http-equiv="content-type" content="text/html; charset=ISO-8859-2">
 </head>
 <body>
-
-<p>
-   PCF web page, refresh every 5 seconds.
-</p>
 
 <script type="text/javascript">
 
@@ -35,53 +29,72 @@ function createXmlHttpRequestObject() {
 	}
 }
 
-function uploadData6() {
-  var params = "ts=" + (new Date).getTime();
+function uploadDataGeneric(web_server_url, statusblock, proto) {
 	try {
 		var xmlHttp = createXmlHttpRequestObject();
-		xmlHttp.open("GET", web_server_url6+params, true);
+		xmlHttp.open("POST", web_server_url, true);
 		xmlHttp.onreadystatechange = function(){
 		if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
 			}
 		}
-		xmlHttp.send(null);
-		document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " success";
-		document.getElementById('ipv6status').style.backgroundColor = "lime";
+		curr = (new Date).getTime();
+		i = 0;
+		do {
+			prev = curr;
+			curr = (new Date).getTime();
+			i++;
+		} while (curr - prev != 1)
+  	var params = "ts=" + curr;
+		xmlHttp.send(params);
+		document.getElementById(statusblock).innerHTML = proto + params + " success " + i;
+		document.getElementById(statusblock).style.backgroundColor = "lime";
 	} catch (e) {
-		document.getElementById('ipv6status').innerHTML = "IPv6: " + params + " failure";
-		document.getElementById('ipv6status').style.backgroundColor = "red";
+		document.getElementById(statusblock).innerHTML = proto + " failure" + e;
+		document.getElementById(statusblock).style.backgroundColor = "red";
 		// alert(e.toString());
 	}
+	return false;
+}
+
+function uploadData6() {
+	uploadDataGeneric(web_server_url6, 'ipv6status', "IPv6: ");
 	return false;
 }
 
 function uploadData4() {
-  var params = "ts=" + (new Date).getTime();
-	try {
-		var xmlHttp = createXmlHttpRequestObject();
-		xmlHttp.open("GET", web_server_url4+params, true);
-		xmlHttp.onreadystatechange = function(){
-		if ((xmlHttp.readyState==4) && (xmlHttp.status==200)) {
-			}
-		}
-		xmlHttp.send(null);
-		document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " success";
-		document.getElementById('ipv4status').style.backgroundColor = "lime";
-	} catch (e) {
-		document.getElementById('ipv4status').innerHTML = "IPv4: " + params + " failure";
-		document.getElementById('ipv4status').style.backgroundColor = "red";
-		// alert(e.toString());
-	}
+	uploadDataGeneric(web_server_url4, 'ipv4status', "IPv4: ");
 	return false;
 }
 
+/// Code borrowed from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+var urlParams;
+(window.onpopstate = function () {
+	var match,
+	pl     = /\+/g,  // Regex for replacing addition symbol with a space
+	search = /([^&=]+)=?([^&]*)/g,
+	decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+	query  = window.location.search.substring(1);
 
-setInterval(uploadData4, 1000);
-setInterval(uploadData6, 1000);
+	urlParams = {};
+	while (match = search.exec(query))
+	       urlParams[decode(match[1])] = decode(match[2]);
+})();
+
+var refresh;
+if ("refresh" in urlParams) {
+	refresh = urlParams["refresh"];
+}
+else {
+	refresh = 1000;
+}
+
+setInterval(uploadData4, refresh);
+setInterval(uploadData6, refresh);
+
+document.write("<p>PCF web page, refresh every " + (refresh / 1000) + " seconds.</p>");
 </script>
 
 <div id="ipv4status" style="background-color: white;">IPv4: inactive</div>
 <div id="ipv6status" style="background-color: white;">IPv6: inactive</div>
 
-</body>
-</html>
+</body></html>
