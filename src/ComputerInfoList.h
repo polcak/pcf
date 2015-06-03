@@ -63,7 +63,7 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      * @param[in] timestamp PCAP timestamp of the packet
      * @return 0 if new IP address, 1 if computer already known
      */
-    bool new_packet(const char *address, u_int16_t port, double time, uint32_t timestamp);
+    bool new_packet(const char *address, u_int16_t port, double time, uint64_t timestamp);
 
     /**
      * Registers a new observer for clock changes
@@ -92,9 +92,11 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      * Saves active computers to disk.
      */
     void save_active_computers();
+    void save_log();
 
     void to_poke_or_not_to_poke(std::string address);
     time_t lastXMLupdate;
+
 };
 
 #endif
