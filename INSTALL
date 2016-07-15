@@ -1,7 +1,8 @@
 INSTALL
 -------
 
-It is neccessary to have these dependencies:
+The program was developed and tested in GNU/Linux. It is neccessary to have these
+dependencies:
 
 libpcap (+libpcap-dev)
 libxml2
