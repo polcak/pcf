@@ -57,7 +57,7 @@ void gnuplot_graph::generate_graph(const AnalysisInfo &changed_skew)
   int filename_max = strlen(filename_template) + address.length();
   char filename[filename_max + 1];
   snprintf(filename, filename_max, filename_template, address.c_str());
-  if (computer_skew.cbegin()->alpha == 0.0 || isnan(computer_skew.cbegin()->alpha)) {
+  if (computer_skew.cbegin()->alpha == 0.0 || std::isnan(computer_skew.cbegin()->alpha)) {
     return;
   }
 

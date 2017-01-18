@@ -262,7 +262,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
       (it->first)->Offset.x,
       (it->last)->Offset.x
     };
-    if (!std::isnan(atom.alpha) && !isnan(atom.beta)) {
+    if (!std::isnan(atom.alpha) && !std::isnan(atom.beta)) {
       s.add_atom(atom);
     }
   }
