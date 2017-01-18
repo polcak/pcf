@@ -156,7 +156,9 @@ int save_active(const std::list<ComputerInfo *> &all_computers, const char *file
     for (auto iter = ((*it)->timeSegmentList).cbegin(); iter != ((*it)->timeSegmentList).cend(); ++iter){
       tempFileStream << "\t\t\t<skew value=\""  << iter->alpha << "\" ";
       tempFileStream << "from=\"" << iter->relativeStartTime << "\" ";
-      tempFileStream << "to=\"" << iter->relativeEndTime << "\"/>\n";    
+      tempFileStream << "to=\"" << iter->relativeEndTime << "\" ";
+      tempFileStream << "absfrom=\"" << iter->startTime << "\" ";
+      tempFileStream << "absto=\"" << iter->endTime << "\"/>\n";
     }
     tempFileStream.unsetf(std::ios::fixed);
     tempFileStream << "\t\t</skews>\n";
