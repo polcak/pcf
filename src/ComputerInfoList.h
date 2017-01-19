@@ -93,6 +93,11 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
     void update_skew(const std::string &ip, const TimeSegmentList &s);
 
     /**
+     * Updates clock skew of all stored items
+     */
+    void update_all_skews();
+
+    /**
      * Returns IP addresses with similar clock skew to the IP address provided
      * @param[in] ip The IP whose clock skew will be compared
      */

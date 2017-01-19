@@ -184,6 +184,13 @@ void ComputerInfoList::update_skew(const std::string &ip, const TimeSegmentList 
   }
 }
 
+void ComputerInfoList::update_all_skews() {
+  for (auto it = computers.begin(); it != computers.end(); ++it) {
+    ComputerInfo& known_computer = **it;
+    update_skew(known_computer.get_address(), known_computer.NewTimeSegmentList);
+	}
+}
+
 const identity_container ComputerInfoList::get_similar_identities(const std::string &ip) {
   identity_container identities;
 

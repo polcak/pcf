@@ -23,6 +23,7 @@
 #include <climits>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <unistd.h>
 
 #include "Configurator.h"
@@ -45,20 +46,17 @@ void print_help()
 /**
  * Read the content of the log file and process it
  */
-void process_log_file(std::ifstream &ifs)
+void process_log_file(std::ifstream &ifs, ComputerInfoList* computers,  const char* name)
 {
-  
-  ComputerInfoList * computers = new ComputerInfoList("tcp");
-  gnuplot_graph graph_creator("tcp");
-  computers->AddObserver(&graph_creator);
- 
   double ttime, offset, arrival_time, timestamp;
+  unsigned rows = 0;
 
   while (ifs.good()) {
     ifs >> ttime >> offset >> arrival_time >> timestamp;
     
     if (ifs.good()) {
-      computers->new_packet("log_reader", 0, arrival_time, timestamp);
+      computers->new_packet(name, 0, arrival_time, timestamp);
+      rows++;
     }
   }
 }
@@ -91,14 +89,33 @@ int main(int argc, char *argv[])
         break;
     }
   }
-  
-  // Open log file
-  std::ifstream ifs (argv[argc-1], std::ifstream::in);
-  if (ifs.fail()) {
-    std::cerr << "Failed to open file " << argv[1] << std::endl;
-    return 2;
-  }
   Configurator::instance()->timeLimit = INT_MAX;
 
-  process_log_file(ifs);
+  ComputerInfoList * computers = new ComputerInfoList("tcp");
+  gnuplot_graph graph_creator("tcp");
+  computers->AddObserver(&graph_creator);
+  for (int fileindex = optind; fileindex < argc; ++fileindex) {
+    // Open log file
+    std::ifstream ifs (argv[fileindex], std::ifstream::in);
+    if (ifs.fail()) {
+      std::cerr << "Failed to open file " << argv[1] << std::endl;
+      return 2;
+    }
+
+    std::string name = argv[fileindex];
+    std::string::size_type start = name.find_last_of('/') + 1;
+    std::string::size_type end = name.rfind(".log");
+    if (start == std::string::npos) {
+      start = 0;
+    }
+    std::string::size_type count = std::string::npos;
+    if (end != std::string::npos) {
+      count = end - start;
+    }
+
+    process_log_file(ifs, computers, name.substr(start, count).c_str());
+  }
+  computers->update_all_skews();
+  computers->save_active_computers();
+  computers->save_log();
 }
