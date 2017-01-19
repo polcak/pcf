@@ -39,7 +39,17 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
     /// Last time when inactive computers were detected
     double last_inactive;
     std::string type;
-    
+
+  public:
+    /**
+     * Public attribute. Information here is stored outside this class.
+     *
+     * It is not used inside this class, except it is set to 0 in the constructor.
+     */
+    time_t lastXMLupdate;
+
+    // Private methods
+  private:
     void construct_notify(const std::string &ip, const identity_container &identitites, const TimeSegmentList &s) const;
     void construct_notify(const std::string &ip) const;
     
@@ -102,13 +112,6 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      * @param[in] address The IP address selected for ICMP active probing.
      */
     void to_poke_or_not_to_poke(std::string address);
-
-    /**
-     * Public attribute. Information here is stored outside this class.
-     *
-     * It is not used inside this class, except it is set to 0 in the constructor.
-     */
-    time_t lastXMLupdate;
 
 };
 
