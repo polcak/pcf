@@ -30,7 +30,7 @@ HEAD = capture.h ComputerInfoList.h ClockSkewPair.h Configurator.h Computations.
 OPT = -pthread -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
 DEFINE ?= 
-CXXFLAGS ?= $(DEPFLAGS) -O2 -Wall -std=c++0x $(DEFINE)
+CXXFLAGS ?= $(DEPFLAGS) -O2 -Wall -std=c++11 $(DEFINE)
 LDFLAGS ?= 
 LD = g++
 INSTALL_DIR ?= ../bin
