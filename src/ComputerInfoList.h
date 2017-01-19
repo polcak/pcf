@@ -92,9 +92,22 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
      * Saves active computers to disk.
      */
     void save_active_computers();
+    /**
+     * Saves log files to disk
+     */
     void save_log();
 
+    /**
+     * Starts ICMP active probing of the given IP address.
+     * @param[in] address The IP address selected for ICMP active probing.
+     */
     void to_poke_or_not_to_poke(std::string address);
+
+    /**
+     * Public attribute. Information here is stored outside this class.
+     *
+     * It is not used inside this class, except it is set to 0 in the constructor.
+     */
     time_t lastXMLupdate;
 
 };
