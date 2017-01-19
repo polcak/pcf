@@ -38,8 +38,6 @@
 #include "ComputerInfo.h"
 #include "check_computers.h"
 
-const size_t STRLEN_MAX = 100;
-
 const double SKEW_VALID_AFTER = 5 * 60;
 
 ComputerInfo::ComputerInfo(void * parentList, const char* its_address, uint16_t its_port) :
