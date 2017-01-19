@@ -177,10 +177,9 @@ class ComputerInfo {
 
     /** 
      * Save packets into file (called 'IP address.log')
-     * @param[in] rewrite   Boolean that conrols if the file is overwritten or the packets are appended
      * @return 0            if ok
      * */
-    int save_packets(short int rewrite) const;
+    int save_packets() const;
 
   private:
     /// Performs actions after a block of packets is captured

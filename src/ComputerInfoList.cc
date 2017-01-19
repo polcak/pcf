@@ -219,7 +219,7 @@ void ComputerInfoList::save_active_computers()
 void ComputerInfoList::save_log()
 {
   for (auto it = computers.begin(); it != computers.end(); ++it) {
-    (*it)->save_packets(1);
+    (*it)->save_packets();
   }
 }
 

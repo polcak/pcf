@@ -23,6 +23,7 @@
 #include <cmath>
 #include <cstring>
 #include <list>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -150,7 +151,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
     }
   }
   /// Save Offsets into file
-  save_packets(1);
+  save_packets();
 
   /// Recompute skew for graph
   PacketSegment &last_skew = *packetSegmentList.rbegin();
@@ -496,33 +497,24 @@ int ComputerInfo::compute_freq() {
   return freq;
 }
 
-int ComputerInfo::save_packets(short rewrite) const {
-  FILE *f;
-  char filename[80] = "log/";
-  std::strcat(filename, static_cast<ComputerInfoList *> (parentList)->getOutputDirectory().c_str());
-  std::strcat(filename, get_address().c_str());
-  std::strcat(filename, ".log");
+int ComputerInfo::save_packets() const {
+  std::stringstream filename_s;
+  filename_s << "log/" << static_cast<ComputerInfoList *> (parentList)->getOutputDirectory() <<
+    get_address() << ".log";
 
-  /// Open file
-  if (rewrite == 1)
-    f = fopen(filename, "w");
-  else
-    f = fopen(filename, "a");
+  std::ofstream f(filename_s.str());
+  f << std::setprecision(6) << std::fixed;
 
-  if (f == NULL) {
-    fprintf(stderr, "Cannot save packets into the file: %s\n", filename);
+  if (!f.good()) {
+    std::cerr << "Cannot save packets into the file: " << filename_s.str() << std::endl;
     return (2);
   }
 
   /// Write to file
-  char str[STRLEN_MAX];
   for (auto it = packets.begin(); it != packets.end(); ++it) {
-    snprintf(str, STRLEN_MAX, "%lf\t%lf\t%lf\t%lu\n", it->Offset.x, it->Offset.y, it->ArrivalTime, it->Timestamp);
-    fputs(str, f);
+    f << it->Offset.x << "\t" << it->Offset.y << "\t" << it->ArrivalTime <<
+      "\t" << it->Timestamp << std::endl;
   }
 
-  /// Close file
-  if (fclose(f) != 0)
-    fprintf(stderr, "Cannot close file: %s\n", filename);
   return (0);
 }
