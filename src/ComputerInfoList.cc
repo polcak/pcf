@@ -49,18 +49,7 @@ void ComputerInfoList::to_poke_or_not_to_poke(std::string address) {
 
 bool ComputerInfoList::new_packet(const char *address, u_int16_t port, double ttime, uint64_t timestamp) {
   bool found = false;
-  
-  // create new address
-  std::string combinedAddress;
-  if(!Configurator::instance()->portEnable){
-    combinedAddress = address;
-  }
-  else {
-    std::stringstream buffer;
-    buffer << address << '_' << port;
-    combinedAddress = buffer.str();
-  }
-  
+
   for (std::list<ComputerInfo *>::iterator it = computers.begin(); it != computers.end(); ++it) {
     if ((*it)->get_ipAddress() != address) {
       continue;
