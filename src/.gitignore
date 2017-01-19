@@ -4,3 +4,4 @@ config
 *.out
 *.swp
 *.pcap
+.d
