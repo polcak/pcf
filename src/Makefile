@@ -20,13 +20,17 @@
 
 program = pcf
 
+DEPDIR := .d
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+
 OBJ = capture.o main.o ComputerInfoList.o Configurator.o Computations.o check_computers.o ComputerInfo.o ComputerInfoIcmp.o gnuplot_graph.o SkewChangeExporter.o TimeSegmentList.o Tools.o
 LOG_READER_OBJ = log_reader.o ComputerInfoList.o Configurator.o Computations.o check_computers.o ComputerInfo.o ComputerInfoIcmp.o gnuplot_graph.o TimeSegmentList.o
 HEAD = capture.h ComputerInfoList.h ClockSkewPair.h Configurator.h Computations.h check_computers.h ComputerInfo.h ComputerInfoIcmp.h PacketTimeInfo.h Point.h Observer.h Observable.h TimeSegment.h AnalysisInfo.h gnuplot_graph.h TimeSegmentList.h Tools.h SkewChangeExporter.h
 OPT = -pthread -lpcap -lm `xml2-config --cflags --libs`
 CC = g++
 DEFINE ?= 
-CXXFLAGS ?= -O2 -Wall -std=c++0x $(DEFINE)
+CXXFLAGS ?= $(DEPFLAGS) -O2 -Wall -std=c++0x $(DEFINE)
 LDFLAGS ?= 
 LD = g++
 INSTALL_DIR ?= ../bin
