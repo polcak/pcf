@@ -20,6 +20,7 @@
 
 #include <limits.h>
 #include <cstring>
+#include <climits>
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -97,6 +98,7 @@ int main(int argc, char *argv[])
     std::cerr << "Failed to open file " << argv[1] << std::endl;
     return 2;
   }
+  Configurator::instance()->timeLimit = INT_MAX;
 
   process_log_file(ifs);
 }
