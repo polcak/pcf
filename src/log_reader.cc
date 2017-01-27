@@ -93,7 +93,6 @@ int main(int argc, char *argv[])
 
   ComputerInfoList * computers = new ComputerInfoList("tcp");
   gnuplot_graph graph_creator("tcp");
-  computers->AddObserver(&graph_creator);
   for (int fileindex = optind; fileindex < argc; ++fileindex) {
     // Open log file
     std::ifstream ifs (argv[fileindex], std::ifstream::in);
@@ -115,6 +114,7 @@ int main(int argc, char *argv[])
 
     process_log_file(ifs, computers, name.substr(start, count).c_str());
   }
+  computers->AddObserver(&graph_creator);
   computers->update_all_skews();
   computers->save_active_computers();
   computers->save_log();
