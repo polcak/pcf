@@ -354,7 +354,6 @@ void ComputerInfo::add_empty_packet_segment(packetTimeInfoList::iterator start) 
 }
 
 ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const packet_iterator &end) {
-  std::cout << "";
   // Prepare an array of all points for convex hull computation
   unsigned long pckts_count = get_packets_count();
   Point points[pckts_count];
