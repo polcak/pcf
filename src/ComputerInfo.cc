@@ -150,6 +150,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
   }
   /// Save Offsets into file
   save_packets();
+  NewTimeSegmentList.set_end_time(packet_delivered);
 
   /// Recompute skew for graph
   PacketSegment &last_skew = *packetSegmentList.rbegin();
