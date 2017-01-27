@@ -180,6 +180,10 @@ void ComputerInfo::recompute_block(double packet_delivered) {
 #ifdef DEBUG
     fprintf(stderr, "Clock skew not set for %s\n", address.c_str());
 #endif
+    add_empty_packet_segment(--packets.end());
+    confirmedSkew.Alpha = UNDEFINED_SKEW;
+    confirmedSkew.Beta = UNDEFINED_SKEW;
+    lastConfirmedPacketTime = packet_delivered;
     return;
   }
 #ifdef DEBUG
