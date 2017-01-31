@@ -65,7 +65,9 @@ class ComputerInfoList : public Observable<const AnalysisInfo> {
     std::string getOutputDirectory(){
         return type + "/";
     }
-    
+
+  // Public methods
+  public:
     /**
      * New packet processing (classify, save, compute...)
      * @param[in] address IP address of the source
