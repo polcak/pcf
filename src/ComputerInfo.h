@@ -193,6 +193,9 @@ class ComputerInfo {
 
 		/// Outputs summary results of clock skew computed per packet
 		void output_skewbypacket_results(double skew);
+
+		/// Detect jump point in last block of packets, return true if found
+		bool find_jump_point();
 };
 
 #endif

@@ -247,6 +247,7 @@ void ComputerInfo::recompute_block(double packet_delivered) {
         if (packets.size() > (unsigned int) (Configurator::instance()->block * 15))
           reduce_packets(last_skew.first, last_skew.confirmed);
     } else {
+      find_jump_point();
       add_empty_packet_segment(--packets.end());
       confirmedSkew.Alpha = UNDEFINED_SKEW;
       confirmedSkew.Beta = UNDEFINED_SKEW;
@@ -272,6 +273,42 @@ void ComputerInfo::recompute_block(double packet_delivered) {
   }
   s.set_end_time(packets.rbegin()->Offset.x + get_start_time());
   NewTimeSegmentList = s;
+}
+
+bool ComputerInfo::find_jump_point() {
+  if (std::isnan(confirmedSkew.Alpha)) {
+    return false;
+  }
+
+  PacketSegment &last_skew = *packetSegmentList.rbegin();
+  packet_iterator final_point = last_skew.last;
+  for (packet_iterator it = last_skew.last; it != packets.end(); ++it) {
+    double min_y = (last_skew.confirmedAlpha-0.001) * it->Offset.x + last_skew.confirmedBeta;
+    double max_y = (last_skew.confirmedAlpha+0.001) * it->Offset.x + last_skew.confirmedBeta;
+    std::cout << "Kvakoš " << it->Offset.x << " " << it->Offset.y << " " << min_y << " " << max_y << " ";
+    if ((it->Offset.y > min_y) && (it->Offset.y < max_y)) {
+      std::cout << "OK" << std::endl;
+      final_point = it;
+    }
+    else if (it->Offset.y > max_y) {
+      std::cout << "big" << std::endl;
+      break;
+    }
+    else {
+      std::cout << "fail" << std::endl;
+    }
+  }
+  if (final_point != last_skew.last) {
+    last_skew.last = final_point;
+    packet_iterator after_last = final_point; ++after_last;
+    std::cout << "Kvakoš last " << after_last->Offset.x;
+    ClockSkewPair final_skew = compute_skew(last_skew.first, after_last);
+    last_skew.confirmedAlpha = final_skew.Alpha;
+    last_skew.confirmedBeta = final_skew.Beta;
+    last_skew.confirmed = final_point;
+    return true;
+  }
+  return false;
 }
 
 void ComputerInfo::reduce_packets(packet_iterator start, packet_iterator end) {
