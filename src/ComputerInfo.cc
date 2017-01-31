@@ -379,7 +379,7 @@ ClockSkewPair ComputerInfo::compute_skew(const packet_iterator &start, const pac
     points[i].y = it->Offset.y;
     i++;
   }
-  pckts_count = i - 1;
+  pckts_count = i;
 
   // Compute upper convex hull, note that points are destroyed inside the function
   // and pckts_count will refer to the number of points in the convex hull when
