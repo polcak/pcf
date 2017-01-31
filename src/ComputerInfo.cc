@@ -285,23 +285,16 @@ bool ComputerInfo::find_jump_point() {
   for (packet_iterator it = last_skew.last; it != packets.end(); ++it) {
     double min_y = (last_skew.confirmedAlpha-0.001) * it->Offset.x + last_skew.confirmedBeta;
     double max_y = (last_skew.confirmedAlpha+0.001) * it->Offset.x + last_skew.confirmedBeta;
-    std::cout << "Kvakoš " << it->Offset.x << " " << it->Offset.y << " " << min_y << " " << max_y << " ";
     if ((it->Offset.y > min_y) && (it->Offset.y < max_y)) {
-      std::cout << "OK" << std::endl;
       final_point = it;
     }
     else if (it->Offset.y > max_y) {
-      std::cout << "big" << std::endl;
       break;
-    }
-    else {
-      std::cout << "fail" << std::endl;
     }
   }
   if (final_point != last_skew.last) {
     last_skew.last = final_point;
     packet_iterator after_last = final_point; ++after_last;
-    std::cout << "Kvakoš last " << after_last->Offset.x;
     ClockSkewPair final_skew = compute_skew(last_skew.first, after_last);
     last_skew.confirmedAlpha = final_skew.Alpha;
     last_skew.confirmedBeta = final_skew.Beta;
