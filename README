@@ -122,6 +122,28 @@ support for ICMP timestamps and JavaScript generated timestamps. See
 https://github.com/bfrankova/pcf, commits dd287f and 9f1c92, and
 http://www.fit.vutbr.cz/study/DP/BP.php.en?id=14704&y=2012 (in Czech).
 
+The following papers and thesis contains results obtained with PCF:
+* POLČÁK Libor, JIRÁSEK Jakub and MATOUŠEK Petr. Comment on "Remote Physical
+Device Fingerprinting". IEEE Transactions on Dependable and Secure Computing.
+Los Alamitos: IEEE Computer Society, 2014, vol. 11, no. 5, pp. 494-496.
+ISSN 1545-5971.
+Available from: https://www.computer.org/csdl/trans/tq/2014/05/06547150-abs.html
+https://www.fit.vutbr.cz/~ipolcak/pubs.php.en?id=10377
+* POLČÁK Libor and FRANKOVÁ Barbora. On Reliability of Clock-skew-based Remote
+Computer Identification. In: Proceedings of the 11th International Conference
+on Security and Cryptography. Wien: SciTePress - Science and Technology
+Publications, 2014, pp. 291-298. ISBN 978-989-758-045-1.
+Available from: https://ieeexplore.ieee.org/abstract/document/7509502 and
+https://www.fit.vutbr.cz/~ipolcak/pubs.php.en?id=10612
+* POLČÁK Libor and FRANKOVÁ Barbora. Clock-Skew-Based Computer Identification:
+Traps and Pitfalls. Journal of Universal Computer Science. 2015, vol. 21,
+no. 9, pp. 1210-1233. ISSN 0948-6968.
+Available from: http://www.jucs.org/jucs_21_9/clock_skew_based_computer
+* POLČÁK, Libor. Lawful Interception: Identity Detection. Brno, 2017. PhD.
+Thesis. Brno University of Technology, Faculty of Information Technology.
+Supervisor Švéda Miroslav.
+Available from: http://www.fit.vutbr.cz/study/DP/PD.php?id=679.
+
 The idea of computer identification based on TCP timestamps was first published
 in:
 Kohno, T.; Broido, A.; Claffy, K.: Remote physical device fingerprinting. IEEE
