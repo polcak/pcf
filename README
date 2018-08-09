@@ -40,7 +40,7 @@ file.
 It is possible to stop the program by sending SIGINT or SIGTERM.
 
 You can find more instructions about program configuration in the config file.
-All options are commented.
+All options are explained in the config file.
 
 You can configure your web server and enable web interface. You can see
 recognized computers and manage them in your browser.
@@ -54,14 +54,14 @@ src/             - source files
 
 src/
   pcf            - pcf program
-  log_reader         - log reader program
+  log_reader     - log reader program
   
-  config           - configuration file
+  config         - configuration file
 
-  graph/           - graphs of the recognized computers
-  log/             - files containing log of drifts of monitored computers. These files are
+  graph/         - graphs of the recognized computers
+  log/           - files containing log of drifts of monitored computers. These files are
       required for graph construction.
-  www/         - web interface
+  www/           - web interface
 
 Program description
 -------------------
